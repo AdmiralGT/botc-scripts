@@ -1,8 +1,17 @@
 <h1>{{ script.name }}</h1>
 
 <h2>{{ script.type }}</h2>
-<h2>{{ script.latest_version.version }}</h2>
+<h2>{{ script_version.version }}</h2>
 
-{% for role in script.latest_version.content %}
+
+{% for role in script_version.content %}
     <li>{{ role.id }}</li>
 {% endfor %}
+
+<form>
+<select id="sel_id" name="sel_name"  onchange="this.form.submit();">
+    {% for versions in script.versions.all %}
+        <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
+    {% endfor %}
+</select>    
+</form>
