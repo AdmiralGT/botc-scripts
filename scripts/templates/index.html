@@ -1,0 +1,11 @@
+<h1>Script</h1>
+
+{% if object_list %}
+    <ul>
+    {% for script in object_list %}
+        <li><a href="/script/{{ script.id }}">{{ script.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No Scripts are available.</p>
+{% endif %}

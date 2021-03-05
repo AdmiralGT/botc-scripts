@@ -12,6 +12,9 @@ class Script(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=20, choices=ScriptTypes.choices)
 
+    def latest_version(self):
+        return self.versions.last()
+
 class ScriptVersion(models.Model):
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="versions")
     version = VersionField()
