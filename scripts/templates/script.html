@@ -2,3 +2,7 @@
 
 <h2>{{ script.type }}</h2>
 <h2>{{ script.latest_version.version }}</h2>
+
+{% for role in script.latest_version.content %}
+    <li>{{ role.id }}</li>
+{% endfor %}
