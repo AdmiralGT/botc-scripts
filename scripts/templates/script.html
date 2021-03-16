@@ -15,3 +15,6 @@
     {% endfor %}
 </select>    
 </form>
+
+{% csrf_token %}
+<a class="button" href="{% url 'download' script.pk script_version.version %}">Download</a>
