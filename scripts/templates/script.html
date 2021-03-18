@@ -5,7 +5,9 @@
 
 
 {% for role in script_version.content %}
-    <li>{{ role.id }}</li>
+    {% if role.id != "_meta" %}
+        <li>{{ role.id }}</li>
+    {% endif %}
 {% endfor %}
 
 <form>
