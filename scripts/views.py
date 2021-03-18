@@ -5,7 +5,6 @@ from django.http import HttpResponse, FileResponse
 from django.views import generic
 from . import models, forms
 from tempfile import TemporaryFile
-from packaging.version import Version
 import os
 import json
 
@@ -33,9 +32,13 @@ class ScriptView(generic.DetailView):
 class ScriptUploadView(generic.FormView):
     template_name = "upload.html"
     form_class = forms.ScriptForm
+    script_version = None
 
     def validate_json(self, json_data):
         pass
+
+    def get_success_url(self):
+        return '/script/' + str(self.script_version.script.pk)
 
     def form_valid(self, form):
         json_content = form.cleaned_data["content"]
@@ -44,19 +47,10 @@ class ScriptUploadView(generic.FormView):
         script, created = models.Script.objects.get_or_create(
             name=form.cleaned_data["name"]
         )
-        if script.versions.count() == 0:
-            models.ScriptVersion.objects.create(
-                version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json_loaded, script=script
-            )
-        elif Version(form.cleaned_data["version"]) < Version(
-            str(script.latest_version().version)
-        ):
-            print("Bad Version")
-        else:
-            models.ScriptVersion.objects.create(
-                version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json_loaded, script=script
-            )
-        return HttpResponse()
+        self.script_version = models.ScriptVersion.objects.create(
+            version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json_loaded, script=script
+        )
+        return super().form_valid(form)
 
 
 def download_script(self, pk: int, version: str) -> FileResponse:
