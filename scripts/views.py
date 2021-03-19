@@ -3,8 +3,9 @@ from django.shortcuts import render
 # Create your views here.
 from django.http import HttpResponse, FileResponse
 from django.views import generic
-from . import models, forms
+from . import models, forms, tables
 from tempfile import TemporaryFile
+from django_tables2 import SingleTableView
 import os
 import json as js
 
@@ -13,6 +14,11 @@ class ScriptsView(generic.ListView):
     template_name = "index.html"
     model = models.Script
 
+
+class ScriptsListView(SingleTableView):
+    model = models.Script
+    table_class = tables.PersonTable
+    template_name = "table.html"
 
 class ScriptView(generic.DetailView):
     template_name = "script.html"

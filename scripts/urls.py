@@ -11,4 +11,5 @@ urlpatterns = [
         "script/<int:pk>/<str:version>/download_pdf", views.download_pdf, name="download_pdf"
     ),
     path("upload", views.ScriptUploadView.as_view()),
+    path("table", views.ScriptsListView.as_view())
 ]
