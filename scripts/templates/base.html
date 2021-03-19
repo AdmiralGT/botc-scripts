@@ -3,12 +3,20 @@
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
 
-<div class="navbar">
-    <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/upload">Upload</a></li>
-    </ul>
-</div>
+<nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand">BotC Scripts</a>
+  
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/upload">Upload</a>
+            </li>
+        </ul>
+    </div>
+</nav>
 
 <div class="content">
     {% block content %}
