@@ -24,7 +24,7 @@ class ScriptVersion(models.Model):
     type = models.CharField(max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.RAVENSWOOD)
     version = VersionField()
     content = models.JSONField()
-    # pdf = models.FileField(null=True)
+    pdf = models.FileField(null=True)
 
 
 class Comment(models.Model):

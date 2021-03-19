@@ -6,7 +6,7 @@ from django.views import generic
 from . import models, forms
 from tempfile import TemporaryFile
 import os
-import json
+import json as js
 
 
 class ScriptsView(generic.ListView):
@@ -42,18 +42,18 @@ class ScriptUploadView(generic.FormView):
 
     def form_valid(self, form):
         json_content = form.cleaned_data["content"]
-        json_blob = json_content.read().decode("utf-8")
-        json_loaded = json.loads(json_blob)
+        json = js.loads(json_content.read().decode("utf-8"))
         script, created = models.Script.objects.get_or_create(
             name=form.cleaned_data["name"]
         )
+        print(form.cleaned_data)
         self.script_version = models.ScriptVersion.objects.create(
-            version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json_loaded, script=script
+            version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json, script=script, pdf=form.cleaned_data["pdf"]
         )
         return super().form_valid(form)
 
 
-def download_script(self, pk: int, version: str) -> FileResponse:
+def download_json(self, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     json_content = json.JSONEncoder().encode(script_version.content)
@@ -65,3 +65,8 @@ def download_script(self, pk: int, version: str) -> FileResponse:
         temp_file, as_attachment=True, filename=(script.name + ".json")
     )
     return response
+
+def download_pdf(self, pk: int, version: str) -> FileResponse:
+    script = models.Script.objects.get(pk=pk)
+    script_version = script.versions.get(version=version)
+    return FileResponse(open(script_version.pdf.name, 'rb'), as_attachment=True)

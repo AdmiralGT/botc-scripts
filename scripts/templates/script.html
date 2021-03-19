@@ -23,6 +23,8 @@
 </form>
 
 {% csrf_token %}
-<a class="button" href="{% url 'download' script.pk script_version.version %}">Download</a>
-
+<a class="button" href="{% url 'download_json' script.pk script_version.version %}">Download JSON</a>
+{% if script_version.pdf %}
+<a class="button" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
+{% endif %}
 {% endblock %}
