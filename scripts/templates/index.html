@@ -1,3 +1,6 @@
+{% extends 'base.html' %}
+
+{% block content %}
 <h1>Script</h1>
 
 {% if object_list %}
@@ -9,3 +12,4 @@
 {% else %}
     <p>No Scripts are available.</p>
 {% endif %}
+{% endblock %}

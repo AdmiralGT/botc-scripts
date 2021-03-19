@@ -1,3 +1,7 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
 <h1>{{ script.name }}</h1>
 
 <h2>{{ script_version.type }}</h2>
@@ -20,3 +24,5 @@
 
 {% csrf_token %}
 <a class="button" href="{% url 'download' script.pk script_version.version %}">Download</a>
+
+{% endblock %}
