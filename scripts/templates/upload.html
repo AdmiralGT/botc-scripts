@@ -1,11 +1,18 @@
 {% extends 'base.html' %}
 
+{% load bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+
 {% block content %}
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
-    <div><input type="submit" value="Submit" /></div>
+    {% bootstrap_form form %}
+    {% buttons %}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    {% endbuttons %}
 </form>
   
 {% endblock %}
