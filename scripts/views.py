@@ -40,15 +40,22 @@ class ScriptUploadView(generic.FormView):
     def get_success_url(self):
         return '/script/' + str(self.script_version.script.pk)
 
+    def get_author(self, json):
+        for item in json:
+            if item.get("id", "") == "_meta":
+                return item.get("author")
+        return None
+
+
     def form_valid(self, form):
         json_content = form.cleaned_data["content"]
         json = js.loads(json_content.read().decode("utf-8"))
         script, created = models.Script.objects.get_or_create(
             name=form.cleaned_data["name"]
         )
-        print(form.cleaned_data)
+        author = self.get_author(json)
         self.script_version = models.ScriptVersion.objects.create(
-            version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json, script=script, pdf=form.cleaned_data["pdf"]
+            version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json, script=script, pdf=form.cleaned_data["pdf"], author=author
         )
         return super().form_valid(form)
 
