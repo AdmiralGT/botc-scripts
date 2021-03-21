@@ -10,12 +10,10 @@ class ScriptTable(tables.Table):
     name = tables.Column(empty_values=(), order_by='script.name')
     author = tables.Column()
     version = tables.Column()
-    json = tables.Column()
-    pdf = tables.Column()
+    json = tables.Column(orderable=False)
+    pdf = tables.Column(orderable=False)
 
     def render_name(self, value, record):
-        print(value)
-        print(record)
         return record.script.name
 
     def render_type(self, value, record):

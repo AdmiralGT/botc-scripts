@@ -3,9 +3,10 @@ from django.shortcuts import render
 # Create your views here.
 from django.http import HttpResponse, FileResponse
 from django.views import generic
-from . import models, forms, tables
+from . import models, forms, tables, filters
 from tempfile import TemporaryFile
-from django_tables2 import SingleTableView
+from django_tables2.views import SingleTableMixin
+from django_filters.views import FilterView
 import os
 import json as js
 
@@ -15,10 +16,11 @@ class ScriptsView(generic.ListView):
     model = models.Script
 
 
-class ScriptsListView(SingleTableView):
+class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
     table_class = tables.ScriptTable
     template_name = "table.html"
+    filterset_class = filters.ScriptVersionFilter
 
 class ScriptView(generic.DetailView):
     template_name = "script.html"
