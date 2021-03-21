@@ -16,8 +16,8 @@ class ScriptsView(generic.ListView):
 
 
 class ScriptsListView(SingleTableView):
-    model = models.Script
-    table_class = tables.PersonTable
+    model = models.ScriptVersion
+    table_class = tables.ScriptTable
     template_name = "table.html"
 
 class ScriptView(generic.DetailView):

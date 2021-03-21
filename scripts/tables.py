@@ -1,7 +1,22 @@
 import django_tables2 as tables
-from .models import Script
+from .models import Script, ScriptVersion
 
-class PersonTable(tables.Table):
+class ScriptTable(tables.Table):
     class Meta:
-        model = Script
-        template_name = "django_tables2/bootstrap4.html"
+        model = ScriptVersion
+        exclude = ('id','content','script')
+        sequence = ('name', 'type', 'version', 'author', 'json', 'pdf')
+
+    name = tables.Column(empty_values=())
+    author = tables.Column()
+    version = tables.Column()
+    json = tables.Column()
+    pdf = tables.Column()
+
+    def render_name(self, value, record):
+        print(value)
+        print(record)
+        return record.script.name
+
+    def render_type(self, value, record):
+        return record.type
