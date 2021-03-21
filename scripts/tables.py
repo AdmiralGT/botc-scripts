@@ -7,7 +7,7 @@ class ScriptTable(tables.Table):
         exclude = ('id','content','script')
         sequence = ('name', 'type', 'version', 'author', 'json', 'pdf')
 
-    name = tables.Column(empty_values=())
+    name = tables.Column(empty_values=(), order_by='script.name')
     author = tables.Column()
     version = tables.Column()
     json = tables.Column()
