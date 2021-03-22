@@ -71,7 +71,10 @@ class ScriptUploadView(generic.FormView):
 def download_json(self, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
-    json_content = json.JSONEncoder().encode(script_version.content)
+    print(script)
+    print(script_version)
+    print(script_version.content)
+    json_content = js.JSONEncoder().encode(script_version.content)
     temp_file = TemporaryFile()
     temp_file.write(json_content.encode("utf-8"))
     temp_file.flush()
