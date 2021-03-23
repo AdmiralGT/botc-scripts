@@ -23,6 +23,7 @@ class ScriptsListView(SingleTableMixin, FilterView):
             kwargs["data"] = {"latest": True}
         return kwargs
 
+
 class ScriptView(generic.DetailView):
     template_name = "script.html"
     model = models.Script
@@ -47,14 +48,13 @@ class ScriptUploadView(generic.FormView):
         pass
 
     def get_success_url(self):
-        return '/script/' + str(self.script_version.script.pk)
+        return "/script/" + str(self.script_version.script.pk)
 
     def get_author(self, json):
         for item in json:
             if item.get("id", "") == "_meta":
                 return item.get("author")
         return None
-
 
     def form_valid(self, form):
         json_content = form.cleaned_data["content"]
@@ -68,7 +68,12 @@ class ScriptUploadView(generic.FormView):
             latest.save()
         author = self.get_author(json)
         self.script_version = models.ScriptVersion.objects.create(
-            version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json, script=script, pdf=form.cleaned_data["pdf"], author=author
+            version=form.cleaned_data["version"],
+            type=form.cleaned_data["type"],
+            content=json,
+            script=script,
+            pdf=form.cleaned_data["pdf"],
+            author=author,
         )
         return super().form_valid(form)
 
@@ -86,7 +91,8 @@ def download_json(self, pk: int, version: str) -> FileResponse:
     )
     return response
 
+
 def download_pdf(self, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
-    return FileResponse(open(script_version.pdf.name, 'rb'), as_attachment=True)
+    return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True)

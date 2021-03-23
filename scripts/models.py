@@ -22,7 +22,9 @@ class ScriptVersion(models.Model):
         Script, on_delete=models.CASCADE, related_name="versions"
     )
     latest = models.BooleanField(default=True)
-    type = models.CharField(max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.RAVENSWOOD)
+    type = models.CharField(
+        max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.RAVENSWOOD
+    )
     author = models.CharField(max_length=100, null=True, blank=True)
     version = VersionField()
     content = models.JSONField()
