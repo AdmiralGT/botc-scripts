@@ -21,11 +21,14 @@ class ScriptVersion(models.Model):
     script = models.ForeignKey(
         Script, on_delete=models.CASCADE, related_name="versions"
     )
-    type = models.CharField(max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.RAVENSWOOD)
-    author = models.CharField(max_length=100, null=True)
+    latest = models.BooleanField(default=True)
+    type = models.CharField(
+        max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.RAVENSWOOD
+    )
+    author = models.CharField(max_length=100, null=True, blank=True)
     version = VersionField()
     content = models.JSONField()
-    pdf = models.FileField(null=True)
+    pdf = models.FileField(null=True, blank=True)
 
 
 class Comment(models.Model):

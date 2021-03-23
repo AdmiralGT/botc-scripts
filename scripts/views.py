@@ -3,15 +3,25 @@ from django.shortcuts import render
 # Create your views here.
 from django.http import HttpResponse, FileResponse
 from django.views import generic
-from . import models, forms
+from . import models, forms, tables, filters
 from tempfile import TemporaryFile
+from django_tables2.views import SingleTableMixin
+from django_filters.views import FilterView
 import os
 import json as js
 
 
-class ScriptsView(generic.ListView):
-    template_name = "index.html"
-    model = models.Script
+class ScriptsListView(SingleTableMixin, FilterView):
+    model = models.ScriptVersion
+    table_class = tables.ScriptTable
+    template_name = "table.html"
+    filterset_class = filters.ScriptVersionFilter
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
+        if kwargs["data"] is None:
+            kwargs["data"] = {"latest": True}
+        return kwargs
 
 
 class ScriptView(generic.DetailView):
@@ -38,7 +48,7 @@ class ScriptUploadView(generic.FormView):
         pass
 
     def get_success_url(self):
-        return '/script/' + str(self.script_version.script.pk)
+        return "/script/" + str(self.script_version.script.pk)
 
     def get_author(self, json):
         for item in json:
@@ -46,16 +56,24 @@ class ScriptUploadView(generic.FormView):
                 return item.get("author")
         return None
 
-
     def form_valid(self, form):
         json_content = form.cleaned_data["content"]
         json = js.loads(json_content.read().decode("utf-8"))
         script, created = models.Script.objects.get_or_create(
             name=form.cleaned_data["name"]
         )
+        if script.versions.count() > 0:
+            latest = script.latest_version()
+            latest.latest = False
+            latest.save()
         author = self.get_author(json)
         self.script_version = models.ScriptVersion.objects.create(
-            version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json, script=script, pdf=form.cleaned_data["pdf"], author=author
+            version=form.cleaned_data["version"],
+            type=form.cleaned_data["type"],
+            content=json,
+            script=script,
+            pdf=form.cleaned_data["pdf"],
+            author=author,
         )
         return super().form_valid(form)
 
@@ -63,7 +81,7 @@ class ScriptUploadView(generic.FormView):
 def download_json(self, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
-    json_content = json.JSONEncoder().encode(script_version.content)
+    json_content = js.JSONEncoder().encode(script_version.content)
     temp_file = TemporaryFile()
     temp_file.write(json_content.encode("utf-8"))
     temp_file.flush()
@@ -73,7 +91,8 @@ def download_json(self, pk: int, version: str) -> FileResponse:
     )
     return response
 
+
 def download_pdf(self, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
-    return FileResponse(open(script_version.pdf.name, 'rb'), as_attachment=True)
+    return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True)

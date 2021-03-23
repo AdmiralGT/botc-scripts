@@ -7,7 +7,9 @@ from packaging.version import Version
 
 class ScriptForm(forms.Form):
     name = forms.CharField(max_length=100)
-    type = forms.ChoiceField(choices=models.ScriptTypes.choices, initial=models.ScriptTypes.RAVENSWOOD)
+    type = forms.ChoiceField(
+        choices=models.ScriptTypes.choices, initial=models.ScriptTypes.RAVENSWOOD
+    )
     version = forms.CharField(max_length=20)
     content = forms.FileField(validators=[FileExtensionValidator(["json"])])
     pdf = forms.FileField(required=False, validators=[FileExtensionValidator(["pdf"])])
@@ -24,8 +26,8 @@ class ScriptForm(forms.Form):
                 latest_version = str(script.latest_version().version)
 
             if Version(new_version) <= Version(latest_version):
-                raise ValidationError(f"Version {new_version} must be newer than latest version {latest_version}")    
+                raise ValidationError(
+                    f"Version {new_version} must be newer than latest version {latest_version}"
+                )
         except models.Script.DoesNotExist:
             pass
-
-
