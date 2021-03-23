@@ -14,7 +14,7 @@ import json as js
 class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
     table_class = tables.ScriptTable
-    template_name = "table.html"
+    template_name = "index.html"
     filterset_class = filters.ScriptVersionFilter
 
     def get_filterset_kwargs(self, filterset_class):
