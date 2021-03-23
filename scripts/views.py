@@ -22,6 +22,12 @@ class ScriptsListView(SingleTableMixin, FilterView):
     template_name = "table.html"
     filterset_class = filters.ScriptVersionFilter
 
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
+        if kwargs["data"] is None:
+            kwargs["data"] = {"latest": True}
+        return kwargs
+
 class ScriptView(generic.DetailView):
     template_name = "script.html"
     model = models.Script
@@ -61,6 +67,10 @@ class ScriptUploadView(generic.FormView):
         script, created = models.Script.objects.get_or_create(
             name=form.cleaned_data["name"]
         )
+        if script.versions.count() > 0:
+            latest = script.latest_version()
+            latest.latest = False
+            latest.save()
         author = self.get_author(json)
         self.script_version = models.ScriptVersion.objects.create(
             version=form.cleaned_data["version"], type=form.cleaned_data["type"], content=json, script=script, pdf=form.cleaned_data["pdf"], author=author
@@ -71,9 +81,6 @@ class ScriptUploadView(generic.FormView):
 def download_json(self, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
-    print(script)
-    print(script_version)
-    print(script_version.content)
     json_content = js.JSONEncoder().encode(script_version.content)
     temp_file = TemporaryFile()
     temp_file.write(json_content.encode("utf-8"))
