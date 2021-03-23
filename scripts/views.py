@@ -11,11 +11,6 @@ import os
 import json as js
 
 
-class ScriptsView(generic.ListView):
-    template_name = "index.html"
-    model = models.Script
-
-
 class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
     table_class = tables.ScriptTable
