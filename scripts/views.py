@@ -3,7 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from django.http import HttpResponse, FileResponse
 from django.views import generic
-from . import models, forms, tables, filters
+from . import models, forms, tables, filters, serializers
 from tempfile import TemporaryFile
 from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
