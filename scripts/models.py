@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from versionfield import VersionField
+from .managers import ScriptViewManager
 
 
 class ScriptTypes(models.TextChoices):
@@ -30,6 +31,7 @@ class ScriptVersion(models.Model):
     content = models.JSONField()
     pdf = models.FileField(null=True, blank=True)
 
+    objects = ScriptViewManager()
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
@@ -39,3 +41,7 @@ class Comment(models.Model):
     comment = models.CharField(max_length=500)
     created = models.DateTimeField(auto_now_add=True)
     # Might want to have a parent field so can have threads
+
+class Vote(models.Model):
+    token = models.CharField(max_length=50)
+    script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="votes")

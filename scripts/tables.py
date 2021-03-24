@@ -6,7 +6,7 @@ class ScriptTable(tables.Table):
     class Meta:
         model = ScriptVersion
         exclude = ("id", "content", "script", "latest")
-        sequence = ("name", "type", "version", "author", "json", "pdf")
+        sequence = ("name", "type", "version", "author", "score", "json", "pdf")
 
     name = tables.Column(
         empty_values=(),
@@ -33,6 +33,7 @@ class ScriptTable(tables.Table):
             {"pk": tables.A("script.pk"), "version": tables.A("version")},
         ),
     )
+    score = tables.Column()
 
     def render_name(self, value, record):
         return record.script.name
