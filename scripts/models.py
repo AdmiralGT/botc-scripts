@@ -45,3 +45,6 @@ class Comment(models.Model):
 class Vote(models.Model):
     token = models.CharField(max_length=50)
     script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="votes")
+
+    class Meta:
+        unique_together = ('token', 'script', )

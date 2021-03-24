@@ -1,8 +1,14 @@
-from django.urls import path
-from . import views
+from django.urls import include, path
+from . import views, viewsets
+from rest_framework import routers
+
+# Routers provide an easy way of automatically determining the URL conf.
+router = routers.DefaultRouter()
+router.register(r'scripts', viewsets.ScriptViewSet)
 
 urlpatterns = [
     path("", views.ScriptsListView.as_view()),
+    path("api/", include(router.urls)),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path(
