@@ -4,15 +4,15 @@ from .models import ScriptVersion, Script
 
 
 class ScriptVersionFilter(django_filters.FilterSet):
-    latest = django_filters.filters.BooleanFilter(
-        method="display_latest", widget=forms.CheckboxInput, initial=True
+    all_scripts = django_filters.filters.BooleanFilter(
+        method="display_all_scripts", widget=forms.CheckboxInput, label="Display All"
     )
 
-    def display_latest(self, queryset, name, value):
-        if value:
-            return queryset.filter(latest=value)
+    def display_all_scripts(self, queryset, name, value):
+        if not value:
+            return queryset.filter(latest=(not value))
         return queryset
 
     class Meta:
         model = ScriptVersion
-        fields = ["type", "latest"]
+        fields = ["type", "all_scripts"]
