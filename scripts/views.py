@@ -7,6 +7,7 @@ from . import models, forms, tables, filters, serializers
 from tempfile import TemporaryFile
 from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
+from django.shortcuts import redirect
 import os
 import json as js
 
@@ -78,7 +79,15 @@ class ScriptUploadView(generic.FormView):
         return super().form_valid(form)
 
 
-def download_json(self, pk: int, version: str) -> FileResponse:
+def vote_for_script(request, pk: int):
+    script_version = models.ScriptVersion.objects.get(pk=pk)
+    if not request.session.get(str(pk), False):
+        models.Vote.objects.create(script=script_version)
+    request.session[str(pk)] = True
+    return redirect(request.POST['next'])
+
+
+def download_json(request, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     json_content = js.JSONEncoder().encode(script_version.content)
@@ -92,7 +101,7 @@ def download_json(self, pk: int, version: str) -> FileResponse:
     return response
 
 
-def download_pdf(self, pk: int, version: str) -> FileResponse:
+def download_pdf(request, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True)

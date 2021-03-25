@@ -6,7 +6,7 @@ class ScriptTable(tables.Table):
     class Meta:
         model = ScriptVersion
         exclude = ("id", "content", "script", "latest")
-        sequence = ("name", "type", "version", "author", "score", "json", "pdf")
+        sequence = ("name", "type", "version", "author", "score", "json", "pdf", "vote")
 
     name = tables.Column(
         empty_values=(),
@@ -34,6 +34,7 @@ class ScriptTable(tables.Table):
         ),
     )
     score = tables.Column()
+    vote = tables.TemplateColumn(orderable=False, template_name="vote.html")
 
     def render_name(self, value, record):
         return record.script.name

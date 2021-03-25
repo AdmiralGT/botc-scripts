@@ -43,8 +43,5 @@ class Comment(models.Model):
     # Might want to have a parent field so can have threads
 
 class Vote(models.Model):
-    token = models.CharField(max_length=50)
     script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="votes")
-
-    class Meta:
-        unique_together = ('token', 'script', )
+    created = models.DateTimeField(auto_now=True)

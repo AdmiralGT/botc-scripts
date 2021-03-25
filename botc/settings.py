@@ -126,3 +126,5 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'PAGE_SIZE': 10
 }
+
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"

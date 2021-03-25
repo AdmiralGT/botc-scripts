@@ -10,6 +10,7 @@ urlpatterns = [
     path("", views.ScriptsListView.as_view()),
     path("api/", include(router.urls)),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
+    path("script/<int:pk>/vote", views.vote_for_script, name="vote"),
     path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path(
         "script/<int:pk>/<str:version>/download",

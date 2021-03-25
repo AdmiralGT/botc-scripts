@@ -1,0 +1,10 @@
+{% load bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+
+<form action="{% url 'vote' record.pk %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button type="submit" class="btn btn-info btn-sm">Vote</button>
+</form>
