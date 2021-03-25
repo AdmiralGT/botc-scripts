@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 # Create your views here.
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, Http404
 from django.views import generic
 from . import models, forms, tables, filters, serializers
 from tempfile import TemporaryFile
@@ -80,6 +80,8 @@ class ScriptUploadView(generic.FormView):
 
 
 def vote_for_script(request, pk: int):
+    if request.method != "POST":
+        raise Http404()
     script_version = models.ScriptVersion.objects.get(pk=pk)
     if not request.session.get(str(pk), False):
         models.Vote.objects.create(script=script_version)
