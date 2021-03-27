@@ -7,7 +7,11 @@
 <h2>{{ script_version.author }}</h2>
 {% endif %}
 
-<h2>{{ script_version.type }}</h2>
+{% csrf_token %}
+<a class="btn btn-primary" href="{% url 'download_json' script.pk script_version.version %}">Download JSON</a>
+{% if script_version.pdf %}
+<a class="btn btn-primary" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
+{% endif %}
 
 {% for role in script_version.content %}
     {% if role.id != "_meta" %}
@@ -15,18 +19,12 @@
     {% endif %}
 {% endfor %}
 
-
 <form>
-<select id="sel_id" name="sel_name"  onchange="this.form.submit();">
+<select class="custom-select" id="sel_id" name="sel_name"  onchange="this.form.submit();">
     {% for versions in script.versions.all %}
         <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
     {% endfor %}
 </select>    
 </form>
 
-{% csrf_token %}
-<a class="button" href="{% url 'download_json' script.pk script_version.version %}">Download JSON</a>
-{% if script_version.pdf %}
-<a class="button" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
-{% endif %}
 {% endblock %}
