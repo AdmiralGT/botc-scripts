@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "versionfield",
     "django_tables2",
     "bootstrap4",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -114,3 +115,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = "/static/"
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'PAGE_SIZE': 10
+}
+
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"

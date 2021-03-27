@@ -128,6 +128,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "djangorestframework"
+version = "3.12.2"
+description = "Web APIs for Django, made easy."
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.dependencies]
+django = ">=2.2"
+
+[[package]]
 name = "mypy-extensions"
 version = "0.4.3"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
@@ -221,7 +232,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "02a1f3bc196f3e0277710b28ad01d6f1b019aeded48015bcfcbad46fdc126232"
+content-hash = "82f9b6a924c11e75b431562a55b18b1312014b9e3263adb9cbed41506c88dec2"
 
 [metadata.files]
 appdirs = [
@@ -263,6 +274,10 @@ django-tables2 = [
 django-versionfield = [
     {file = "django-versionfield-1.0.2.tar.gz", hash = "sha256:642230715f3745618dbcd07be014ee27c16f6b36bdef33b36ded8247d610aed1"},
     {file = "django_versionfield-1.0.2-py3-none-any.whl", hash = "sha256:1c35a372103c28a76c89ff8c620b779ed872c8970ecaa11e60be211ba37c42cd"},
+]
+djangorestframework = [
+    {file = "djangorestframework-3.12.2-py3-none-any.whl", hash = "sha256:0209bafcb7b5010fdfec784034f059d512256424de2a0f084cb82b096d6dd6a7"},
+    {file = "djangorestframework-3.12.2.tar.gz", hash = "sha256:0898182b4737a7b584a2c73735d89816343369f259fea932d90dc78e35d8ac33"},
 ]
 mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
