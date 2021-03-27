@@ -3,7 +3,7 @@
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
 
-<form action="{% url 'vote' record.pk %}" method="post">
+<form class="mb-0" action="{% url 'vote' record.pk %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
     {% if record.pk|slugify in request.session.keys %}

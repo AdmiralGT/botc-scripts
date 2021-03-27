@@ -18,20 +18,13 @@ class ScriptTable(tables.Table):
     )
     author = tables.Column()
     version = tables.Column()
-    json = tables.Column(
-        empty_values=(),
+    json = tables.TemplateColumn(
         orderable=False,
-        linkify=(
-            "download_json",
-            {"pk": tables.A("script.pk"), "version": tables.A("version")},
-        ),
+        template_name="download_json.html"
     )
-    pdf = tables.Column(
+    pdf = tables.TemplateColumn(
         orderable=False,
-        linkify=(
-            "download_pdf",
-            {"pk": tables.A("script.pk"), "version": tables.A("version")},
-        ),
+        template_name="download_pdf.html"
     )
     score = tables.Column()
     vote = tables.TemplateColumn(orderable=False, template_name="vote.html")
@@ -41,6 +34,3 @@ class ScriptTable(tables.Table):
 
     def render_type(self, value, record):
         return record.type
-
-    def render_json(self, value, record):
-        return "Download"
