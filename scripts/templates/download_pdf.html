@@ -1,0 +1,3 @@
+{% if record.pdf %}
+<a class="btn btn-primary btn-sm" href="{% url 'download_pdf' record.script.pk record.version %}">PDF</a>
+{% endif %}
