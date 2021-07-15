@@ -21,7 +21,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
-DEBUG = os.environ.get('DEBUG', False)
+DEBUG = os.environ.get('DEBUG', False) == "True"
 
 # DBHOST is only the server name, not the full URL
 hostname = os.environ.get('DBHOST')
