@@ -17,9 +17,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',                    
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG', False) == "True"
 
@@ -37,3 +34,18 @@ DATABASES = {
         'PASSWORD': os.environ.get('DBPASS')
     }
 }
+
+
+AZURE_ACCOUNT_NAME = os.environ.get('AZURE_ACCOUNT_NAME', 'botcscripts')
+AZURE_CUSTOM_DOMAIN = hostname + os.environ.get('.azureedge.net')
+AZURE_STORAGE_KEY = os.environ.get('AZURE_STORAGE_KEY', False)
+
+DEFAULT_FILE_STORAGE = 'botc.storage.AzureMediaStorage'
+AZURE_MEDIA_CONTAINER = os.environ.get('AZURE_MEDIA_CONTAINER', 'media')
+MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_MEDIA_CONTAINER}/'
+
+STATICFILES_STORAGE = 'botc.storage.AzureStaticStorage'  
+AZURE_STATIC_CONTAINER = os.environ.get('AZURE_STATIC_CONTAINER', 'static')
+STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

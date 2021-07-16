@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django_tables2",
     "bootstrap4",
     "rest_framework",
+    "storages",
 ]
 
 MIDDLEWARE = [
