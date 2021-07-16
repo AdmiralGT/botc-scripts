@@ -11,8 +11,8 @@ class ScriptForm(forms.Form):
         choices=models.ScriptTypes.choices, initial=models.ScriptTypes.RAVENSWOOD
     )
     version = forms.CharField(max_length=20)
-    content = forms.FileField(validators=[FileExtensionValidator(["json"])])
-    pdf = forms.FileField(required=False, validators=[FileExtensionValidator(["pdf"])])
+    content = forms.FileField(label='JSON', validators=[FileExtensionValidator(["json"])])
+    pdf = forms.FileField(label='PDF', required=False, validators=[FileExtensionValidator(["pdf"])])
 
     def clean(self):
         cleaned_data = super().clean()
