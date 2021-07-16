@@ -106,4 +106,4 @@ def download_json(request, pk: int, version: str) -> FileResponse:
 def download_pdf(request, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
-    return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True)
+    return FileResponse(open(script_version.pdf.url, "rb"), as_attachment=True)

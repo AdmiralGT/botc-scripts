@@ -39,6 +39,7 @@ DATABASES = {
 AZURE_ACCOUNT_NAME = os.environ.get('AZURE_ACCOUNT_NAME', 'botcscripts')
 AZURE_CUSTOM_DOMAIN = os.environ.get('AZURE_CDN_DOMAIN')
 AZURE_STORAGE_KEY = os.environ.get('AZURE_STORAGE_KEY', False)
+AZURE_SSL = True
 
 DEFAULT_FILE_STORAGE = 'botc.storage.AzureMediaStorage'
 AZURE_MEDIA_CONTAINER = os.environ.get('AZURE_MEDIA_CONTAINER', 'media')
