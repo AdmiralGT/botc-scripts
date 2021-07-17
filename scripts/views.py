@@ -109,4 +109,4 @@ def download_pdf(request, pk: int, version: str) -> FileResponse:
     if os.environ.get('DJANGO_HOST', None):
         return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True)
     else:
-        return FileResponse(script_version.pdf, as_attachedment=True)
+        return FileResponse(script_version.pdf.path, as_attachedment=True)
