@@ -107,6 +107,6 @@ def download_pdf(request, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     if os.environ.get('DJANGO_HOST', None):
-        return FileResponse(open(script_version.pdf.url), as_attachment=True)
+        return FileResponse(script_version.pdf, as_attachment=True)
     else:
         return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True)
