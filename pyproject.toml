@@ -7,14 +7,13 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-Django = "^3.1.7"
+Django = "^3.2.5"
 django-versionfield = "^1.0.2"
 packaging = "^20.9"
-django-tables2 = "^2.3.4"
-django-bootstrap4 = "^2.3.1"
+django-tables2 = "^2.4.0"
+django-bootstrap4 = "^3.0.1"
 django-filter = "^2.4.0"
 djangorestframework = "^3.12.2"
-whitenoise = "^5.2.0"
 psycopg2-binary = "^2.9.1"
 django-storages = {extras = ["azure"], version = "^1.11.1"}
 

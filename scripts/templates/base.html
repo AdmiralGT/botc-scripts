@@ -4,30 +4,43 @@
 {% bootstrap_javascript jquery='full' %}
 
 <!doctype html>
-<html>
+<html class="h-100">
 
-<nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand">BotC Scripts</a>
+<body class="d-flex flex-column h-100">
+    <nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand">BotC Scripts</a>
   
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="/">Home</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/upload">Upload</a>
-            </li>
-        </ul>
-        <ul class="navbar-nav pull-right">
-            <li class="nav-item">
-                <a class="nav-link" href="https://github.com/AdmiralGT/botc-scripts" target="_blank">GitHub</a>
-            </li>
-        </ul>
-    </div>
-</nav>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/upload">Upload</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav pull-right">
+                <li class="nav-item">
+                    <a class="nav-link" href="https://github.com/AdmiralGT/botc-scripts" target="_blank">GitHub</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
-<div class="content">
-    {% block content %}
-    {% endblock %}
-</div>
+    <main role="main" class="flex-shrink-0">
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer mt-auto">
+        <div class="container">
+            <span class="text-muted">This project is not affiliated with The Pandemonium Institute. 
+                All roles, content are the property of Steven Medway and The Pandemonium Institute.
+            </span>
+        </div>
+    </footer>
+
+</body>
 </html>
