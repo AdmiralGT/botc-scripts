@@ -33,6 +33,7 @@ class ScriptVersion(models.Model):
 
     objects = ScriptViewManager()
 
+
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
     script = models.ForeignKey(
@@ -42,6 +43,9 @@ class Comment(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     # Might want to have a parent field so can have threads
 
+
 class Vote(models.Model):
-    script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="votes")
+    script = models.ForeignKey(
+        ScriptVersion, on_delete=models.CASCADE, related_name="votes"
+    )
     created = models.DateTimeField(auto_now=True)

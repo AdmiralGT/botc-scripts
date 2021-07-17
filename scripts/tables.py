@@ -18,14 +18,8 @@ class ScriptTable(tables.Table):
     )
     author = tables.Column()
     version = tables.Column()
-    json = tables.TemplateColumn(
-        orderable=False,
-        template_name="download_json.html"
-    )
-    pdf = tables.TemplateColumn(
-        orderable=False,
-        template_name="download_pdf.html"
-    )
+    json = tables.TemplateColumn(orderable=False, template_name="download_json.html")
+    pdf = tables.TemplateColumn(orderable=False, template_name="download_pdf.html")
     score = tables.Column()
     vote = tables.TemplateColumn(orderable=False, template_name="vote.html")
 

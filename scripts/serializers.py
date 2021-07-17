@@ -8,4 +8,4 @@ class ScriptSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = ScriptVersion
-        fields = ['pk', 'name', 'version', 'content', 'score']
+        fields = ["pk", "name", "version", "content", "score"]
