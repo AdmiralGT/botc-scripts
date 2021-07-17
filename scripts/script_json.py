@@ -14,3 +14,7 @@ def get_metadata_field_from_json(json, field):
         if item.get("id", "") == "_meta":
             return item.get(field, None)
     return None
+
+
+def validate_json(self, json_data):
+    pass
