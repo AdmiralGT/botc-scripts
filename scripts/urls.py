@@ -4,7 +4,7 @@ from rest_framework import routers
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
-router.register(r'scripts', viewsets.ScriptViewSet)
+router.register(r"scripts", viewsets.ScriptViewSet)
 
 urlpatterns = [
     path("", views.ScriptsListView.as_view()),

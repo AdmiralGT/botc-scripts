@@ -4,7 +4,7 @@
 
 <h1>{{ script.name }} - v{{ script_version.version }}</h1>
 {% if script_version.author %}
-<h2>{{ script_version.author }}</h2>
+<h2>by {{ script_version.author }}</h2>
 {% endif %}
 
 {% csrf_token %}
