@@ -1,4 +1,4 @@
-from . import models, script_json
+from . import models, script_json, validators
 from django import forms
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
@@ -46,6 +46,8 @@ class ScriptForm(forms.Form):
                     raise ValidationError(
                         f"Entered Name {entered_name} does not match script JSON name {json_name}"
                     )
+
+            validators.validate_json(json)
 
             script_name = json_name if json_name else entered_name
 
