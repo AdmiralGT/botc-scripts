@@ -5,7 +5,7 @@ from .models import ScriptVersion, Script
 
 class ScriptVersionFilter(django_filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
-        method="display_all_scripts", widget=forms.CheckboxInput, label="Display All"
+        method="display_all_scripts", widget=forms.CheckboxInput, label="Display All Versions"
     )
 
     def display_all_scripts(self, queryset, name, value):
