@@ -5,10 +5,8 @@ import os
 # that Azure automatically creates for us.
 ALLOWED_HOSTS = [os.environ.get("DJANGO_HOST", None)]
 
-# WhiteNoise configuration
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
