@@ -1,0 +1,14 @@
+{% load bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+
+<form class="mb-0" action="{% url 'vote' record.pk %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    {% if record.pk|slugify in request.session.keys %}
+    <button type="submit" class="btn btn-secondary btn-sm" disabled>Vote</button>
+    {% else %}
+    <button type="submit" class="btn btn-primary btn-sm">Vote</button>
+    {% endif %}
+</form>

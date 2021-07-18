@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>{{ script.name }} - v{{ script_version.version }}</h1>
+{% if script_version.author %}
+<h2>by {{ script_version.author }}</h2>
+{% endif %}
+
+{% csrf_token %}
+<a class="btn btn-primary" href="{% url 'download_json' script.pk script_version.version %}">Download JSON</a>
+{% if script_version.pdf %}
+<a class="btn btn-primary" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
+{% endif %}
+
+{% for role in script_version.content %}
+    {% if role.id != "_meta" %}
+        <li>{{ role.id }}</li>
+    {% endif %}
+{% endfor %}
+
+<form>
+<select class="custom-select" id="sel_id" name="sel_name"  onchange="this.form.submit();">
+    {% for versions in script.versions.all %}
+        <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
+    {% endfor %}
+</select>    
+</form>
+
+{% endblock %}
