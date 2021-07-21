@@ -10,6 +10,7 @@ class ScriptVersionFilter(django_filters.FilterSet):
     )
     include = django_filters.filters.CharFilter(method="include_characters", label="Includes characters")
     exclude = django_filters.filters.CharFilter(method="exclude_characters", label="Excludes characters")
+    author = django_filters.filters.CharFilter(field_name="author", lookup_expr="icontains")
 
     def display_all_scripts(self, queryset, name, value):
         if not value:
@@ -28,4 +29,4 @@ class ScriptVersionFilter(django_filters.FilterSet):
 
     class Meta:
         model = ScriptVersion
-        fields = ["type", "all_scripts", "include", "exclude"]
+        fields = ["type", "all_scripts", "include", "exclude", "author"]
