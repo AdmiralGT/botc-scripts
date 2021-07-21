@@ -13,11 +13,23 @@
 <a class="btn btn-primary" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
 {% endif %}
 
-{% for role in script_version.content %}
-    {% if role.id != "_meta" %}
-        <li>{{ role.id }}</li>
-    {% endif %}
-{% endfor %}
+<div class="container">
+    <div class="row">
+        {% if script_version.pdf %}
+            <div class="col">
+                <embed src="{{ script_version.pdf }}#toolbar=0" type="application/pdf" width="100%" height="100%">
+            </div>
+        {% else %}
+            <div class="col">
+                {% for role in script_version.content %}
+                    {% if role.id != "_meta" %}
+                        <li>{{ role.id }}</li>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
 
 <form>
 <select class="custom-select" id="sel_id" name="sel_name"  onchange="this.form.submit();">
