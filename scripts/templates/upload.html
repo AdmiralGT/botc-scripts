@@ -9,9 +9,9 @@
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% bootstrap_form form %}
+    {% bootstrap_form form form_group_class="form-group m-1 w-50" %}
     {% buttons %}
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary m-1">Submit</button>
     {% endbuttons %}
 </form>
   
