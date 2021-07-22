@@ -7,12 +7,12 @@
 {% block content %}
 
 {% if filter %}
-    <form action="" method="get" class="form">
+    <form action="" method="get" class="form mb-0">
         <div class="form-group row p-1 mb-0">
             {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
         </div>
         <div class="form-group row p-1 mb-0">
-            {% bootstrap_button 'filter' %}
+            {% bootstrap_button 'filter' extra_classes="mr-1" %}
             {% bootstrap_button 'clear' href="/" %}
         </div>
     </form>
