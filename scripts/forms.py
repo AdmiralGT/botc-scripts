@@ -10,7 +10,7 @@ class ScriptForm(forms.Form):
     name = forms.CharField(max_length=100, required=False)
     author = forms.CharField(max_length=30, required=False)
     type = forms.ChoiceField(
-        choices=models.ScriptTypes.choices, initial=models.ScriptTypes.RAVENSWOOD
+        choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
     )
     version = forms.CharField(max_length=20)
     content = forms.FileField(
