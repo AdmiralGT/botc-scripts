@@ -57,3 +57,6 @@ class Vote(models.Model):
         ScriptVersion, on_delete=models.CASCADE, related_name="votes"
     )
     created = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.pk}. Vote on {self.script.script.name} version {self.script.version}"
