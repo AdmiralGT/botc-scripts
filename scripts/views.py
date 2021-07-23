@@ -24,6 +24,10 @@ class ScriptsListView(SingleTableMixin, FilterView):
             kwargs["data"] = {"latest": True}
         return kwargs
 
+    table_pagination = {
+        "per_page": 20
+    }
+
 
 class ScriptView(generic.DetailView):
     template_name = "script.html"

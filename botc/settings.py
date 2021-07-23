@@ -75,6 +75,8 @@ TEMPLATES = [
     }
 ]
 
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
+
 WSGI_APPLICATION = "botc.wsgi.application"
 
 
