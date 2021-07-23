@@ -6,16 +6,21 @@ from .managers import ScriptViewManager
 
 class ScriptTypes(models.TextChoices):
     TEENSYVILLE = "Teensyville"
-    RAVENSWOOD = "Ravenswood Bluff"
-    PHOBOS = "Phobos"
+    FULL = "Full"
 
 
-# Create your models here.
 class Script(models.Model):
     name = models.CharField(max_length=100)
 
     def latest_version(self):
         return self.versions.last()
+
+    def __str__(self):
+        return self.name
+
+
+def determine_script_location(instance, filename):
+    return f"{instance.script.pk}/{instance.version}/{filename}"
 
 
 class ScriptVersion(models.Model):
@@ -24,14 +29,17 @@ class ScriptVersion(models.Model):
     )
     latest = models.BooleanField(default=True)
     type = models.CharField(
-        max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.RAVENSWOOD
+        max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.FULL
     )
     author = models.CharField(max_length=100, null=True, blank=True)
     version = VersionField()
     content = models.JSONField()
-    pdf = models.FileField(null=True, blank=True)
+    pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
 
     objects = ScriptViewManager()
+
+    def __str__(self):
+        return f"{self.script.pk}. {self.script.name} - v{self.version}" 
 
 
 class Comment(models.Model):
