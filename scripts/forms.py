@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from packaging.version import Version
 import json as js
 
+class JSONError(Exception):
+    pass
 
 class ScriptForm(forms.Form):
     name = forms.CharField(max_length=100, required=False)
@@ -66,10 +68,15 @@ class ScriptForm(forms.Form):
 
         except models.Script.DoesNotExist:
             pass
+        except JSONError:
+            pass
 
 
 def get_json_content(data):
     json_content = data.get("content", None)
+    if not json_content:
+        raise JSONError("Could not read file type")    
     json = js.loads(json_content.read().decode("utf-8"))
     json_content.seek(0)
     return json
+    
