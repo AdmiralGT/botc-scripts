@@ -30,12 +30,12 @@ class ScriptVersionFilter(django_filters.FilterSet):
 
     def include_characters(self, queryset, name, value):
         for character in re.split(",|;|:|/", value):
-            queryset = queryset.filter(content__icontains=[{"id": character}])
+            queryset = queryset.filter(content__contains=[{"id": character.lower()}])
         return queryset
 
     def exclude_characters(self, queryset, name, value):
         for character in re.split(",|;|:|/", value):
-            queryset = queryset.exclude(content__icontains=[{"id": character}])
+            queryset = queryset.exclude(content__contains=[{"id": character.lower()}])
         return queryset
 
     class Meta:
