@@ -1,5 +1,4 @@
 # Project specific settings
-scripts/migrations/
 db.sqlite3
 
 # Byte-compiled / optimized / DLL files
