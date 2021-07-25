@@ -3,8 +3,25 @@
 {% block content %}
 
 <h1>{{ script.name }} - v{{ script_version.version }}</h1>
-{% if script_version.author %}
-<h2>by {{ script_version.author }}</h2>
+
+{% if script_version.author or script_version.tags %}
+    <div class="row">
+    {% if script_version.author %}
+        <div class="col-auto pr-1">
+            <h2>by {{ script_version.author }}</h2>
+        </div>
+    {% endif %}
+
+    {% if script_version.tags %}
+        {% load botc_script_tags %}
+        <div class="col-auto align-self-center">
+            {% for tag in script_version.tags.all %}
+                {% get_tag_type tag as badge_tag %}
+                <span class="badge badge-pill {{ badge_tag }}">{{ tag }}</span>
+            {% endfor %}    
+        </div>
+    {% endif %}
+    </div>
 {% endif %}
 
 <div class="row p-1">

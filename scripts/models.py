@@ -23,23 +23,32 @@ def determine_script_location(instance, filename):
     return f"{instance.script.pk}/{instance.version}/{filename}"
 
 
+class ScriptTag(models.Model):
+    name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class ScriptVersion(models.Model):
     script = models.ForeignKey(
         Script, on_delete=models.CASCADE, related_name="versions"
     )
     latest = models.BooleanField(default=True)
-    type = models.CharField(
+    script_type = models.CharField(
         max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.FULL
     )
     author = models.CharField(max_length=100, null=True, blank=True)
     version = VersionField()
     content = models.JSONField()
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
+    tags = models.ManyToManyField(ScriptTag)
+    created = models.DateTimeField(auto_now=True)
 
     objects = ScriptViewManager()
 
     def __str__(self):
-        return f"{self.script.pk}. {self.script.name} - v{self.version}" 
+        return f"{self.script.pk}. {self.script.name} - v{self.version}"
 
 
 class Comment(models.Model):
