@@ -65,7 +65,7 @@ class ScriptUploadView(generic.FormView):
             author = form.cleaned_data["author"]
         self.script_version = models.ScriptVersion.objects.create(
             version=form.cleaned_data["version"],
-            type=form.cleaned_data["type"],
+            script_type=form.cleaned_data["script_type"],
             content=json,
             script=script,
             pdf=form.cleaned_data["pdf"],
