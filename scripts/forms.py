@@ -22,7 +22,7 @@ class ScriptForm(forms.Form):
     script_type = forms.ChoiceField(
         choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
     )
-    version = forms.CharField(max_length=20)
+    version = forms.CharField(max_length=20, initial="1")
     tags = forms.ModelMultipleChoiceField(
         queryset=tagOptions(),
         to_field_name="name",
