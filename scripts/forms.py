@@ -5,16 +5,30 @@ from django.core.exceptions import ValidationError
 from packaging.version import Version
 import json as js
 
+
 class JSONError(Exception):
     pass
+
+
+def tagOptions():
+    return models.ScriptTag.objects.order_by("name").exclude(
+        name__exact="Script Competition Winner"
+    )
+
 
 class ScriptForm(forms.Form):
     name = forms.CharField(max_length=100, required=False)
     author = forms.CharField(max_length=30, required=False)
-    type = forms.ChoiceField(
+    script_type = forms.ChoiceField(
         choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
     )
     version = forms.CharField(max_length=20)
+    tags = forms.ModelMultipleChoiceField(
+        queryset=tagOptions(),
+        to_field_name="name",
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
     content = forms.FileField(
         label="JSON", validators=[FileExtensionValidator(["json"])]
     )
@@ -75,8 +89,7 @@ class ScriptForm(forms.Form):
 def get_json_content(data):
     json_content = data.get("content", None)
     if not json_content:
-        raise JSONError("Could not read file type")    
+        raise JSONError("Could not read file type")
     json = js.loads(json_content.read().decode("utf-8"))
     json_content.seek(0)
     return json
-    

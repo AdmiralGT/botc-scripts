@@ -1,16 +1,27 @@
 import django_filters
 import re
 from django import forms
-from .models import ScriptVersion, Script
+from .models import ScriptVersion
 
 
 class ScriptVersionFilter(django_filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
-        method="display_all_scripts", widget=forms.CheckboxInput, label="Display All Versions"
+        method="display_all_scripts",
+        widget=forms.CheckboxInput,
+        label="Display All Versions",
     )
-    include = django_filters.filters.CharFilter(method="include_characters", label="Includes characters")
-    exclude = django_filters.filters.CharFilter(method="exclude_characters", label="Excludes characters")
-    author = django_filters.filters.CharFilter(field_name="author", lookup_expr="icontains")
+    include = django_filters.filters.CharFilter(
+        method="include_characters", label="Includes characters"
+    )
+    exclude = django_filters.filters.CharFilter(
+        method="exclude_characters", label="Excludes characters"
+    )
+    author = django_filters.filters.CharFilter(
+        field_name="author", lookup_expr="icontains"
+    )
+    search = django_filters.filters.CharFilter(
+        field_name="script__name", lookup_expr="icontains", label="Search"
+    )
 
     def display_all_scripts(self, queryset, name, value):
         if not value:
@@ -19,14 +30,21 @@ class ScriptVersionFilter(django_filters.FilterSet):
 
     def include_characters(self, queryset, name, value):
         for character in re.split(",|;|:|/", value):
-            queryset = queryset.filter(content__contains=[{"id": character}])
+            queryset = queryset.filter(content__contains=[{"id": character.lower()}])
         return queryset
 
     def exclude_characters(self, queryset, name, value):
         for character in re.split(",|;|:|/", value):
-            queryset = queryset.exclude(content__contains=[{"id": character}])
+            queryset = queryset.exclude(content__contains=[{"id": character.lower()}])
         return queryset
 
     class Meta:
         model = ScriptVersion
-        fields = ["type", "all_scripts", "include", "exclude", "author"]
+        fields = [
+            "search",
+            "script_type",
+            "include",
+            "exclude",
+            "author",
+            "all_scripts",
+        ]

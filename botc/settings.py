@@ -138,4 +138,4 @@ REST_FRAMEWORK = {
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

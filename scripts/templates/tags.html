@@ -1,0 +1,7 @@
+{% load bootstrap4 %}
+{% load botc_script_tags %}
+
+{% for tag in record.tags.all %}
+    {% get_tag_type tag as badge_tag %}
+    <span class="badge badge-pill {{ badge_tag }}">{{ tag }}</span>
+{% endfor %}

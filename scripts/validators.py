@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 
+
 def validate_json(json):
     """
     Homebrew characters are not supported in the custom script database.

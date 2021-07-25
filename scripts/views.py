@@ -24,9 +24,7 @@ class ScriptsListView(SingleTableMixin, FilterView):
             kwargs["data"] = {"latest": True}
         return kwargs
 
-    table_pagination = {
-        "per_page": 20
-    }
+    table_pagination = {"per_page": 20}
 
 
 class ScriptView(generic.DetailView):
@@ -73,6 +71,7 @@ class ScriptUploadView(generic.FormView):
             pdf=form.cleaned_data["pdf"],
             author=author,
         )
+        self.script_version.tags.set(form.cleaned_data["tags"])
         return super().form_valid(form)
 
 
