@@ -19,10 +19,10 @@ class ScriptTable(tables.Table):
             "pdf",
             "vote",
         )
+        orderable=True
 
     name = tables.Column(
         empty_values=(),
-        order_by="script.name",
         linkify=(
             "script",
             {"pk": tables.A("script.pk"), "version": tables.A("version")},
