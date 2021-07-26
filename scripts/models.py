@@ -16,7 +16,7 @@ class Script(models.Model):
         return self.versions.last()
 
     def __str__(self):
-        return self.name
+        return f"{self.pk}. {self.name}"
 
 
 def determine_script_location(instance, filename):
@@ -48,7 +48,7 @@ class ScriptVersion(models.Model):
     objects = ScriptViewManager()
 
     def __str__(self):
-        return f"{self.script.pk}. {self.script.name} - v{self.version}"
+        return f"{self.pk}. {self.script.name} - v{self.version}"
 
 
 class Comment(models.Model):
