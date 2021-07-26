@@ -25,6 +25,7 @@ class ScriptsListView(SingleTableMixin, FilterView):
         return kwargs
 
     table_pagination = {"per_page": 20}
+    ordering = ["-pk"]
 
 
 class ScriptView(generic.DetailView):
