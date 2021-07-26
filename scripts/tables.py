@@ -23,6 +23,7 @@ class ScriptTable(tables.Table):
 
     name = tables.Column(
         empty_values=(),
+        order_by="script.name",
         linkify=(
             "script",
             {"pk": tables.A("script.pk"), "version": tables.A("version")},
