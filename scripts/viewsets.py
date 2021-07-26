@@ -3,7 +3,7 @@ from rest_framework import filters, viewsets
 
 
 class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = models.ScriptVersion.objects.all()
+    queryset = models.ScriptVersion.objects.filter(latest=True)
     serializer_class = serializers.ScriptSerializer
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ["pk", "score"]
