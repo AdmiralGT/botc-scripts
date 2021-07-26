@@ -7,3 +7,4 @@ class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.ScriptSerializer
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ["pk", "score"]
+    ordering = ["-pk"]
