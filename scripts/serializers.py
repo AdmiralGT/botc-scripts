@@ -2,7 +2,7 @@ from .models import ScriptVersion
 from rest_framework import serializers
 
 # Serializers define the API representation.
-class ScriptSerializer(serializers.HyperlinkedModelSerializer):
+class ScriptSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="script.name")
     score = serializers.ReadOnlyField(source="votes.count")
 
