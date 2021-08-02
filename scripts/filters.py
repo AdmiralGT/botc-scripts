@@ -45,14 +45,10 @@ class ScriptVersionFilter(django_filters.FilterSet):
 
     def search_scripts(self, queryset, name, value):
         queryset = annotate_queryset(queryset, 'script__name', value)
-        for item in queryset:
-            print(f"{item.script.name} {item.similarity}")
         return queryset.filter(similarity__gt=0).order_by('-similarity')
 
     def search_authors(self, queryset, name, value):
         queryset = annotate_queryset(queryset, 'author', value)
-        for item in queryset:
-            print(f"{item.author} {item.similarity}")
         return queryset.filter(similarity__gt=0.3).order_by('-similarity')
 
     class Meta:
