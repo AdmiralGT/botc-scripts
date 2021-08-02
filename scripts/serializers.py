@@ -1,5 +1,7 @@
-from .models import ScriptVersion
 from rest_framework import serializers
+
+from .models import ScriptVersion
+
 
 # Serializers define the API representation.
 class ScriptSerializer(serializers.ModelSerializer):

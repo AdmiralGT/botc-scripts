@@ -1,15 +1,15 @@
-from django.shortcuts import render
+import json as js
+import os
+from tempfile import TemporaryFile
 
 # Create your views here.
-from django.http import HttpResponse, FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
+from django.shortcuts import redirect, render
 from django.views import generic
-from . import models, forms, tables, filters, serializers, script_json
-from tempfile import TemporaryFile
-from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
-from django.shortcuts import redirect
-import os
-import json as js
+from django_tables2.views import SingleTableMixin
+
+from . import filters, forms, models, script_json, serializers, tables
 
 
 class ScriptsListView(SingleTableMixin, FilterView):

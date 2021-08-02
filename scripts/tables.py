@@ -1,4 +1,5 @@
 import django_tables2 as tables
+
 from .models import Script, ScriptVersion
 
 table_class = {"td": {"class": "pl-2 p-0 pr-2 align-middle text-center"}}
@@ -19,7 +20,7 @@ class ScriptTable(tables.Table):
             "pdf",
             "vote",
         )
-        orderable=True
+        orderable = True
 
     name = tables.Column(
         empty_values=(),
