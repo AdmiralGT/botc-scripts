@@ -1,7 +1,9 @@
-import django_filters
-from django.contrib.postgres.search import TrigramSimilarity
 import re
+
+import django_filters
 from django import forms
+from django.contrib.postgres.search import TrigramSimilarity
+
 from .models import ScriptVersion
 
 
@@ -21,12 +23,8 @@ class ScriptVersionFilter(django_filters.FilterSet):
     exclude = django_filters.filters.CharFilter(
         method="exclude_characters", label="Excludes characters"
     )
-    author = django_filters.filters.CharFilter(
-        method="search_authors", label="Author"
-    )
-    search = django_filters.filters.CharFilter(
-        method="search_scripts", label="Search"
-    )
+    author = django_filters.filters.CharFilter(method="search_authors", label="Author")
+    search = django_filters.filters.CharFilter(method="search_scripts", label="Search")
 
     def display_all_scripts(self, queryset, name, value):
         if not value:
@@ -44,12 +42,12 @@ class ScriptVersionFilter(django_filters.FilterSet):
         return queryset
 
     def search_scripts(self, queryset, name, value):
-        queryset = annotate_queryset(queryset, 'script__name', value)
-        return queryset.filter(similarity__gt=0).order_by('-similarity')
+        queryset = annotate_queryset(queryset, "script__name", value)
+        return queryset.filter(similarity__gt=0).order_by("-similarity")
 
     def search_authors(self, queryset, name, value):
-        queryset = annotate_queryset(queryset, 'author', value)
-        return queryset.filter(similarity__gt=0.3).order_by('-similarity')
+        queryset = annotate_queryset(queryset, "author", value)
+        return queryset.filter(similarity__gt=0.3).order_by("-similarity")
 
     class Meta:
         model = ScriptVersion

@@ -1,6 +1,7 @@
 from django.urls import include, path
-from . import views, viewsets
 from rest_framework import routers
+
+from . import views, viewsets
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
