@@ -9,7 +9,7 @@ from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from . import filters, forms, models, script_json, serializers, tables
+from . import filters, forms, models, script_json, serializers, tables, characters
 
 
 class ScriptsListView(SingleTableMixin, FilterView):

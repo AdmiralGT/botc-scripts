@@ -23,5 +23,6 @@ urlpatterns = [
         views.download_pdf,
         name="download_pdf",
     ),
+    path("statistics", views.StatisticsView.as_view()),
     path("upload", views.ScriptUploadView.as_view()),
 ]

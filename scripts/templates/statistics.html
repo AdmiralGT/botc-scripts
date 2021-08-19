@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Total Scripts in Database: {{ total }}</h1>
+<h2>Most popular Townsfolk</h2>
+{% for character in townsfolk.items %}
+    {{ character.0 }} - {{ character.1 }}
+{% endfor %}
+{% for character in outsider.items %}
+    {{ character.0 }} - {{ character.1 }}
+{% endfor %}
+{% for character in minion.items %}
+    {{ character.0 }} - {{ character.1 }}
+{% endfor %}
+{% for character in demon.items %}
+    {{ character.0 }} - {{ character.1 }}
+{% endfor %}
+
+{% endblock %}
