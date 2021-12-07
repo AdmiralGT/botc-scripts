@@ -1,4 +1,6 @@
 from django.urls import include, path
+from django.views.generic.base import TemplateView
+from django.contrib.auth.views import LogoutView
 from rest_framework import routers
 
 from scripts import views, viewsets
@@ -25,4 +27,7 @@ urlpatterns = [
     ),
     path("statistics", views.StatisticsView.as_view()),
     path("upload", views.ScriptUploadView.as_view(), name="upload"),
+    path("login", TemplateView.as_view(template_name="login.html")),
+    path("accounts/", include("allauth.urls")),
+    path("logout", LogoutView.as_view()),
 ]

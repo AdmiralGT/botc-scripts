@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "django.contrib.sites",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "scripts.apps.ScriptsConfig",
@@ -45,6 +46,10 @@ INSTALLED_APPS = [
     "bootstrap4",
     "rest_framework",
     "storages",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
 ]
 
 MIDDLEWARE = [
@@ -80,6 +85,31 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
 
 WSGI_APPLICATION = "botc.wsgi.application"
 
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+SITE_ID = 1
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "APP": {
+            "client_id": "912630797115-kdot6rqeol1gsejevpo7v73bf08jt4hd.apps.googleusercontent.com",
+            "secret": "jOFPOFJkz3zPrp-LKHCRcOOJ",
+            "key": "",
+        }
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
