@@ -11,6 +11,6 @@ This is a database for hosting Blood on the Clocktower custom scripts. You can v
 
 ## Acknowledgements
 
-This site is not affiliated with The Pandemonium Institute. All roles and charactrs are the property of Steven Medway and The Pandemonium Institute.
+This site is not affiliated with The Pandemonium Institute. All roles and characters are the property of Steven Medway and The Pandemonium Institute.
 
 Blood on the Clocktower is a trademark of Steven Medway and The Pandemonium Institute.
