@@ -4,7 +4,7 @@ import django_filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
 
-from .models import ScriptVersion
+from scripts.models import ScriptVersion
 
 
 def annotate_queryset(queryset, field, value):

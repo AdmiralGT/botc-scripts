@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ScriptVersion
+from scripts.models import ScriptVersion
 
 
 # Serializers define the API representation.
