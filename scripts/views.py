@@ -9,7 +9,8 @@ from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from . import filters, forms, models, script_json, serializers, tables, characters
+from scripts import filters, forms, models, script_json, serializers, tables, characters
+from collections import Counter
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -74,6 +75,29 @@ class ScriptUploadView(generic.FormView):
         )
         self.script_version.tags.set(form.cleaned_data["tags"])
         return super().form_valid(form)
+
+
+class StatisticsView(generic.TemplateView):
+    template_name = "statistics.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["total"] = models.Script.objects.count()
+
+        character_count = {}
+        for type in characters.CharacterType:
+            character_count[type.value] = Counter()
+        for character in characters.Character:
+            character_count[character.character_type.value][
+                character.character_name
+            ] = models.ScriptVersion.objects.filter(
+                latest=True, content__contains=[{"id": character.json_id}]
+            ).count()
+
+        for type in characters.CharacterType:
+            context[type.value] = character_count[type.value].most_common(5)
+
+        return context
 
 
 def vote_for_script(request, pk: int):

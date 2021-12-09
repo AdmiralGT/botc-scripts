@@ -1,6 +1,6 @@
 from rest_framework import filters, viewsets
 
-from . import models, serializers
+from scripts import models, serializers
 
 
 class ScriptViewSet(viewsets.ReadOnlyModelViewSet):

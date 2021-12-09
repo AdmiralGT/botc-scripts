@@ -2,19 +2,69 @@
 
 {% block content %}
 
+<style>
+    .table-striped>tbody>tr:nth-child(odd)>td {
+        background-color: #85c1e9;
+    }
+
+    .table-striped>tbody>tr:nth-child(even)>td {
+        background-color: #d6eaf8;
+    }
+
+    .table-striped2>tbody>tr:nth-child(odd)>td {
+        background-color: #f5b7b1;
+    }
+
+    .table-striped2>tbody>tr:nth-child(even)>td {
+        background-color: #fadbd8;
+    }
+</style>
+
 <h1>Total Scripts in Database: {{ total }}</h1>
 <h2>Most popular Townsfolk</h2>
-{% for character in townsfolk.items %}
-    {{ character.0 }} - {{ character.1 }}
-{% endfor %}
-{% for character in outsider.items %}
-    {{ character.0 }} - {{ character.1 }}
-{% endfor %}
-{% for character in minion.items %}
-    {{ character.0 }} - {{ character.1 }}
-{% endfor %}
-{% for character in demon.items %}
-    {{ character.0 }} - {{ character.1 }}
-{% endfor %}
+
+<table class="table table-striped">
+    <tbody>
+        {% for name, count in Townsfolk %}
+        <tr background-color="#">
+            <td class="w-75">{{ name }}</td>
+            <td class="w-25 text-center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Most popular Outsiders</h2>
+<table class="table table-striped">
+    <tbody>
+        {% for name, count in Outsider %}
+        <tr>
+            <td class="w-75">{{ name }}</td>
+            <td class="w-25 text-center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Most popular Minions</h2>
+<table class="table table-striped2">
+    <tbody>
+        {% for name, count in Minion %}
+        <tr>
+            <td class="w-75">{{ name }}</td>
+            <td class="w-25 text-center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Most popular Demons</h2>
+<table class="table table-striped2">
+    <tbody>
+        {% for name, count in Demon %}
+        <tr>
+            <td class="w-75">{{ name }}</td>
+            <td class="w-25 text-center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% endblock %}
