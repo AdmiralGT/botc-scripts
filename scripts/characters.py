@@ -106,7 +106,7 @@ class Character(Enum):
     SPY = ("spy", CharacterType.MINION, "Spy")
     WIDOW = ("widow", CharacterType.MINION, "Widow")
     WITCH = ("witch", CharacterType.MINION, "Witch")
-    AL_HADIKHIA = ("al-hadikhia", CharacterType.MINION, "Al-Hadikhia")
+    AL_HADIKHIA = ("al-hadikhia", CharacterType.DEMON, "Al-Hadikhia")
     FANG_GU = ("fanggu", CharacterType.DEMON, "Fang Gu")
     IMP = ("imp", CharacterType.DEMON, "Imp")
     LEGION = ("legion", CharacterType.DEMON, "Legion")

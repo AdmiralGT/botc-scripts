@@ -96,6 +96,9 @@ class StatisticsView(generic.TemplateView):
 
         for type in characters.CharacterType:
             context[type.value] = character_count[type.value].most_common(5)
+            context[type.value + "least"] = character_count[type.value].most_common()[
+                :-6:-1
+            ]
 
         return context
 

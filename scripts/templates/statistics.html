@@ -21,9 +21,9 @@
 </style>
 
 <h1>Total Scripts in Database: {{ total }}</h1>
-<h2>Most popular Townsfolk</h2>
 
-<table class="table table-striped">
+<h4 class="mt-2">Most popular Townsfolk</h4>
+<table class="w-100 table-sm table-striped">
     <tbody>
         {% for name, count in Townsfolk %}
         <tr background-color="#">
@@ -33,8 +33,21 @@
         {% endfor %}
     </tbody>
 </table>
-<h2>Most popular Outsiders</h2>
-<table class="table table-striped">
+
+<h4 class="mt-2">Least popular Townsfolk</h4>
+<table class="w-100 table-sm table-striped">
+    <tbody>
+        {% for name, count in Townsfolkleast %}
+        <tr background-color="#">
+            <td class="w-75">{{ name }}</td>
+            <td class="w-25 text-center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4 class="mt-2">Most popular Outsiders</h4>
+<table class="w-100 table-sm table-striped">
     <tbody>
         {% for name, count in Outsider %}
         <tr>
@@ -44,8 +57,21 @@
         {% endfor %}
     </tbody>
 </table>
-<h2>Most popular Minions</h2>
-<table class="table table-striped2">
+
+<h4 class="mt-2">Least popular Outsiders</h4>
+<table class="w-100 table-sm table-striped">
+    <tbody>
+        {% for name, count in Outsiderleast %}
+        <tr>
+            <td class="w-75">{{ name }}</td>
+            <td class="w-25 text-center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4 class="mt-2">Most popular Minions</h4>
+<table class="w-100 table-sm table-striped2">
     <tbody>
         {% for name, count in Minion %}
         <tr>
@@ -55,10 +81,35 @@
         {% endfor %}
     </tbody>
 </table>
-<h2>Most popular Demons</h2>
-<table class="table table-striped2">
+
+<h4 class="mt-2">Least popular Minions</h4>
+<table class="w-100 table-sm table-striped2">
+    <tbody>
+        {% for name, count in Minionleast %}
+        <tr>
+            <td class="w-75">{{ name }}</td>
+            <td class="w-25 text-center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4 class="mt-2">Most popular Demons</h4>
+<table class="w-100 table-sm table-striped2">
     <tbody>
         {% for name, count in Demon %}
+        <tr>
+            <td class="w-75">{{ name }}</td>
+            <td class="w-25 text-center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4 class="mt-2">Least popular Demons</h4>
+<table class="w-100 table-sm table-striped2">
+    <tbody>
+        {% for name, count in Demonleast %}
         <tr>
             <td class="w-75">{{ name }}</td>
             <td class="w-25 text-center">{{ count }}</td>
