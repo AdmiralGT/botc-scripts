@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from . import views, viewsets
+from scripts import views, viewsets
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
@@ -23,5 +23,6 @@ urlpatterns = [
         views.download_pdf,
         name="download_pdf",
     ),
+    path("statistics", views.StatisticsView.as_view()),
     path("upload", views.ScriptUploadView.as_view()),
 ]

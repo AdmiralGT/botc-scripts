@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from versionfield import VersionField
 
-from .managers import ScriptViewManager
+from scripts.managers import ScriptViewManager
 
 
 class ScriptTypes(models.TextChoices):

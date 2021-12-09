@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from packaging.version import Version
 
-from . import models, script_json, validators
+from scripts import models, script_json, validators
 
 
 class JSONError(Exception):

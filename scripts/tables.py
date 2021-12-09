@@ -1,6 +1,7 @@
 import django_tables2 as tables
 
-from .models import Script, ScriptVersion
+from scripts.models import Script, ScriptVersion
+from scripts.characters import Character
 
 table_class = {"td": {"class": "pl-2 p-0 pr-2 align-middle text-center"}}
 
