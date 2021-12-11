@@ -1,10 +1,11 @@
 import re
+from django.forms.widgets import CheckboxSelectMultiple
 
 import django_filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
 
-from scripts.models import ScriptVersion
+from scripts.models import ScriptVersion, ScriptTypes, ScriptTag
 
 
 def annotate_queryset(queryset, field, value):
@@ -25,6 +26,13 @@ class ScriptVersionFilter(django_filters.FilterSet):
     )
     author = django_filters.filters.CharFilter(method="search_authors", label="Author")
     search = django_filters.filters.CharFilter(method="search_scripts", label="Search")
+    script_type = django_filters.filters.MultipleChoiceFilter(
+        choices=ScriptTypes.choices, widget=forms.CheckboxSelectMultiple
+    )
+    tags = django_filters.filters.ModelMultipleChoiceField(
+        queryset=ScriptTag.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     def display_all_scripts(self, queryset, name, value):
         if not value:
@@ -57,5 +65,6 @@ class ScriptVersionFilter(django_filters.FilterSet):
             "include",
             "exclude",
             "author",
+            "tags",
             "all_scripts",
         ]
