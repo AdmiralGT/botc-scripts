@@ -29,7 +29,7 @@ class ScriptVersionFilter(django_filters.FilterSet):
     script_type = django_filters.filters.MultipleChoiceFilter(
         choices=ScriptTypes.choices, widget=forms.CheckboxSelectMultiple
     )
-    tags = django_filters.filters.ModelMultipleChoiceField(
+    tags = django_filters.filters.ModelMultipleChoiceFilter(
         queryset=ScriptTag.objects.all(),
         widget=forms.CheckboxSelectMultiple,
     )
@@ -68,3 +68,4 @@ class ScriptVersionFilter(django_filters.FilterSet):
             "tags",
             "all_scripts",
         ]
+        excludes = ["tags"]
