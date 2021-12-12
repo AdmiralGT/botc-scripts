@@ -68,4 +68,3 @@ class ScriptVersionFilter(django_filters.FilterSet):
             "tags",
             "all_scripts",
         ]
-        excludes = ["tags"]
