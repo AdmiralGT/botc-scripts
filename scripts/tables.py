@@ -5,7 +5,7 @@ from scripts.characters import Character
 
 table_class = {
     "td": {"class": "pl-2 p-0 pr-2 align-middle text-center"},
-    "th": {"style": "text-align: middle"},
+    "th": {"class": "align-middle text-center"},
 }
 
 
