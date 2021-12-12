@@ -3,7 +3,10 @@ import django_tables2 as tables
 from scripts.models import Script, ScriptVersion
 from scripts.characters import Character
 
-table_class = {"td": {"class": "pl-2 p-0 pr-2 align-middle text-center"}}
+table_class = {
+    "td": {"class": "pl-2 p-0 pr-2 align-middle text-center"},
+    "th": {"style": "text-align: middle"},
+}
 
 
 class ScriptTable(tables.Table):
