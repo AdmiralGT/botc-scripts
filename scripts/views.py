@@ -3,13 +3,13 @@ import os
 from tempfile import TemporaryFile
 
 # Create your views here.
-from django.http import FileResponse, Http404, HttpResponse
-from django.shortcuts import redirect, render
+from django.http import FileResponse, Http404
+from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from scripts import filters, forms, models, script_json, serializers, tables, characters
+from scripts import filters, forms, models, script_json, tables, characters
 from collections import Counter
 
 
@@ -48,6 +48,18 @@ class ScriptUploadView(generic.FormView):
     template_name = "upload.html"
     form_class = forms.ScriptForm
     script_version = None
+
+    def get_initial(self):
+        initial = super().get_initial()
+        script_pk = self.request.GET.get("script", None)
+        if script_pk:
+            script = models.Script.objects.get(pk=script_pk)
+            if script:
+                script_version = script.latest_version()
+                initial["name"] = script.name
+                initial["author"] = script_version.author
+                initial["version"] = script_version.version
+        return initial
 
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)
