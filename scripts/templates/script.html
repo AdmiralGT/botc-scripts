@@ -38,10 +38,13 @@
     <div class="col-md-auto h-100 p-1">
         <a class="btn btn-primary" href="{% url 'download_json' script.pk script_version.version %}">Download JSON</a>
     </div>
-    <div class="col-md-auto h-100 p-1">
-        {% if script_version.pdf %}
+    {% if script_version.pdf %}
+        <div class="col-md-auto h-100 p-1">
             <a class="btn btn-primary" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
-        {% endif %}
+        </div>
+    {% endif %}
+    <div class="col-md-auto h-100 p-1">
+            <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
     </div>
 </div>
 
