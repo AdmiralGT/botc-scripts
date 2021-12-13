@@ -11,7 +11,10 @@
     {% csrf_token %}
     <div class="d-flex flex-row">
         <div class="m-1 flex-shrink-0">
-            {% bootstrap_form form exclude="notes" form_group_class="form-group m-1" %}
+            {% bootstrap_form form exclude="notes,tags" form_group_class="form-group m-1" %}
+            {% if form.tags|length > 0 %}
+                {% bootstrap_field form.tags %}
+            {% endif %}
         </div>
         <div class="ml-3 m-1 w-50">
             {% bootstrap_field form.notes %}

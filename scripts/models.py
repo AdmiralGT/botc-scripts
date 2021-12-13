@@ -26,6 +26,7 @@ def determine_script_location(instance, filename):
 
 class ScriptTag(models.Model):
     name = models.CharField(max_length=30)
+    public = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name}"

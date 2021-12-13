@@ -13,9 +13,7 @@ class JSONError(Exception):
 
 
 def tagOptions():
-    return models.ScriptTag.objects.order_by("name").exclude(
-        name__exact="Script Competition Winner"
-    )
+    return models.ScriptTag.objects.filter(public=True)
 
 
 class ScriptForm(forms.Form):
