@@ -9,7 +9,14 @@
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% bootstrap_form form form_group_class="form-group m-1 w-50" %}
+    <div class="d-flex flex-row">
+        <div class="m-1 flex-shrink-0">
+            {% bootstrap_form form exclude="notes" form_group_class="form-group m-1" %}
+        </div>
+        <div class="ml-3 m-1 w-50">
+            {% bootstrap_field form.notes %}
+        </div>
+    </div>
     {% buttons %}
         <button type="submit" class="btn btn-primary m-1">Submit</button>
     {% endbuttons %}

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "bootstrap4",
     "rest_framework",
     "storages",
+    "markdownify.apps.MarkdownifyConfig",
 ]
 
 MIDDLEWARE = [
@@ -141,3 +142,5 @@ REST_FRAMEWORK = {
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+MARKDOWNIFY = {"default": {"BLEACH": False}}

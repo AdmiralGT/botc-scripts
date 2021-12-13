@@ -45,6 +45,7 @@ class ScriptVersion(models.Model):
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     tags = models.ManyToManyField(ScriptTag, blank=True)
     created = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True)
 
     objects = ScriptViewManager()
 

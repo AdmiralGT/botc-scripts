@@ -37,6 +37,12 @@ class ScriptForm(forms.Form):
     pdf = forms.FileField(
         label="PDF", required=False, validators=[FileExtensionValidator(["pdf"])]
     )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(
+            attrs={"rows": 17, "placeholder": "Notes (enter using Markdown formatting)"}
+        ),
+    )
 
     def clean(self):
         cleaned_data = super().clean()
