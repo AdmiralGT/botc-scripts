@@ -58,6 +58,7 @@ class ScriptUploadView(generic.FormView):
                 script_version = script.latest_version()
                 initial["name"] = script.name
                 initial["author"] = script_version.author
+                initial["version"] = script_version.version
         return initial
 
     def get_success_url(self):
