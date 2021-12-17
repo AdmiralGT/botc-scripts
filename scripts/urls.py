@@ -27,7 +27,5 @@ urlpatterns = [
     ),
     path("statistics", views.StatisticsView.as_view()),
     path("upload", views.ScriptUploadView.as_view(), name="upload"),
-    path("login", TemplateView.as_view(template_name="login.html")),
     path("accounts/", include("allauth.urls")),
-    path("logout", LogoutView.as_view()),
 ]

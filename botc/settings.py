@@ -107,7 +107,7 @@ SOCIALACCOUNT_PROVIDERS = {
             "client_id": "912630797115-kdot6rqeol1gsejevpo7v73bf08jt4hd.apps.googleusercontent.com",
             "secret": "jOFPOFJkz3zPrp-LKHCRcOOJ",
             "key": "",
-        }
+        },
     }
 }
 
