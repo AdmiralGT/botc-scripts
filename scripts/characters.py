@@ -6,6 +6,8 @@ class CharacterType(Enum):
     OUTSIDER = "Outsider"
     MINION = "Minion"
     DEMON = "Demon"
+    TRAVELLER = "Traveller"
+    FABLED = "Fabled"
 
 
 class Character(Enum):
@@ -121,6 +123,35 @@ class Character(Enum):
     VIGORMORTIS = ("vigormortis", CharacterType.DEMON, "Vigormortis")
     VORTOX = ("vortox", CharacterType.DEMON, "Vortox")
     ZOMBUUL = ("zombuul", CharacterType.DEMON, "Zombuul")
+    APPRENTICE = ("apprentice", CharacterType.TRAVELLER, "Apprentice")
+    BARISTA = ("barista", CharacterType.TRAVELLER, "Barista")
+    BEGGAR = ("beggar", CharacterType.TRAVELLER, "Beggar")
+    BISHOP = ("bishop", CharacterType.TRAVELLER, "Bishop")
+    BONE_COLLECTOR = ("bone_collector", CharacterType.TRAVELLER, "Bone Collector")
+    BUREAUCRAT = ("bureaucrat", CharacterType.TRAVELLER, "Bureaucrat")
+    BUTCHER = ("butcher", CharacterType.TRAVELLER, "Butcher")
+    DEVIANT = ("deviant", CharacterType.TRAVELLER, "Deviant")
+    GANGSTER = ("gangster", CharacterType.TRAVELLER, "Gangster")
+    GUNSLINGER = ("gunslinger", CharacterType.TRAVELLER, "Gunslinger")
+    HARLOT = ("harlot", CharacterType.TRAVELLER, "Harlot")
+    JUDGE = ("judge", CharacterType.TRAVELLER, "Judge")
+    MATRON = ("matron", CharacterType.TRAVELLER, "Matron")
+    SCAPEGOAT = ("scapegoat", CharacterType.TRAVELLER, "Scapegoat")
+    THIEF = ("thief", CharacterType.TRAVELLER, "Thief")
+    VOUDON = ("voudon", CharacterType.TRAVELLER, "Voudon")
+    ANGEL = ("angel", CharacterType.FABLED, "Angel")
+    BUDDHIST = ("buddhist", CharacterType.FABLED, "Buddhist")
+    DJINN = ("djinn", CharacterType.FABLED, "Djinn")
+    DOOMSAYER = ("doomsayer", CharacterType.FABLED, "Doomsayer")
+    DUCHESS = ("duchess", CharacterType.FABLED, "Duchess")
+    FIBBIN = ("fibbin", CharacterType.FABLED, "Fibbin")
+    FIDDLER = ("fiddler", CharacterType.FABLED, "Fiddler")
+    HELLS_LIBRARIAN = ("hells_librarian", CharacterType.FABLED, "Hell's Librarian")
+    REVOLUTIONARY = ("revolutionary", CharacterType.FABLED, "Revolutionary")
+    SENTINEL = ("sentinel", CharacterType.FABLED, "Sentinel")
+    SPIRIT_OF_IVORY = ("spirit_of_ivory", CharacterType.FABLED, "Spirit of Ivory")
+    STORM_CATCHER = ("storm_catcher", CharacterType.FABLED, "Storm Catcher")
+    TOYMAKER = ("toymaker", CharacterType.FABLED, "Toymaker")
 
     def __init__(self, json_id, character_type, character_name):
         self._json_id = json_id
