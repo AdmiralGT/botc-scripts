@@ -1,4 +1,4 @@
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views.generic.base import TemplateView
 from django.contrib.auth.views import LogoutView
 from rest_framework import routers
