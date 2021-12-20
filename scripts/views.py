@@ -59,7 +59,19 @@ class ScriptUploadView(generic.FormView):
                 initial["name"] = script.name
                 initial["author"] = script_version.author
                 initial["version"] = script_version.version
+                if script_version.notes:
+                    initial["notes"] = script_version.notes
         return initial
+
+    def get_form(self):
+        """
+        If this is an anonymous user, don't allow them to add notes.
+        """
+        form = super().get_form(self.form_class)
+        print(self.request.user)
+        if not self.request.user.is_authenticated:
+            form.fields.pop("notes")
+        return form
 
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)

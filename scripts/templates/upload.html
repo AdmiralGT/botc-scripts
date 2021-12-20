@@ -16,9 +16,11 @@
                 {% bootstrap_field form.tags %}
             {% endif %}
         </div>
+        {% if form.notes %}
         <div class="ml-3 m-1 w-50">
             {% bootstrap_field form.notes %}
         </div>
+        {% endif %}
     </div>
     {% buttons %}
         <button type="submit" class="btn btn-primary m-1">Submit</button>
