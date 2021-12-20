@@ -14,9 +14,7 @@ class JSONError(Exception):
 
 
 def tagOptions():
-    return models.ScriptTag.objects.order_by("name").exclude(
-        name__exact="Script Competition Winner"
-    )
+    return models.ScriptTag.objects.filter(public=True)
 
 
 class ScriptForm(forms.Form):
@@ -37,6 +35,12 @@ class ScriptForm(forms.Form):
     )
     pdf = forms.FileField(
         label="PDF", required=False, validators=[FileExtensionValidator(["pdf"])]
+    )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(
+            attrs={"rows": 17, "placeholder": "Notes (enter using Markdown formatting)"}
+        ),
     )
 
     def clean(self):

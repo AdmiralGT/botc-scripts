@@ -26,6 +26,7 @@ def determine_script_location(instance, filename):
 
 class ScriptTag(models.Model):
     name = models.CharField(max_length=30)
+    public = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name}"
@@ -45,6 +46,7 @@ class ScriptVersion(models.Model):
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     tags = models.ManyToManyField(ScriptTag, blank=True)
     created = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True)
 
     objects = ScriptViewManager()
 

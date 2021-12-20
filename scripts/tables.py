@@ -11,7 +11,7 @@ table_class = {
 class ScriptTable(tables.Table):
     class Meta:
         model = ScriptVersion
-        exclude = ("id", "content", "script", "latest", "created")
+        exclude = ("id", "content", "script", "latest", "created", "notes")
         sequence = (
             "name",
             "version",
