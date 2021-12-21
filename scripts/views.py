@@ -150,9 +150,20 @@ def vote_for_script(request, pk: int):
     if request.method != "POST":
         raise Http404()
     script_version = models.ScriptVersion.objects.get(pk=pk)
-    if not request.session.get(str(pk), False):
+
+    # Authenticated users should create votes with their user profile.
+    if request.user.is_authenticated:
+        if models.Vote.objects.filter(
+            user=request.user, script=script_version
+        ).exists():
+            vote = models.Vote.objects.get(user=request.user, script=script_version)
+            vote.delete()
+        else:
+            models.Vote.objects.create(user=request.user, script=script_version)
+    elif not request.session.get(str(pk), False):
+        # Non-authenticated users have to track scripts we've voted for with session state.
         models.Vote.objects.create(script=script_version)
-    request.session[str(pk)] = True
+        request.session[str(pk)] = True
     return redirect(request.POST["next"])
 
 
