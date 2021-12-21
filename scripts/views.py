@@ -156,9 +156,12 @@ def vote_for_script(request, pk: int):
         if models.Vote.objects.filter(
             user=request.user, script=script_version
         ).exists():
+            # If this user has already voted for this script, delete that vote. Use filter.exists()
+            # because it is more performant
             vote = models.Vote.objects.get(user=request.user, script=script_version)
             vote.delete()
         else:
+            # Otherwise create a new vote.
             models.Vote.objects.create(user=request.user, script=script_version)
     elif not request.session.get(str(pk), False):
         # Non-authenticated users have to track scripts we've voted for with session state.

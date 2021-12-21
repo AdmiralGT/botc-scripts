@@ -95,23 +95,6 @@ SITE_ID = 1
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        "SCOPE": [
-            "profile",
-            "email",
-        ],
-        "AUTH_PARAMS": {
-            "access_type": "online",
-        },
-        "APP": {
-            "client_id": "912630797115-kdot6rqeol1gsejevpo7v73bf08jt4hd.apps.googleusercontent.com",
-            "secret": "jOFPOFJkz3zPrp-LKHCRcOOJ",
-            "key": "",
-        },
-    }
-}
-
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
