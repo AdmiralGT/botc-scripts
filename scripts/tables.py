@@ -43,7 +43,7 @@ class ScriptTable(tables.Table):
     pdf = tables.TemplateColumn(
         orderable=False, template_name="download_pdf.html", attrs=table_class
     )
-    score = tables.Column(attrs=table_class)
+    score = tables.Column(attrs=table_class, order_by="-score")
     vote = tables.TemplateColumn(
         orderable=False, template_name="vote.html", attrs=table_class
     )
