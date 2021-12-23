@@ -92,7 +92,7 @@ class Vote(models.Model):
     )
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.CASCADE, related_name="+"
+        User, null=True, blank=True, on_delete=models.CASCADE, related_name="votes"
     )
 
     def __str__(self):

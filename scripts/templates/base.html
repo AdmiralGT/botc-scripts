@@ -21,10 +21,10 @@
                 <a class="nav-link" href="/statistics">Statistics</a>
             </li>
         </ul>
-        <ul class="navbar-nav">
+        <ul class="navbar-nav ml-auto">
             {% if not user.is_authenticated %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'account_login' %}">Login</a>
+                <a class="nav-link" href="{% url 'account_login' %}">Login/Signup</a>
             </li>
             {% endif %}
             {% if user.is_authenticated %}
@@ -32,8 +32,6 @@
                 <a class="nav-link" href="{% url 'account_logout' %}">Logout</a>
             </li>
             {% endif %}
-        </ul>
-        <ul class="navbar-nav ml-auto">
             <li class="nav-item">
                 <a class="nav-link" href="https://github.com/AdmiralGT/botc-scripts" target="_blank">GitHub</a>
             </li>
