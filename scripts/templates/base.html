@@ -1,7 +1,14 @@
 {% load bootstrap4 %}
+{% load i18n %}
 
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
+
+<style>
+    .opacity-50 {
+        opacity:0.5!important;
+    }    
+</style>
 
 <!doctype html>
 <html class="h-100">
@@ -29,7 +36,13 @@
             {% endif %}
             {% if user.is_authenticated %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'account_logout' %}">Logout</a>
+                <form class="m-0" method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{redirect_field_name}}" value="{{redirect_field_value}}"/>
+                    {% endif %}
+                    <button class="btn btn-link text-decoration-none text-white opacity-50" type="submit">{% trans 'Sign Out' %}</button>
+                </form>
             </li>
             {% endif %}
             <li class="nav-item">
