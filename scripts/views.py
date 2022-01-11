@@ -63,32 +63,69 @@ class ScriptUploadView(generic.FormView):
                     initial["notes"] = script_version.notes
         return initial
 
+    def get_form_kwargs(self):
+        """
+        We want to provide the user to the Form's clean method so the user
+        can't overwrite scripts owned by someone else.
+        """
+        kwargs = super(ScriptUploadView, self).get_form_kwargs()
+        kwargs.update({"user": self.request.user})
+        return kwargs
+
     def get_form(self):
         """
         If this is an anonymous user, don't allow them to add notes.
         """
         form = super().get_form(self.form_class)
-        print(self.request.user)
+
+        # If this user isn't authenticated, do allow them to add notes.
+        # Otherwise, if this not a new script and this user does not own the existing
+        # script, don't allow them to add notes.
         if not self.request.user.is_authenticated:
             form.fields.pop("notes")
+        else:
+            script_pk = self.request.GET.get("script", None)
+            if script_pk:
+                script = models.Script.objects.get(pk=script_pk)
+                if script and script.owner and (script.owner != self.request.user):
+                    form.fields.pop("notes")
+
         return form
 
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)
 
     def form_valid(self, form):
+        user = self.request.user
         json = forms.get_json_content(form.cleaned_data)
+
+        # Use the script name from the JSON in preference of the text field.
         script_name = script_json.get_name_from_json(json)
         if not script_name:
             script_name = form.cleaned_data["name"]
+
+        # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=script_name)
+
+        # We only want to set the owner on newly created scripts, so if we've
+        # just created the script and the user is authenticated, set the owner to this user.
+        if created and user.is_authenticated:
+            script.owner = user
+            script.save()
+
+        # If we're updating an existing script, remove the latest tag from the current
+        # latest script version.
         if script.versions.count() > 0:
             latest = script.latest_version()
             latest.latest = False
             latest.save()
+
+        # Use the author in the JSON in preference of the text field.
         author = script_json.get_author_from_json(json)
         if not author:
             author = form.cleaned_data["author"]
+
+        # Create the Script Version object from the form.
         self.script_version = models.ScriptVersion.objects.create(
             version=form.cleaned_data["version"],
             script_type=form.cleaned_data["script_type"],

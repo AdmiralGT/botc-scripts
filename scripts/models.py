@@ -28,6 +28,9 @@ class Script(models.Model):
     """
 
     name = models.CharField(max_length=100)
+    owner = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
 
     def latest_version(self):
         return self.versions.last()

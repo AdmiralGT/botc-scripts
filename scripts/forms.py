@@ -43,11 +43,14 @@ class ScriptForm(forms.Form):
         ),
     )
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user")
+        super(ScriptForm, self).__init__(*args, **kwargs)
+
     def clean(self):
         cleaned_data = super().clean()
         try:
             json = get_json_content(cleaned_data)
-
             # Author is optional so may not be entered or in JSON
             entered_author = cleaned_data.get("author", None)
             json_author = script_json.get_author_from_json(json)
@@ -85,6 +88,11 @@ class ScriptForm(forms.Form):
             if Version(new_version) <= Version(latest_version):
                 raise ValidationError(
                     f"Version {new_version} must be newer than latest version {latest_version}"
+                )
+
+            if script.owner and (script.owner != self.user):
+                raise ValidationError(
+                    "You are not the owner of this script and cannot upload a new version"
                 )
 
         except models.Script.DoesNotExist:
