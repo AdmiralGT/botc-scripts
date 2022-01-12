@@ -1,3 +1,4 @@
+{% load static %}
 {% load i18n %}
 {% load bootstrap4 %}
 {% load account socialaccount %}
@@ -12,7 +13,11 @@
 
   <div class="socialaccount_ballot">
     <ul class="socialaccount_providers list-unstyled">
-      {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+      <li>
+        <a title="Google" class="socialaccount_provider google" href="/accounts/google/login/?process=login">
+          <img src="{% static 'btn_google_signin_dark_normal_web.png' %}"></img>
+        </a>
+      </li>
     </ul>
 
   </div>
