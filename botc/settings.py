@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.discord",
     "markdownify.apps.MarkdownifyConfig",
 ]
 
@@ -74,7 +75,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.request",
-            ]
+            ],
         },
     }
 ]
@@ -152,3 +153,9 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 MARKDOWNIFY = {"default": {"BLEACH": False}}
+
+# django-allauth configuration
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_AUTO_SIGNUP = True

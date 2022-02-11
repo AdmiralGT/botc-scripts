@@ -1,6 +1,8 @@
 from django.urls import include, path, re_path
 from rest_framework import routers
-
+from allauth.account.views import login, logout
+from allauth.socialaccount import providers
+from importlib import import_module
 from scripts import views, viewsets
 
 # Routers provide an easy way of automatically determining the URL conf.
@@ -25,8 +27,24 @@ urlpatterns = [
     ),
     path("statistics", views.StatisticsView.as_view()),
     path("upload", views.ScriptUploadView.as_view(), name="upload"),
-    path("accounts/", include("allauth.urls")),
+    path("account/social/", include("allauth.socialaccount.urls")),
+    path("account/delete/", views.UserDeleteView.as_view(), name="delete_user"),
+    path("account/scripts/", views.UserScriptsListView.as_view()),
+    re_path(r"^login/$", login, name="account_login"),
+    re_path(r"^logout/$", logout, name="account_logout"),
+    re_path(r"^signup/$", login, name="account_signup"),
     re_path(
-        r"^accounts/profile/$", views.UserEditView.as_view(), name="account_profile"
+        r"^account/profile/$", views.UserEditView.as_view(), name="account_profile"
     ),
 ]
+
+provider_urlpatterns = []
+for provider in providers.registry.get_list():
+    try:
+        prov_mod = import_module(provider.get_package() + ".urls")
+    except ImportError:
+        continue
+    prov_urlpatterns = getattr(prov_mod, "urlpatterns", None)
+    if prov_urlpatterns:
+        provider_urlpatterns += prov_urlpatterns
+urlpatterns += provider_urlpatterns

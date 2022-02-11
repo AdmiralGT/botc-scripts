@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% load bootstrap4 %}
+
+{% block content %}
+<form action="{% url 'delete_user' %}" method="post" class="form">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+
+    {% buttons %}
+        <button type="submit" class="btn btn-primary" data-toggle="confirmation">Submit</button>
+    {% endbuttons %}
+{% endblock %}
+
+</form>

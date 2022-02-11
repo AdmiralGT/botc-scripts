@@ -15,18 +15,4 @@
 </div>
 {% endif %}
 
-<form method="post">
-    
-    {% csrf_token %}
-    {% bootstrap_form form %}
-
-    <button class="btn btn-primary">{% trans 'Log in' %}</button>
-
-</form>
-
-<div>
-  <span>Don't have an account?</span>
-  <a class="btn btn-primary" href="{% url 'account_signup' %}">{% trans 'Sign Up' %}</a>
-</div>
-
 {% endblock %}

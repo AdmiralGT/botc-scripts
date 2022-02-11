@@ -3,6 +3,8 @@ import os
 from tempfile import TemporaryFile
 
 # Create your views here.
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import logout
 from django.http import FileResponse, Http404
 from django.shortcuts import redirect
 from django.views import generic
@@ -21,6 +23,25 @@ class ScriptsListView(SingleTableMixin, FilterView):
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
+        if kwargs["data"] is None:
+            kwargs["data"] = {"latest": True}
+        return kwargs
+
+    table_pagination = {"per_page": 20}
+    ordering = ["-pk"]
+
+
+class UserScriptsListView(SingleTableMixin, FilterView):
+    model = models.ScriptVersion
+    table_class = tables.ScriptTable
+    template_name = "index.html"
+    filterset_class = filters.ScriptVersionFilter
+
+    def get_table_data(self):
+        return models.ScriptVersion.objects.filter(script__owner=self.request.user)
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super(UserScriptsListView, self).get_filterset_kwargs(filterset_class)
         if kwargs["data"] is None:
             kwargs["data"] = {"latest": True}
         return kwargs
@@ -181,6 +202,22 @@ class UserEditView(generic.edit.UpdateView):
 
     def get_object(self):
         return self.request.user
+
+
+class UserDeleteView(LoginRequiredMixin, generic.FormView):
+    """
+    Deletes the currently signed-in user.
+    """
+
+    form_class = forms.UserDeleteForm
+    template_name = "account/delete.html"
+    success_url = "/"
+
+    def form_valid(self, form):
+        user = self.request.user
+        logout(self.request)
+        user.delete()
+        super().form_valid(form)
 
 
 def vote_for_script(request, pk: int):
