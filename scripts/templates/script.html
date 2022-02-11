@@ -45,8 +45,14 @@
         </div>
     {% endif %}
     <div class="col-md-auto h-100 p-1">
-            <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
+        <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
     </div>
+    <div class="col-md-auto h-100 p-1">
+        {% if script_version.script.owner == user %}
+            <h4><span class="badge badge-pill badge-success">Owner</span></h4>
+        {% endif %}
+    </div>
+    
 </div>
 
 <div class="row p-1" height="720">
