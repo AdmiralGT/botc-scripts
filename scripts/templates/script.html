@@ -3,13 +3,23 @@
 {% block content %}
 {% load markdownify %}
 
-<h1>{{ script.name }} - v{{ script_version.version }}</h1>
+<h1>
+    {{ script.name }} - v{{ script_version.version }}
+</h1>
 
 {% if script_version.author or script_version.tags %}
     <div class="row">
     {% if script_version.author %}
         <div class="col-auto pr-1">
-            <h2>by {{ script_version.author }}</h2>
+            <h2>
+                by {{ script_version.author }}
+            </h2>
+        </div>
+    {% endif %}
+
+    {% if script_version.script.owner == user %}
+        <div class="col-auto align-self-center">
+            <h4><span class="badge badge-pill badge-dark">You</span></h4>
         </div>
     {% endif %}
 
@@ -47,12 +57,6 @@
     <div class="col-md-auto h-100 p-1">
         <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
     </div>
-    <div class="col-md-auto h-100 p-1">
-        {% if script_version.script.owner == user %}
-            <h4><span class="badge badge-pill badge-success">Owner</span></h4>
-        {% endif %}
-    </div>
-    
 </div>
 
 <div class="row p-1" height="720">

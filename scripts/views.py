@@ -18,7 +18,7 @@ from collections import Counter
 class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
     table_class = tables.ScriptTable
-    template_name = "index.html"
+    template_name = "scriptlist.html"
     filterset_class = filters.ScriptVersionFilter
 
     def get_filterset_kwargs(self, filterset_class):
@@ -34,7 +34,7 @@ class ScriptsListView(SingleTableMixin, FilterView):
 class UserScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
     table_class = tables.ScriptTable
-    template_name = "index.html"
+    template_name = "scriptlist.html"
     filterset_class = filters.ScriptVersionFilter
 
     def get_table_data(self):
