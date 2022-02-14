@@ -5,7 +5,7 @@ from tempfile import TemporaryFile
 # Create your views here.
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
@@ -204,20 +204,18 @@ class UserEditView(generic.edit.UpdateView):
         return self.request.user
 
 
-class UserDeleteView(LoginRequiredMixin, generic.FormView):
+class UserDeleteView(LoginRequiredMixin, generic.TemplateView):
     """
     Deletes the currently signed-in user.
     """
 
-    form_class = forms.UserDeleteForm
     template_name = "account/delete.html"
-    success_url = "/"
 
-    def form_valid(self, form):
-        user = self.request.user
-        logout(self.request)
+    def post(self, request):
+        user = request.user
+        logout(request)
         user.delete()
-        super().form_valid(form)
+        return HttpResponseRedirect("/")
 
 
 def vote_for_script(request, pk: int):

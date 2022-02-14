@@ -43,8 +43,6 @@
 
 <h2>{% trans 'Add a 3rd Party Account' %}</h2>
 
-<ul class="socialaccount_providers">
-{% include "socialaccount/snippets/provider_list.html" with process="connect" %}
-</ul>
+{% include "account/provider_panel.html" with process="connect" %}
 
 {% endblock %}
