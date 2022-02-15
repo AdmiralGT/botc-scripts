@@ -185,25 +185,6 @@ class StatisticsView(generic.TemplateView):
         return context
 
 
-class UserEditView(generic.edit.UpdateView):
-    """Allow view and update of basic user data.
-    In practice this view edits a model, and that model is
-    the User object itself, specifically the names that
-    a user has.
-    The key to updating an existing model, as compared to creating
-    a model (i.e. adding a new row to a database) by using the
-    Django generic view ``UpdateView``, specifically the
-    ``get_object`` method.
-    """
-
-    form_class = forms.UserEditForm
-    template_name = "account/profile.html"
-    success_url = "/accounts/profile"
-
-    def get_object(self):
-        return self.request.user
-
-
 class UserDeleteView(LoginRequiredMixin, generic.TemplateView):
     """
     Deletes the currently signed-in user.

@@ -101,16 +101,6 @@ class ScriptForm(forms.Form):
             pass
 
 
-class UserEditForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ("first_name", "last_name")
-
-
-class UserDeleteForm(forms.Form):
-    delete = forms.BooleanField(required=True)
-
-
 def get_json_content(data):
     json_content = data.get("content", None)
     if not json_content:
