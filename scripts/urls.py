@@ -33,9 +33,6 @@ urlpatterns = [
     re_path(r"^login/$", login, name="account_login"),
     re_path(r"^logout/$", logout, name="account_logout"),
     re_path(r"^signup/$", login, name="account_signup"),
-    re_path(
-        r"^account/profile/$", views.UserEditView.as_view(), name="account_profile"
-    ),
 ]
 
 provider_urlpatterns = []
