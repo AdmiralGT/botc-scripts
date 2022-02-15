@@ -49,3 +49,29 @@ AZURE_STATIC_CONTAINER = os.environ.get("AZURE_STATIC_CONTAINER", "static")
 STATIC_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/"
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "APP": {
+            "client_id": os.getenv("GOOGLE_OAUTH2_CLIENT_ID", None),
+            "secret": os.getenv("GOOGLE_OAUTH2_SECRET", None),
+            "key": "",
+        },
+    },
+    "discord": {
+        "SCOPE": [
+            "email",
+        ],
+        "APP": {
+            "client_id": os.getenv("DISCORD_OAUTH2_CLIENT_ID", None),
+            "secret": os.getenv("DISCORD_OAUTH2_SECRET", None),
+            "key": "",
+        },
+    },
+}
