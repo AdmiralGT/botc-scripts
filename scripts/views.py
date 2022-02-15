@@ -235,10 +235,6 @@ def vote_for_script(request, pk: int):
         else:
             # Otherwise create a new vote.
             models.Vote.objects.create(user=request.user, script=script_version)
-    elif not request.session.get(str(pk), False):
-        # Non-authenticated users have to track scripts we've voted for with session state.
-        models.Vote.objects.create(script=script_version)
-        request.session[str(pk)] = True
     return redirect(request.POST["next"])
 
 

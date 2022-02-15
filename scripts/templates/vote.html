@@ -16,11 +16,5 @@
         {% else %}
             <button type="submit" class="btn btn-primary btn-sm">Vote</button>
         {% endif %}
-    {% else %}
-        {% if record.pk|slugify in request.session.keys %}
-            <button type="submit" class="btn btn-secondary btn-sm" disabled>Vote</button>
-        {% else %}
-            <button type="submit" class="btn btn-primary btn-sm">Vote</button>
-        {% endif %}
     {% endif %}
 </form>
