@@ -304,14 +304,6 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
-name = "importlib"
-version = "1.0.4"
-description = "Backport of importlib.import_module() from Python 2.7"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "importlib-metadata"
 version = "4.11.1"
 description = "Read metadata from Python packages"
@@ -594,7 +586,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "fed258f4d9fea1f62bb850670d3e3320bd545e89249f4dc4adb80ec6667a83e1"
+content-hash = "1e53dac0028a900790b761e65d1958fd200914bb9480171004c4b424ad5ac62a"
 
 [metadata.files]
 asgiref = [
@@ -757,9 +749,6 @@ djangorestframework = [
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
     {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
-]
-importlib = [
-    {file = "importlib-1.0.4.zip", hash = "sha256:b6ee7066fea66e35f8d0acee24d98006de1a0a8a94a8ce6efe73a9a23c8d9826"},
 ]
 importlib-metadata = [
     {file = "importlib_metadata-4.11.1-py3-none-any.whl", hash = "sha256:e0bc84ff355328a4adfc5240c4f211e0ab386f80aa640d1b11f0618a1d282094"},
