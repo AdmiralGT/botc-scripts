@@ -1,14 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
+{% load markdownify %}
 
-<h1>{{ script.name }} - v{{ script_version.version }}</h1>
+<h1>
+    {{ script.name }} - v{{ script_version.version }}
+</h1>
 
 {% if script_version.author or script_version.tags %}
     <div class="row">
     {% if script_version.author %}
         <div class="col-auto pr-1">
-            <h2>by {{ script_version.author }}</h2>
+            <h2>
+                by {{ script_version.author }}
+            </h2>
+        </div>
+    {% endif %}
+
+    {% if script_version.script.owner == user %}
+        <div class="col-auto align-self-center">
+            <h4><span class="badge badge-pill badge-dark">You</span></h4>
         </div>
     {% endif %}
 
@@ -44,23 +55,28 @@
         </div>
     {% endif %}
     <div class="col-md-auto h-100 p-1">
-            <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
+        <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
     </div>
 </div>
 
 <div class="row p-1" height="720">
     {% if script_version.pdf %}
-        <div class="col">
+        <div class="col-sm-6">
             <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
         </div>
     {% endif %}
-    <div class="col">
+    <div class="flex-shrink-0">
         {% for role in script_version.content %}
             {% if role.id != "_meta" %}
                 <li>{{ role.id }}</li>
             {% endif %}
         {% endfor %}
     </div>
+    {% if script_version.notes %}
+    <div class="col">
+        {{ script_version.notes|markdownify }}
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

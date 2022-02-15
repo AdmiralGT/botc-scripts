@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% load bootstrap4 %}
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block content %}
+{% get_providers as socialaccount_providers %}
+
+<h4>{% trans 'Log in' %}</h4>
+
+{% if socialaccount_providers  %}
+<div class="col-md-5 col-lg-5">
+  {% include "account/provider_panel.html" with process="login" %}
+</div>
+{% endif %}
+
+{% endblock %}

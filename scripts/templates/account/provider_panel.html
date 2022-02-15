@@ -1,0 +1,23 @@
+{% load static %}
+{% load i18n %}
+{% load bootstrap4 %}
+{% load account socialaccount %}
+
+{% get_providers as socialaccount_providers %}
+{% if socialaccount_providers  %}
+  <div class="socialaccount_ballot">
+    <ul class="socialaccount_providers list-unstyled">
+      <li class="p-1">
+        <a title="Google" class="socialaccount_provider google" href="/google/login/?process={{ process }}">
+          <img src="{% static 'btn_google_signin_dark_normal_web.png' %}" style="width:200px"></img>
+        </a>
+      </li>
+      <li class="p-1">
+        <a title="Discord" class="socialaccount_provider discord" href="/discord/login/?process={{ process }}">
+          <img src="{% static 'btn_discord.png' %}" style="width:200px"></img>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+{% endif %}

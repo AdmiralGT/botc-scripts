@@ -3,7 +3,9 @@ import os
 from tempfile import TemporaryFile
 
 # Create your views here.
-from django.http import FileResponse, Http404
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import logout
+from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
@@ -16,11 +18,30 @@ from collections import Counter
 class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
     table_class = tables.ScriptTable
-    template_name = "index.html"
+    template_name = "scriptlist.html"
     filterset_class = filters.ScriptVersionFilter
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
+        if kwargs["data"] is None:
+            kwargs["data"] = {"latest": True}
+        return kwargs
+
+    table_pagination = {"per_page": 20}
+    ordering = ["-pk"]
+
+
+class UserScriptsListView(SingleTableMixin, FilterView):
+    model = models.ScriptVersion
+    table_class = tables.ScriptTable
+    template_name = "scriptlist.html"
+    filterset_class = filters.ScriptVersionFilter
+
+    def get_table_data(self):
+        return models.ScriptVersion.objects.filter(script__owner=self.request.user)
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super(UserScriptsListView, self).get_filterset_kwargs(filterset_class)
         if kwargs["data"] is None:
             kwargs["data"] = {"latest": True}
         return kwargs
@@ -59,24 +80,73 @@ class ScriptUploadView(generic.FormView):
                 initial["name"] = script.name
                 initial["author"] = script_version.author
                 initial["version"] = script_version.version
+                if script_version.notes:
+                    initial["notes"] = script_version.notes
         return initial
+
+    def get_form_kwargs(self):
+        """
+        We want to provide the user to the Form's clean method so the user
+        can't overwrite scripts owned by someone else.
+        """
+        kwargs = super(ScriptUploadView, self).get_form_kwargs()
+        kwargs.update({"user": self.request.user})
+        return kwargs
+
+    def get_form(self):
+        """
+        If this is an anonymous user, don't allow them to add notes.
+        """
+        form = super().get_form(self.form_class)
+
+        # If this user isn't authenticated, do allow them to add notes.
+        # Otherwise, if this not a new script and this user does not own the existing
+        # script, don't allow them to add notes.
+        if not self.request.user.is_authenticated:
+            form.fields.pop("notes")
+        else:
+            script_pk = self.request.GET.get("script", None)
+            if script_pk:
+                script = models.Script.objects.get(pk=script_pk)
+                if script and script.owner and (script.owner != self.request.user):
+                    form.fields.pop("notes")
+
+        return form
 
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)
 
     def form_valid(self, form):
+        user = self.request.user
         json = forms.get_json_content(form.cleaned_data)
+
+        # Use the script name from the JSON in preference of the text field.
         script_name = script_json.get_name_from_json(json)
         if not script_name:
             script_name = form.cleaned_data["name"]
+
+        # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=script_name)
+
+        # We only want to set the owner on newly created scripts, so if we've
+        # just created the script and the user is authenticated, set the owner to this user.
+        if created and user.is_authenticated:
+            script.owner = user
+            script.save()
+
+        # If we're updating an existing script, remove the latest tag from the current
+        # latest script version.
         if script.versions.count() > 0:
             latest = script.latest_version()
             latest.latest = False
             latest.save()
+
+        # Use the author in the JSON in preference of the text field.
         author = script_json.get_author_from_json(json)
         if not author:
             author = form.cleaned_data["author"]
+
+        # Create the Script Version object from the form.
         self.script_version = models.ScriptVersion.objects.create(
             version=form.cleaned_data["version"],
             script_type=form.cleaned_data["script_type"],
@@ -115,13 +185,37 @@ class StatisticsView(generic.TemplateView):
         return context
 
 
+class UserDeleteView(LoginRequiredMixin, generic.TemplateView):
+    """
+    Deletes the currently signed-in user.
+    """
+
+    template_name = "account/delete.html"
+
+    def post(self, request):
+        user = request.user
+        logout(request)
+        user.delete()
+        return HttpResponseRedirect("/")
+
+
 def vote_for_script(request, pk: int):
     if request.method != "POST":
         raise Http404()
     script_version = models.ScriptVersion.objects.get(pk=pk)
-    if not request.session.get(str(pk), False):
-        models.Vote.objects.create(script=script_version)
-    request.session[str(pk)] = True
+
+    # Authenticated users should create votes with their user profile.
+    if request.user.is_authenticated:
+        if models.Vote.objects.filter(
+            user=request.user, script=script_version
+        ).exists():
+            # If this user has already voted for this script, delete that vote. Use filter.exists()
+            # because it is more performant
+            vote = models.Vote.objects.get(user=request.user, script=script_version)
+            vote.delete()
+        else:
+            # Otherwise create a new vote.
+            models.Vote.objects.create(user=request.user, script=script_version)
     return redirect(request.POST["next"])
 
 

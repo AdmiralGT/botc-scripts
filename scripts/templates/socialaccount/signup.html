@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load bootstrap4 %}
+
+{% block content %}
+<h1>{% trans "Oops!" %}</h1>
+
+You already have an account registered with this e-mail address {{ email }} using another provider.
+
+Please login using that provider and connect this provider to that account.
+
+{% endblock %}

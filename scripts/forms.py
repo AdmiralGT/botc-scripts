@@ -3,6 +3,7 @@ import json as js
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
+from django.contrib.auth.models import User
 from packaging.version import Version
 
 from scripts import models, script_json, validators
@@ -13,9 +14,7 @@ class JSONError(Exception):
 
 
 def tagOptions():
-    return models.ScriptTag.objects.order_by("name").exclude(
-        name__exact="Script Competition Winner"
-    )
+    return models.ScriptTag.objects.filter(public=True)
 
 
 class ScriptForm(forms.Form):
@@ -37,12 +36,21 @@ class ScriptForm(forms.Form):
     pdf = forms.FileField(
         label="PDF", required=False, validators=[FileExtensionValidator(["pdf"])]
     )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(
+            attrs={"rows": 17, "placeholder": "Notes (enter using Markdown formatting)"}
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user")
+        super(ScriptForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
         try:
             json = get_json_content(cleaned_data)
-
             # Author is optional so may not be entered or in JSON
             entered_author = cleaned_data.get("author", None)
             json_author = script_json.get_author_from_json(json)
@@ -80,6 +88,11 @@ class ScriptForm(forms.Form):
             if Version(new_version) <= Version(latest_version):
                 raise ValidationError(
                     f"Version {new_version} must be newer than latest version {latest_version}"
+                )
+
+            if script.owner and (script.owner != self.user):
+                raise ValidationError(
+                    "You are not the owner of this script and cannot upload a new version"
                 )
 
         except models.Script.DoesNotExist:
