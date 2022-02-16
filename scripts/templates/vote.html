@@ -1,9 +1,6 @@
 {% load bootstrap4 %}
 {% load botc_script_tags %}
 
-{% bootstrap_css %}
-{% bootstrap_javascript jquery='full' %}
-
 {% has_user_voted as user_voted_flag %}
 
 <form class="mb-0" action="{% url 'vote' record.pk %}" method="post">
