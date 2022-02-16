@@ -50,6 +50,7 @@ STATIC_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/"
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": [
