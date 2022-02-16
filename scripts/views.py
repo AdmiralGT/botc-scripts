@@ -202,21 +202,6 @@ class StatisticsView(generic.TemplateView):
         return context
 
 
-class CharacterStatisticsView(generic.TemplateView):
-    """
-    Statistics page for a particular character.
-    """
-
-    template_name = "statistics.html"
-
-    def get(self, request, character):
-        print(character)
-        return super().get(request, character)
-
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        return super().get_context_data(**kwargs)
-
-
 class UserDeleteView(LoginRequiredMixin, generic.TemplateView):
     """
     Deletes the currently signed-in user.
