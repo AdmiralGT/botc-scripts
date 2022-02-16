@@ -190,7 +190,7 @@ class StatisticsView(generic.TemplateView):
                 continue
 
             character_count[character.character_type.value][
-                character.character_name
+                character
             ] = queryset.filter(content__contains=[{"id": character.json_id}]).count()
 
         for type in characters.CharacterType:
