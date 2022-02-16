@@ -49,6 +49,7 @@ class Character(Enum):
     MAYOR = ("mayor", CharacterType.TOWNSFOLK, "Mayor")
     MINSTREL = ("minstrel", CharacterType.TOWNSFOLK, "Minstrel")
     MONK = ("monk", CharacterType.TOWNSFOLK, "Monk")
+    NIGHTWATCHMAN = ("nightwatchman", CharacterType.TOWNSFOLK, "Nightwatchman")
     NOBLE = ("noble", CharacterType.TOWNSFOLK, "Noble")
     ORACLE = ("oracle", CharacterType.TOWNSFOLK, "Oracle")
     PACIFIST = ("pacifist", CharacterType.TOWNSFOLK, "Pacifist")
@@ -169,6 +170,15 @@ class Character(Enum):
     @property
     def character_name(self):
         return self._character_name
+
+    @classmethod
+    def get(self, name):
+        try:
+            for char in Character:
+                if char.json_id == name:
+                    return char
+        except KeyError:
+            return None
 
 
 def get_characters_by_type(type: CharacterType):
