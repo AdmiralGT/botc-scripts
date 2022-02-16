@@ -26,6 +26,7 @@ urlpatterns = [
         name="download_pdf",
     ),
     path("statistics", views.StatisticsView.as_view()),
+    path("statistics/<str:character>", views.StatisticsView.as_view()),
     path("upload", views.ScriptUploadView.as_view(), name="upload"),
     path("account/social/", include("allauth.socialaccount.urls")),
     path("account/delete/", views.UserDeleteView.as_view(), name="delete_user"),

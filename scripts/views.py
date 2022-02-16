@@ -14,6 +14,8 @@ from django_tables2.views import SingleTableMixin
 from scripts import filters, forms, models, script_json, tables, characters
 from collections import Counter
 
+from typing import Dict, Any
+
 
 class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
@@ -162,19 +164,34 @@ class ScriptUploadView(generic.FormView):
 class StatisticsView(generic.TemplateView):
     template_name = "statistics.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["total"] = models.Script.objects.count()
+        stats_character = None
+
+        if "character" in kwargs:
+            if characters.Character.get(kwargs.get("character")):
+                stats_character = characters.Character.get(kwargs.get("character"))
+                queryset = models.ScriptVersion.objects.filter(
+                    latest=True, content__contains=[{"id": stats_character.json_id}]
+                )
+                context["total"] = queryset.count()
+            else:
+                raise Http404()
+        else:
+            context["total"] = models.Script.objects.count()
+            queryset = models.ScriptVersion.objects.filter(latest=True)
 
         character_count = {}
         for type in characters.CharacterType:
             character_count[type.value] = Counter()
         for character in characters.Character:
+            # If we're on a Character Statistics page, don't include this character in the count.
+            if character == stats_character:
+                continue
+
             character_count[character.character_type.value][
                 character.character_name
-            ] = models.ScriptVersion.objects.filter(
-                latest=True, content__contains=[{"id": character.json_id}]
-            ).count()
+            ] = queryset.filter(content__contains=[{"id": character.json_id}]).count()
 
         for type in characters.CharacterType:
             context[type.value] = character_count[type.value].most_common(5)
