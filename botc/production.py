@@ -68,6 +68,7 @@ SOCIALACCOUNT_PROVIDERS = {
     "discord": {
         "SCOPE": [
             "email",
+            "identify",
         ],
         "APP": {
             "client_id": os.getenv("DISCORD_OAUTH2_CLIENT_ID", None),
