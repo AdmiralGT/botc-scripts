@@ -62,10 +62,16 @@ class ScriptView(generic.DetailView):
                 continue
             for new_id in new_json:
                 if new_id["id"] == "_meta":
-                    new_json.remove(new_id)
+                    continue
 
                 if old_id == new_id:
                     new_json.remove(new_id)
+
+        for new_id in new_json:
+            if new_id["id"] == "_meta":
+                new_json.remove(new_id)
+                break
+
         return new_json
 
     def get_context_data(self, **kwargs):
