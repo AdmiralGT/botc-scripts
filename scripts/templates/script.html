@@ -54,9 +54,11 @@
             <a class="btn btn-primary" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
         </div>
     {% endif %}
-    <div class="col-md-auto h-100 p-1">
-        <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
-    </div>
+    {% if not script.owner or user == script_version.script.owner %}
+        <div class="col-md-auto h-100 p-1">
+            <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
+        </div>
+    {% endif %}
 </div>
 
 <div class="row p-1" height="720">
