@@ -33,7 +33,7 @@ class ScriptsListView(SingleTableMixin, FilterView):
     ordering = ["-pk"]
 
 
-class UserScriptsListView(SingleTableMixin, FilterView):
+class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
     table_class = tables.ScriptTable
     template_name = "scriptlist.html"
