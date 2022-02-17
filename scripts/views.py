@@ -52,18 +52,63 @@ class UserScriptsListView(SingleTableMixin, FilterView):
     ordering = ["-pk"]
 
 
+def get_json_additions(old_json, new_json):
+    for old_id in old_json:
+        if old_id["id"] == "_meta":
+            continue
+        for new_id in new_json:
+            if new_id["id"] == "_meta":
+                continue
+
+            if old_id == new_id:
+                new_json.remove(new_id)
+
+    for new_id in new_json:
+        if new_id["id"] == "_meta":
+            new_json.remove(new_id)
+            break
+
+    return new_json
+
+
 class ScriptView(generic.DetailView):
     template_name = "script.html"
     model = models.Script
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         if "sel_name" in self.request.GET:
             context["script_version"] = self.object.versions.get(
                 version=self.request.GET["sel_name"]
             )
         else:
             context["script_version"] = self.object.versions.last()
+        curr_version = context["script_version"].version
+
+        changes = {}
+        diff_script_version = None
+        for script_version in reversed(self.object.versions.all()):
+
+            # If we're looking at an older script, don't show changes future to that.
+            if script_version.version.internal_integer > curr_version.internal_integer:
+                continue
+
+            if diff_script_version:
+                changes[diff_script_version.version] = {}
+                changes[diff_script_version.version]["additions"] = get_json_additions(
+                    script_version.content.copy(), diff_script_version.content.copy()
+                )
+                changes[diff_script_version.version]["deletions"] = get_json_additions(
+                    diff_script_version.content.copy(), script_version.content.copy()
+                )
+                changes[diff_script_version.version][
+                    "previous_version"
+                ] = script_version.version
+            diff_script_version = script_version
+
+        context["changes"] = changes
+
         return context
 
 
