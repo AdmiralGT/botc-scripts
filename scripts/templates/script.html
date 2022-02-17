@@ -72,22 +72,30 @@
             {% endif %}
         {% endfor %}
     </div>
-    {% if script_version.notes %}
     <div class="col">
+    {% if script_version.notes %}
         {{ script_version.notes|markdownify }}
+    {% endif %}
         {% for version, diffs in changes.items %}
-            <h2>{{ version }}</h2>
-            <ul class="unstyled">
-            {% for role in diffs.additions %}
-                <li class="list-group-item p-0 border-0">+{{ role.id }}</li>
-            {% endfor %}
-            {% for role in diffs.deletions %}
-                <li class="list-group-item p-0 border-0">-{{ role.id }}</li>
-            {% endfor %}
-            </ul>
+            <h2>{{ diffs.previous_version }} -> {{ version }}</h2>
+            <div class="row">
+                <div class="col-sm-2">
+                    <ul class="p-0">
+                        {% for role in diffs.additions %}
+                            <li class="list-group-item p-0 border-0">+{{ role.id }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-sm-2">
+                    <ul class="p-0">
+                        {% for role in diffs.deletions %}
+                            <li class="list-group-item p-0 border-0">-{{ role.id }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         {% endfor %}
     </div>
-    {% endif %}
 </div>
 
 {% endblock %}

@@ -92,6 +92,9 @@ class ScriptView(generic.DetailView):
                 ] = self.get_json_additions(
                     diff_script_version.content.copy(), script_version.content.copy()
                 )
+                changes[diff_script_version.version][
+                    "previous_version"
+                ] = script_version.version
             diff_script_version = script_version
 
         context["changes"] = changes
