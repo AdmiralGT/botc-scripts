@@ -42,6 +42,9 @@ class ScriptForm(forms.Form):
             attrs={"rows": 17, "placeholder": "Notes (enter using Markdown formatting)"}
         ),
     )
+    anonymous = forms.BooleanField(
+        required=False, initial=False, label="Upload without owning the script"
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
