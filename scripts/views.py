@@ -146,24 +146,17 @@ class ScriptUploadView(generic.FormView):
         """
         form = super().get_form(self.form_class)
 
-        # If this user isn't authenticated, do allow them to add notes or upload anonymously
-        # (since it will be anonymous anyway).
+        # If this user isn't authenticated, do allow them to add notes.
+        # Otherwise, if this not a new script and this user does not own the existing
+        # script, don't allow them to add notes.
         if not self.request.user.is_authenticated:
             form.fields.pop("notes")
-            form.fields.pop("anonymous")
         else:
             script_pk = self.request.GET.get("script", None)
             if script_pk:
                 script = models.Script.objects.get(pk=script_pk)
-
-                # If this script is owned by someone, and it is not the currently logged in
-                # user, don't show the notes field.
                 if script and script.owner and (script.owner != self.request.user):
                     form.fields.pop("notes")
-
-                # If this is an update to an existing script, we can't make it anonymous.
-                if script:
-                    form.fields.pop("anonymous")
 
         return form
 
@@ -183,9 +176,8 @@ class ScriptUploadView(generic.FormView):
         script, created = models.Script.objects.get_or_create(name=script_name)
 
         # We only want to set the owner on newly created scripts, so if we've
-        # just created the script and the user is authenticated, set the owner to this user
-        # unless they uploaded anonymously.
-        if created and user.is_authenticated and not form.cleaned_data["anonymous"]:
+        # just created the script and the user is authenticated, set the owner to this user.
+        if created and user.is_authenticated:
             script.owner = user
             script.save()
 
