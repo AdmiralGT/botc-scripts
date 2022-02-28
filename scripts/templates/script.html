@@ -81,17 +81,17 @@
         {% for version, diffs in changes.items %}
             <h2>{{ diffs.previous_version }} -> {{ version }}</h2>
             <div class="row">
-                <div class="col-sm-4">
+                <div class="col-sm-5">
                     <ul class="p-0">
                         {% for role in diffs.additions %}
-                            <li class="list-group-item p-0 border-0">+{{ role.id }}</li>
+                            <li class="list-group-item p-0 border-0">+ {{ role.id }}</li>
                         {% endfor %}
                     </ul>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-5">
                     <ul class="p-0">
                         {% for role in diffs.deletions %}
-                            <li class="list-group-item p-0 border-0">-{{ role.id }}</li>
+                            <li class="list-group-item p-0 border-0">- {{ role.id }}</li>
                         {% endfor %}
                     </ul>
                 </div>
