@@ -189,17 +189,29 @@ class ScriptUploadView(generic.FormView):
             script.owner = user
             script.save()
 
-        # If we're updating an existing script, remove the latest tag from the current
-        # latest script version.
-        if script.versions.count() > 0:
-            latest = script.latest_version()
-            latest.latest = False
-            latest.save()
-
         # Use the author in the JSON in preference of the text field.
         author = script_json.get_author_from_json(json)
         if not author:
             author = form.cleaned_data["author"]
+
+        # The user may just be updating some info about the current script, so let them
+        # do that if there's no JSON changes or PDF.
+        if not created:
+            latest = script.latest_version()
+            if latest.content == json and not form.cleaned_data["pdf"]:
+                # We're updating an existing entry.
+                self.script_version = latest
+                self.script_version.script_type = form.cleaned_data["script_type"]
+                self.script_version.author = author
+                self.script_version.notes = form.cleaned_data["notes"]
+                self.script_version.tags.set(form.cleaned_data["tags"])
+                self.script_version.save()
+                return super().form_valid(form)
+            else:
+                # If the content has changed or we have a PDF, we're creating a new version
+                # so set the previous latest version is no longer the latest.
+                latest.latest = False
+                latest.save()
 
         # Create the Script Version object from the form.
         self.script_version = models.ScriptVersion.objects.create(
@@ -209,8 +221,10 @@ class ScriptUploadView(generic.FormView):
             script=script,
             pdf=form.cleaned_data["pdf"],
             author=author,
+            notes=form.cleaned_data["notes"],
         )
         self.script_version.tags.set(form.cleaned_data["tags"])
+
         return super().form_valid(form)
 
 
