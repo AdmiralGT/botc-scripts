@@ -67,5 +67,4 @@ jobs:
         id: deploy-to-webapp
         with:
           app-name: 'botc-scripts-staging'
-          slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4DC4AA964B30435A9B5181F6CEFEB54C }}
