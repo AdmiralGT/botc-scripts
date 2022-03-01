@@ -27,8 +27,7 @@
         {% load botc_script_tags %}
         <div class="col-auto align-self-center">
             {% for tag in script_version.tags.all %}
-                {% get_tag_type tag as badge_tag %}
-                <span class="badge badge-pill {{ badge_tag }}">{{ tag }}</span>
+                <span class="badge badge-pill {{ tag.style }}">{{ tag }}</span>
             {% endfor %}    
         </div>
     {% endif %}
