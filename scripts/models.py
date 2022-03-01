@@ -10,6 +10,17 @@ class ScriptTypes(models.TextChoices):
     FULL = "Full"
 
 
+class TagStyles(models.TextChoices):
+    BLUE = "badge-primary"
+    GREY = "badge-secondary"
+    GREEN = "badge-success"
+    RED = "badge-danger"
+    YELLOW = "badge-warning"
+    CYAN = "badge-info"
+    WHITE = "badge-light"
+    BLACK = "badge-dark"
+
+
 class ScriptTag(models.Model):
     """
     Tags that can be applied to a script.
@@ -17,6 +28,9 @@ class ScriptTag(models.Model):
 
     name = models.CharField(max_length=30)
     public = models.BooleanField(default=False)
+    style = models.CharField(
+        max_length=20, choices=TagStyles.choices, default=TagStyles.BLUE
+    )
 
     def __str__(self):
         return f"{self.name}"
