@@ -88,7 +88,7 @@ class ScriptView(generic.DetailView):
 
         changes = {}
         diff_script_version = None
-        for script_version in reversed(self.object.versions.all()):
+        for script_version in self.object.versions.all().order_by("-version"):
 
             # If we're looking at an older script, don't show changes future to that.
             if script_version.version.internal_integer > curr_version.internal_integer:
