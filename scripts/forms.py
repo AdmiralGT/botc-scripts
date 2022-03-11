@@ -87,18 +87,21 @@ class ScriptForm(forms.Form):
                     "You are not the owner of this script and cannot upload a new version"
                 )
 
-            if script.latest_version().content != json or cleaned_data.get("pdf", None):
-                new_version = cleaned_data["version"]
+            if script.latest_version():
+                if script.latest_version().content != json or cleaned_data.get(
+                    "pdf", None
+                ):
+                    new_version = cleaned_data["version"]
 
-                if script.versions.count() == 0:
-                    latest_version = "0"
-                else:
-                    latest_version = str(script.latest_version().version)
+                    if script.versions.count() == 0:
+                        latest_version = "0"
+                    else:
+                        latest_version = str(script.latest_version().version)
 
-                if Version(new_version) <= Version(latest_version):
-                    raise ValidationError(
-                        f"Version {new_version} must be newer than latest version {latest_version}"
-                    )
+                    if Version(new_version) <= Version(latest_version):
+                        raise ValidationError(
+                            f"Version {new_version} must be newer than latest version {latest_version}"
+                        )
 
         except models.Script.DoesNotExist:
             pass

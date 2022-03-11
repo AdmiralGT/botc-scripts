@@ -198,12 +198,13 @@ class ScriptUploadView(generic.FormView):
         # do that if there's no JSON changes or PDF.
         if not created:
             latest = script.latest_version()
-            if latest.content == json and not form.cleaned_data["pdf"]:
+            if latest and (latest.content == json and not form.cleaned_data["pdf"]):
                 # We're updating an existing entry.
                 self.script_version = latest
                 self.script_version.script_type = form.cleaned_data["script_type"]
                 self.script_version.author = author
-                self.script_version.notes = form.cleaned_data["notes"]
+                if form.cleaned_data["notes"]:
+                    self.script_version.notes = form.cleaned_data["notes"]
                 self.script_version.tags.set(form.cleaned_data["tags"])
                 self.script_version.save()
                 return super().form_valid(form)
@@ -214,15 +215,25 @@ class ScriptUploadView(generic.FormView):
                 latest.save()
 
         # Create the Script Version object from the form.
-        self.script_version = models.ScriptVersion.objects.create(
-            version=form.cleaned_data["version"],
-            script_type=form.cleaned_data["script_type"],
-            content=json,
-            script=script,
-            pdf=form.cleaned_data["pdf"],
-            author=author,
-            notes=form.cleaned_data["notes"],
-        )
+        if form.cleaned_data["notes"]:
+            self.script_version = models.ScriptVersion.objects.create(
+                version=form.cleaned_data["version"],
+                script_type=form.cleaned_data["script_type"],
+                content=json,
+                script=script,
+                pdf=form.cleaned_data["pdf"],
+                author=author,
+                notes=form.cleaned_data["notes"],
+            )
+        else:
+            self.script_version = models.ScriptVersion.objects.create(
+                version=form.cleaned_data["version"],
+                script_type=form.cleaned_data["script_type"],
+                content=json,
+                script=script,
+                pdf=form.cleaned_data["pdf"],
+                author=author,
+            )
         self.script_version.tags.set(form.cleaned_data["tags"])
 
         return super().form_valid(form)
