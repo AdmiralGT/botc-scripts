@@ -203,9 +203,9 @@ class ScriptUploadView(generic.FormView):
                 self.script_version = latest
                 self.script_version.script_type = form.cleaned_data["script_type"]
                 self.script_version.author = author
-                if form.cleaned_data["notes"]:
+                if form.cleaned_data.get("notes", None):
                     self.script_version.notes = form.cleaned_data["notes"]
-                if form.cleaned_data["pdf"]:
+                if form.cleaned_data.get("pdf", None):
                     self.script_version.pdf = form.cleaned_data["pdf"]
                 self.script_version.tags.set(form.cleaned_data["tags"])
                 self.script_version.save()
@@ -217,7 +217,7 @@ class ScriptUploadView(generic.FormView):
                 latest.save()
 
         # Create the Script Version object from the form.
-        if form.cleaned_data["notes"]:
+        if form.cleaned_data.get("notes", None):
             self.script_version = models.ScriptVersion.objects.create(
                 version=form.cleaned_data["version"],
                 script_type=form.cleaned_data["script_type"],
