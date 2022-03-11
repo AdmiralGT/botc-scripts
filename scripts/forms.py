@@ -88,9 +88,9 @@ class ScriptForm(forms.Form):
                 )
 
             if script.latest_version():
-                if script.latest_version().content != json or cleaned_data.get(
-                    "pdf", None
-                ):
+                # If we're attempting to upload the same JSON content, the user can have the same version
+                # (and will in fact have the same version)
+                if script.latest_version().content != json:
                     new_version = cleaned_data["version"]
 
                     if script.versions.count() == 0:
