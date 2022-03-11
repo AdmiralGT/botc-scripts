@@ -88,7 +88,7 @@ class ScriptView(generic.DetailView):
 
         changes = {}
         diff_script_version = None
-        for script_version in reversed(self.object.versions.all()):
+        for script_version in self.object.versions.all().order_by("-version"):
 
             # If we're looking at an older script, don't show changes future to that.
             if script_version.version.internal_integer > curr_version.internal_integer:
@@ -195,34 +195,47 @@ class ScriptUploadView(generic.FormView):
             author = form.cleaned_data["author"]
 
         # The user may just be updating some info about the current script, so let them
-        # do that if there's no JSON changes or PDF.
+        # do that if the JSON content is the same
         if not created:
             latest = script.latest_version()
-            if latest.content == json and not form.cleaned_data["pdf"]:
+            if latest and (latest.content == json):
                 # We're updating an existing entry.
                 self.script_version = latest
                 self.script_version.script_type = form.cleaned_data["script_type"]
                 self.script_version.author = author
-                self.script_version.notes = form.cleaned_data["notes"]
+                if form.cleaned_data.get("notes", None):
+                    self.script_version.notes = form.cleaned_data["notes"]
+                if form.cleaned_data.get("pdf", None):
+                    self.script_version.pdf = form.cleaned_data["pdf"]
                 self.script_version.tags.set(form.cleaned_data["tags"])
                 self.script_version.save()
                 return super().form_valid(form)
             else:
-                # If the content has changed or we have a PDF, we're creating a new version
+                # If the content has changed, we're creating a new version
                 # so set the previous latest version is no longer the latest.
                 latest.latest = False
                 latest.save()
 
         # Create the Script Version object from the form.
-        self.script_version = models.ScriptVersion.objects.create(
-            version=form.cleaned_data["version"],
-            script_type=form.cleaned_data["script_type"],
-            content=json,
-            script=script,
-            pdf=form.cleaned_data["pdf"],
-            author=author,
-            notes=form.cleaned_data["notes"],
-        )
+        if form.cleaned_data.get("notes", None):
+            self.script_version = models.ScriptVersion.objects.create(
+                version=form.cleaned_data["version"],
+                script_type=form.cleaned_data["script_type"],
+                content=json,
+                script=script,
+                pdf=form.cleaned_data["pdf"],
+                author=author,
+                notes=form.cleaned_data["notes"],
+            )
+        else:
+            self.script_version = models.ScriptVersion.objects.create(
+                version=form.cleaned_data["version"],
+                script_type=form.cleaned_data["script_type"],
+                content=json,
+                script=script,
+                pdf=form.cleaned_data["pdf"],
+                author=author,
+            )
         self.script_version.tags.set(form.cleaned_data["tags"])
 
         return super().form_valid(form)
