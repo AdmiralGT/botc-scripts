@@ -60,7 +60,18 @@
     {% endif %}
 </div>
 
-<div class="row p-1" height="720">
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Home</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Contact</a>
+    </li>
+</ul>
+<div class="tab-pane fade show active row p-1" height="720" id="home" role="tabpanel" aria-labelledby="home-tab">
     {% if script_version.pdf %}
         <div class="col-sm-6">
             <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
