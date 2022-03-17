@@ -95,11 +95,11 @@
     {% else %}
         <div class="tab-pane fade show active col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% endif %}
-            {% for role in script_version.content %}
-                {% if role.id != "_meta" %}
-                    <li>{{ role.id }}</li>
-                {% endif %}
-            {% endfor %}
+        {% for role in script_version.content %}
+            {% if role.id != "_meta" %}
+                <li>{{ role.id }}</li>
+            {% endif %}
+        {% endfor %}
     </div>
     {% if changes.items|length > 0 %}
     <div class="tab-pane fade col-sm-4" id="history" role="tabpanel" aria-labelledby="history-tab">
