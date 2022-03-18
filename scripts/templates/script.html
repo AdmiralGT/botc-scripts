@@ -38,7 +38,7 @@
     <div class="col-md-auto p-1">
         <form class="mb-0">
             <select class="custom-select" id="sel_id" name="sel_name" onchange="this.form.submit();">
-                {% for versions in script.versions.all %}
+                {% for versions in script.versions.all|dictsortreversed:"version" %}
                     <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
                 {% endfor %}
             </select>    
