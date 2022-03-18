@@ -258,8 +258,8 @@ class StatisticsView(generic.TemplateView):
             else:
                 raise Http404()
         else:
-            context["total"] = models.Script.objects.count()
             queryset = models.ScriptVersion.objects.filter(latest=True)
+            context["total"] = queryset.count()
 
         character_count = {}
         for type in characters.CharacterType:
