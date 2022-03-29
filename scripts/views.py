@@ -71,6 +71,20 @@ def get_json_additions(old_json, new_json):
     return new_json
 
 
+def get_similarity(json1: Dict, json2: Dict) -> int:
+    similarity = 0
+    similarity_max = 0
+    for id in json1:
+        if id["id"] == "_meta":
+            continue
+        similarity_max += 1
+        for id2 in json2:
+            if id["id"] == id2["id"]:
+                similarity += 1
+
+    return round((similarity / similarity_max) * 100)
+
+
 class ScriptView(generic.DetailView):
     template_name = "script.html"
     model = models.Script
@@ -79,12 +93,12 @@ class ScriptView(generic.DetailView):
         context = super().get_context_data(**kwargs)
 
         if "sel_name" in self.request.GET:
-            context["script_version"] = self.object.versions.get(
+            current_script = self.object.versions.get(
                 version=self.request.GET["sel_name"]
             )
         else:
-            context["script_version"] = self.object.versions.last()
-        curr_version = context["script_version"].version
+            current_script = self.object.versions.last()
+        curr_version = current_script.version
 
         changes = {}
         diff_script_version = None
@@ -108,6 +122,19 @@ class ScriptView(generic.DetailView):
             diff_script_version = script_version
 
         context["changes"] = changes
+
+        similarity = {}
+        for script_version in models.ScriptVersion.objects.filter(latest=True):
+            if current_script == script_version:
+                continue
+
+            similarity[script_version] = get_similarity(
+                current_script.content, script_version.content
+            )
+        context["similarity"] = sorted(
+            similarity.items(), key=lambda x: x[1], reverse=True
+        )[:10]
+        context["script_version"] = current_script
 
         return context
 
