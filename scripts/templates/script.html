@@ -60,7 +60,6 @@
     {% endif %}
 </div>
 
-{% if script_version.notes or changes.items|length > 0 %}
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     {% if script_version.notes %}
     <li class="nav-item">
@@ -79,8 +78,10 @@
         <a class="nav-link" id="history-tab" data-toggle="tab" href="#history" role="tab" aria-controls="history" aria-selected="false">History</a>
     </li>
     {% endif %}
+    <li class="nav-item">
+        <a class="nav-link" id="similarity-tab" data-toggle="tab" href="#similarity" role="tab" aria-controls="similarity" aria-selected="false">Similar Scripts</a>
+    </li>
 </ul>
-{% endif %}
 <div class="tab-content row p-1" height="720">
     {% if script_version.pdf %}
         <div class="col-sm-6">
@@ -124,6 +125,12 @@
         {% endfor %}
     </div>
     {% endif %}
-</div>
+    <div class="tab-pane fade col-sm-4" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
+        <ul class="p-0">
+            {% for script_version, similarness in similarity %}
+                <li class="list-group-item p-0 border-0">{{ similarness }}% <a href="/script/{{script_version.script.pk}}">{{script_version.script.name}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
 
 {% endblock %}
