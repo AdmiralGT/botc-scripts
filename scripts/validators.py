@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from versionfield.forms import VersionField
 
 
 def validate_json(json):
@@ -12,3 +13,8 @@ def validate_json(json):
                     f"Only officially supported characters from https://bloodontheclocktower.com/script/ are supported"
                 )
     return
+
+
+def valid_version(value):
+    field = VersionField()
+    field.check_format(value)
