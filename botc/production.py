@@ -4,7 +4,7 @@ from .settings import *
 
 # Configure the domain name using the environment variable
 # that Azure automatically creates for us.
-ALLOWED_HOSTS = [os.environ.get("DJANGO_HOST", None)]
+ALLOWED_HOSTS = os.environ.get("DJANGO_HOST", None).split(" ")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
