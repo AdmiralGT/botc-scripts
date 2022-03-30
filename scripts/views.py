@@ -276,7 +276,10 @@ class StatisticsView(generic.TemplateView):
         stats_character = None
         characters_to_display = 5
 
-        queryset = models.ScriptVersion.objects.filter(latest=True)
+        if "all" in self.request.GET:
+            queryset = models.ScriptVersion.objects.all()
+        else:
+            queryset = models.ScriptVersion.objects.filter(latest=True)
 
         if "character" in kwargs:
             if characters.Character.get(kwargs.get("character")):
