@@ -274,6 +274,9 @@ class StatisticsView(generic.TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
         stats_character = None
+        characters_to_display = 5
+
+        queryset = models.ScriptVersion.objects.filter(latest=True)
 
         if "character" in kwargs:
             if characters.Character.get(kwargs.get("character")):
@@ -281,12 +284,25 @@ class StatisticsView(generic.TemplateView):
                 queryset = models.ScriptVersion.objects.filter(
                     latest=True, content__contains=[{"id": stats_character.json_id}]
                 )
-                context["total"] = queryset.count()
             else:
                 raise Http404()
-        else:
-            queryset = models.ScriptVersion.objects.filter(latest=True)
-            context["total"] = queryset.count()
+        elif "tags" in kwargs:
+            tags = models.ScriptTag.objects.get(pk=kwargs.get("tags"))
+            if tags:
+                queryset = models.ScriptVersion.objects.filter(tags__in=[tags])
+
+        if "tags" in self.request.GET:
+            tags = models.ScriptTag.objects.get(pk=self.request.GET.get("tags"))
+            if tags:
+                queryset = queryset.filter(tags__in=[tags])
+
+        if "num" in self.request.GET:
+            if int(self.request.GET.get("num")):
+                characters_to_display = int(self.request.GET.get("num"))
+                if characters_to_display < 1:
+                    characters_to_display = 5
+
+        context["total"] = queryset.count()
 
         character_count = {}
         for type in characters.CharacterType:
@@ -301,9 +317,11 @@ class StatisticsView(generic.TemplateView):
             ] = queryset.filter(content__contains=[{"id": character.json_id}]).count()
 
         for type in characters.CharacterType:
-            context[type.value] = character_count[type.value].most_common(5)
+            context[type.value] = character_count[type.value].most_common(
+                characters_to_display
+            )
             context[type.value + "least"] = character_count[type.value].most_common()[
-                :-6:-1
+                : ((characters_to_display + 1) * -1) : -1
             ]
 
         return context
