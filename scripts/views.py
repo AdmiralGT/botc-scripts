@@ -281,8 +281,8 @@ class StatisticsView(generic.TemplateView):
         if "character" in kwargs:
             if characters.Character.get(kwargs.get("character")):
                 stats_character = characters.Character.get(kwargs.get("character"))
-                queryset = models.ScriptVersion.objects.filter(
-                    latest=True, content__contains=[{"id": stats_character.json_id}]
+                queryset = queryset.filter(
+                    content__contains=[{"id": stats_character.json_id}]
                 )
             else:
                 raise Http404()
