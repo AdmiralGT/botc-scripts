@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from versionfield import Version
 
 from scripts import filters, forms, models, script_json, tables, characters
 from collections import Counter
@@ -239,7 +240,7 @@ class ScriptUploadView(generic.FormView):
                 self.script_version.save()
                 return super().form_valid(form)
             else:
-                if form.cleaned_data["version"] > latest.version:
+                if Version(form.cleaned_data["version"]) > latest.version:
                     # If the content has changed, we're creating a new version
                     # so set the previous latest version is no longer the latest.
                     latest.latest = False

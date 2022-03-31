@@ -3,8 +3,6 @@ import json as js
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
-from django.contrib.auth.models import User
-from packaging.version import Version
 
 from scripts import models, script_json, validators
 
