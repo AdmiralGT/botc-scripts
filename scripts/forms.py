@@ -3,8 +3,6 @@ import json as js
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
-from django.contrib.auth.models import User
-from packaging.version import Version
 
 from scripts import models, script_json, validators
 
@@ -99,11 +97,6 @@ class ScriptForm(forms.Form):
                         latest_version = "0"
                     else:
                         latest_version = str(script.latest_version().version)
-
-                    if Version(new_version) <= Version(latest_version):
-                        raise ValidationError(
-                            f"Version {new_version} must be newer than latest version {latest_version}"
-                        )
 
         except models.Script.DoesNotExist:
             pass
