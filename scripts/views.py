@@ -97,7 +97,7 @@ class ScriptView(generic.DetailView):
                 version=self.request.GET["sel_name"]
             )
         else:
-            current_script = self.object.versions.last()
+            current_script = self.object.versions.order_by("-version").first()
         curr_version = current_script.version
 
         changes = {}
@@ -200,6 +200,7 @@ class ScriptUploadView(generic.FormView):
     def form_valid(self, form):
         user = self.request.user
         json = forms.get_json_content(form.cleaned_data)
+        is_latest = True
 
         # Use the script name from the JSON in preference of the text field.
         script_name = script_json.get_name_from_json(json)
@@ -238,10 +239,15 @@ class ScriptUploadView(generic.FormView):
                 self.script_version.save()
                 return super().form_valid(form)
             else:
-                # If the content has changed, we're creating a new version
-                # so set the previous latest version is no longer the latest.
-                latest.latest = False
-                latest.save()
+                if form.cleaned_data["version"] > latest.version:
+                    # If the content has changed, we're creating a new version
+                    # so set the previous latest version is no longer the latest.
+                    latest.latest = False
+                    latest.save()
+                else:
+                    # We're uploading an older version, so don't mark this version
+                    # as the latest, that's still the current latest.
+                    is_latest = False
 
         # Create the Script Version object from the form.
         if form.cleaned_data.get("notes", None):
@@ -253,6 +259,7 @@ class ScriptUploadView(generic.FormView):
                 pdf=form.cleaned_data["pdf"],
                 author=author,
                 notes=form.cleaned_data["notes"],
+                latest=is_latest,
             )
         else:
             self.script_version = models.ScriptVersion.objects.create(
@@ -262,6 +269,7 @@ class ScriptUploadView(generic.FormView):
                 script=script,
                 pdf=form.cleaned_data["pdf"],
                 author=author,
+                latest=is_latest,
             )
         self.script_version.tags.set(form.cleaned_data["tags"])
 

@@ -100,11 +100,6 @@ class ScriptForm(forms.Form):
                     else:
                         latest_version = str(script.latest_version().version)
 
-                    if Version(new_version) <= Version(latest_version):
-                        raise ValidationError(
-                            f"Version {new_version} must be newer than latest version {latest_version}"
-                        )
-
         except models.Script.DoesNotExist:
             pass
         except JSONError:
