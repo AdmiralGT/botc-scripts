@@ -240,9 +240,10 @@ class ScriptUploadView(generic.FormView):
                 self.script_version.save()
                 return super().form_valid(form)
             else:
+                # If the content has changed, we're creating a new version
                 if Version(form.cleaned_data["version"]) > latest.version:
-                    # If the content has changed, we're creating a new version
-                    # so set the previous latest version is no longer the latest.
+                    # This is newer than the latest version, so set that
+                    # version to not be latest.
                     latest.latest = False
                     latest.save()
                 else:
