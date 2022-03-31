@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% load bootstrap4 %}
+
+{% block content %}
+
+<h1>Round 1</h1>
+<div class="container w-100 p-0">
+    <div class="row p-0">
+        <div class="table-striped w-100 p-0">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="text-center col-sm-5">
+                            Script 1
+                        </th>
+                        <th class="col-sm-1">
+                        </th>
+                        <th class="text-center col-sm-5">
+                            Script 2
+                        </th>
+                        <th class="text-center col-sm-5">
+                            VoD
+                        </th>
+                        <th class="text-center col-sm-5">
+                            Voting Link
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in round1 %}
+                    <tr>
+                        <td class="align-middle text-center p-0">
+                            <a href="{% url 'script' pk=entry.script1.script.pk version=entry.script1.version %}">{{ entry.script1.script.name }}</a>
+                        </td>   
+                        <td class="align-middle text-center p-0">
+                            vs
+                        </td>   
+                        <td class="align-middle text-center p-0">
+                            <a href="{% url 'script' pk=entry.script2.script.pk version=entry.script2.version %}">{{ entry.script2.script.name }}</a>
+                        </td>   
+                        <td class="align-middle text-center p-0">
+                            {% if entry.vod %}
+                            <a href="{{ entry.vod }}" target="_blank">
+                                <button class="btn btn-link btn-sm">
+                                    VoD
+                                </button>
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle text-center p-0">
+                            {% if entry.form %}
+                            <a href="{{ entry.form }}" target="_blank">
+                                <button class="btn btn-primary btn-sm">
+                                    Vote
+                                </button>
+                            </a>
+                            {% endif %}
+                        </td>   
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div> 
+    </div>
+</div>  
+
+{% endblock %}
