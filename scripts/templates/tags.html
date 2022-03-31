@@ -2,5 +2,5 @@
 {% load botc_script_tags %}
 
 {% for tag in record.tags.all %}
-    <span class="badge badge-pill {{ tag.style }}">{{ tag }}</span>
+<a class="text-decoration-none" href="{{ request.path}}?tags={{tag.pk}}"><span class="badge badge-pill {{ tag.style }}">{{ tag }}</span></a>
 {% endfor %}
