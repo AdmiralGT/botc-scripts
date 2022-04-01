@@ -93,22 +93,22 @@ class ScriptView(generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        if "version" in self.kwargs:
-            current_script = self.object.versions.get(version=self.kwargs["version"])
-        elif "sel_name" in self.request.GET:
+        if "sel_name" in self.request.GET:
             current_script = self.object.versions.get(
                 version=self.request.GET["sel_name"]
             )
+        elif "version" in self.kwargs:
+            current_script = self.object.versions.get(version=self.kwargs["version"])
         else:
             current_script = self.object.versions.order_by("-version").first()
-        curr_version = current_script.version
+        context["script_version"] = current_script
 
         changes = {}
         diff_script_version = None
         for script_version in self.object.versions.all().order_by("-version"):
 
             # If we're looking at an older script, don't show changes future to that.
-            if script_version.version.internal_integer > curr_version.internal_integer:
+            if script_version.version > current_script.version:
                 continue
 
             if diff_script_version:
