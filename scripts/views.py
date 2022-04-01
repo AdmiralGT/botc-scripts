@@ -78,8 +78,10 @@ class ScriptView(generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        if "sel_name" in self.request.GET:
-            context["script_version"] = self.object.versions.get(
+        if "version" in self.kwargs:
+            current_script = self.object.versions.get(version=self.kwargs["version"])
+        elif "sel_name" in self.request.GET:
+            current_script = self.object.versions.get(
                 version=self.request.GET["sel_name"]
             )
         else:
