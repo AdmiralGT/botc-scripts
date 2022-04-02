@@ -1,7 +1,7 @@
 # Register your models here.
 from django.contrib import admin
 
-from scripts.models import Script, ScriptTag, ScriptVersion, Vote
+from scripts.models import Script, ScriptTag, ScriptVersion, Vote, WorldCup
 
 
 class ScriptVersionAdmin(admin.ModelAdmin):
@@ -12,3 +12,4 @@ admin.site.register(Script)
 admin.site.register(ScriptVersion, ScriptVersionAdmin)
 admin.site.register(ScriptTag)
 admin.site.register(Vote)
+admin.site.register(WorldCup)

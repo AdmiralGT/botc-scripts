@@ -126,3 +126,27 @@ class Play(models.Model):
     )
     playtime = models.DateField(blank=True, auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="plays")
+
+
+class WorldCup(models.Model):
+    """
+    Model for displaying World Cup data.
+    """
+
+    round = models.IntegerField()
+    script1 = models.ForeignKey(
+        ScriptVersion,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    script2 = models.ForeignKey(
+        ScriptVersion,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    vod = models.CharField(max_length=100, blank=True)
+    form = models.CharField(max_length=100, blank=True)
