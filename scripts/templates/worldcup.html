@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load bootstrap4 %}
+{% load botc_script_tags %}
 
 {% block content %}
 
@@ -19,10 +20,10 @@
                         <th class="text-center col-sm-5">
                             Script 2
                         </th>
-                        <th class="text-center col-sm-5">
+                        <th class="text-center col-sm-2">
                             VoD
                         </th>
-                        <th class="text-center col-sm-5">
+                        <th class="text-center col-sm-1">
                             Voting Link
                         </th>
                     </tr>
@@ -40,18 +41,18 @@
                             <a href="{% url 'script' pk=entry.script2.script.pk version=entry.script2.version %}">{{ entry.script2.script.name }}</a>
                         </td>   
                         <td class="align-middle text-center p-0">
-                            {% if entry.vod %}
-                            <a href="{{ entry.vod }}" target="_blank">
-                                <button class="btn btn-link btn-sm">
+                            {% for vod in entry.vod|split %}
+                                <a href="{{ vod }}" target="_blank">
+                                    <button class="btn btn-link btn-sm p-0">
                                     VoD
-                                </button>
-                            </a>
-                            {% endif %}
+                                    </button>
+                                </a>
+                            {% endfor %}
                         </td>
                         <td class="align-middle text-center p-0">
                             {% if entry.form %}
                             <a href="{{ entry.form }}" target="_blank">
-                                <button class="btn btn-primary btn-sm">
+                                <button class="btn btn-link btn-sm p-0">
                                     Vote
                                 </button>
                             </a>

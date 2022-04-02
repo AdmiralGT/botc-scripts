@@ -10,3 +10,8 @@ def has_user_voted(context):
         if user.votes.filter(script=context["record"]).exists():
             return True
     return False
+
+
+@register.filter
+def split(string):
+    return string.split(" ")
