@@ -43,7 +43,7 @@
                         <td class="align-middle text-center p-0">
                             {% for vod in entry.vod|split %}
                                 <a href="{{ vod }}" target="_blank">
-                                    <button class="btn btn-link btn-sm">
+                                    <button class="btn btn-link btn-sm p-0">
                                     VoD
                                     </button>
                                 </a>
@@ -52,7 +52,7 @@
                         <td class="align-middle text-center p-0">
                             {% if entry.form %}
                             <a href="{{ entry.form }}" target="_blank">
-                                <button class="btn btn-link btn-sm">
+                                <button class="btn btn-link btn-sm p-0">
                                     Vote
                                 </button>
                             </a>
