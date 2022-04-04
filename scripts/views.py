@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from versionfield import Version
 
 from scripts import filters, forms, models, script_json, tables, characters
 from collections import Counter
@@ -71,6 +72,20 @@ def get_json_additions(old_json, new_json):
     return new_json
 
 
+def get_similarity(json1: Dict, json2: Dict) -> int:
+    similarity = 0
+    similarity_max = 0
+    for id in json1:
+        if id["id"] == "_meta":
+            continue
+        similarity_max += 1
+        for id2 in json2:
+            if id["id"] == id2["id"]:
+                similarity += 1
+
+    return round((similarity / similarity_max) * 100)
+
+
 class ScriptView(generic.DetailView):
     template_name = "script.html"
     model = models.Script
@@ -85,7 +100,7 @@ class ScriptView(generic.DetailView):
         elif "version" in self.kwargs:
             current_script = self.object.versions.get(version=self.kwargs["version"])
         else:
-            current_script = self.object.versions.last()
+            current_script = self.object.versions.order_by("-version").first()
         context["script_version"] = current_script
 
         changes = {}
@@ -110,6 +125,19 @@ class ScriptView(generic.DetailView):
             diff_script_version = script_version
 
         context["changes"] = changes
+
+        similarity = {}
+        for script_version in models.ScriptVersion.objects.filter(latest=True):
+            if current_script == script_version:
+                continue
+
+            similarity[script_version] = get_similarity(
+                current_script.content, script_version.content
+            )
+        context["similarity"] = sorted(
+            similarity.items(), key=lambda x: x[1], reverse=True
+        )[:10]
+        context["script_version"] = current_script
 
         return context
 
@@ -175,6 +203,7 @@ class ScriptUploadView(generic.FormView):
     def form_valid(self, form):
         user = self.request.user
         json = forms.get_json_content(form.cleaned_data)
+        is_latest = True
 
         # Use the script name from the JSON in preference of the text field.
         script_name = script_json.get_name_from_json(json)
@@ -214,9 +243,15 @@ class ScriptUploadView(generic.FormView):
                 return super().form_valid(form)
             else:
                 # If the content has changed, we're creating a new version
-                # so set the previous latest version is no longer the latest.
-                latest.latest = False
-                latest.save()
+                if Version(form.cleaned_data["version"]) > latest.version:
+                    # This is newer than the latest version, so set that
+                    # version to not be latest.
+                    latest.latest = False
+                    latest.save()
+                else:
+                    # We're uploading an older version, so don't mark this version
+                    # as the latest, that's still the current latest.
+                    is_latest = False
 
         # Create the Script Version object from the form.
         if form.cleaned_data.get("notes", None):
@@ -228,6 +263,7 @@ class ScriptUploadView(generic.FormView):
                 pdf=form.cleaned_data["pdf"],
                 author=author,
                 notes=form.cleaned_data["notes"],
+                latest=is_latest,
             )
         else:
             self.script_version = models.ScriptVersion.objects.create(
@@ -237,6 +273,7 @@ class ScriptUploadView(generic.FormView):
                 script=script,
                 pdf=form.cleaned_data["pdf"],
                 author=author,
+                latest=is_latest,
             )
         self.script_version.tags.set(form.cleaned_data["tags"])
 
@@ -249,19 +286,38 @@ class StatisticsView(generic.TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
         stats_character = None
+        characters_to_display = 5
+
+        if "all" in self.request.GET:
+            queryset = models.ScriptVersion.objects.all()
+        else:
+            queryset = models.ScriptVersion.objects.filter(latest=True)
 
         if "character" in kwargs:
             if characters.Character.get(kwargs.get("character")):
                 stats_character = characters.Character.get(kwargs.get("character"))
-                queryset = models.ScriptVersion.objects.filter(
-                    latest=True, content__contains=[{"id": stats_character.json_id}]
+                queryset = queryset.filter(
+                    content__contains=[{"id": stats_character.json_id}]
                 )
-                context["total"] = queryset.count()
             else:
                 raise Http404()
-        else:
-            queryset = models.ScriptVersion.objects.filter(latest=True)
-            context["total"] = queryset.count()
+        elif "tags" in kwargs:
+            tags = models.ScriptTag.objects.get(pk=kwargs.get("tags"))
+            if tags:
+                queryset = models.ScriptVersion.objects.filter(tags__in=[tags])
+
+        if "tags" in self.request.GET:
+            tags = models.ScriptTag.objects.get(pk=self.request.GET.get("tags"))
+            if tags:
+                queryset = queryset.filter(tags__in=[tags])
+
+        if "num" in self.request.GET:
+            if int(self.request.GET.get("num")):
+                characters_to_display = int(self.request.GET.get("num"))
+                if characters_to_display < 1:
+                    characters_to_display = 5
+
+        context["total"] = queryset.count()
 
         character_count = {}
         for type in characters.CharacterType:
@@ -276,9 +332,11 @@ class StatisticsView(generic.TemplateView):
             ] = queryset.filter(content__contains=[{"id": character.json_id}]).count()
 
         for type in characters.CharacterType:
-            context[type.value] = character_count[type.value].most_common(5)
+            context[type.value] = character_count[type.value].most_common(
+                characters_to_display
+            )
             context[type.value + "least"] = character_count[type.value].most_common()[
-                :-6:-1
+                : ((characters_to_display + 1) * -1) : -1
             ]
 
         return context

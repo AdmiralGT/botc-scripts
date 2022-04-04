@@ -3,8 +3,6 @@ import json as js
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
-from django.contrib.auth.models import User
-from packaging.version import Version
 
 from scripts import models, script_json, validators
 
@@ -23,7 +21,9 @@ class ScriptForm(forms.Form):
     script_type = forms.ChoiceField(
         choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
     )
-    version = forms.CharField(max_length=20, initial="1")
+    version = forms.CharField(
+        max_length=20, initial="1", validators=[validators.valid_version]
+    )
     tags = forms.ModelMultipleChoiceField(
         queryset=tagOptions(),
         to_field_name="name",
@@ -97,11 +97,6 @@ class ScriptForm(forms.Form):
                         latest_version = "0"
                     else:
                         latest_version = str(script.latest_version().version)
-
-                    if Version(new_version) <= Version(latest_version):
-                        raise ValidationError(
-                            f"Version {new_version} must be newer than latest version {latest_version}"
-                        )
 
         except models.Script.DoesNotExist:
             pass
