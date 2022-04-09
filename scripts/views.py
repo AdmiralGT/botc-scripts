@@ -307,15 +307,23 @@ class StatisticsView(generic.TemplateView):
                 queryset = models.ScriptVersion.objects.filter(tags__in=[tags])
 
         if "tags" in self.request.GET:
-            tags = models.ScriptTag.objects.get(pk=self.request.GET.get("tags"))
-            if tags:
-                queryset = queryset.filter(tags__in=[tags])
+            try:
+                int(self.request.GET.get("tags"))
+                tags = models.ScriptTag.objects.get(pk=self.request.GET.get("tags"))
+                if tags:
+                    queryset = queryset.filter(tags__in=[tags])
+            except ValueError:
+                pass
 
         if "num" in self.request.GET:
-            if int(self.request.GET.get("num")):
-                characters_to_display = int(self.request.GET.get("num"))
-                if characters_to_display < 1:
-                    characters_to_display = 5
+            try:
+                int(self.request.GET.get("num"))
+                if int(self.request.GET.get("num")):
+                    characters_to_display = int(self.request.GET.get("num"))
+                    if characters_to_display < 1:
+                        characters_to_display = 5
+            except ValueError:
+                pass
 
         context["total"] = queryset.count()
 
