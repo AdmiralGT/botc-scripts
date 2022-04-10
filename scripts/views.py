@@ -142,6 +142,17 @@ class ScriptView(generic.DetailView):
         return context
 
 
+def update_script(script_version, cleaned_data, author):
+    script_version.script_type = cleaned_data["script_type"]
+    script_version.author = author
+    if cleaned_data.get("notes", None):
+        script_version.notes = cleaned_data["notes"]
+    if cleaned_data.get("pdf", None):
+        script_version.pdf = cleaned_data["pdf"]
+    script_version.tags.set(cleaned_data["tags"])
+    script_version.save()
+
+
 class ScriptUploadView(generic.FormView):
     template_name = "upload.html"
     form_class = forms.ScriptForm
@@ -225,29 +236,35 @@ class ScriptUploadView(generic.FormView):
         if not author:
             author = form.cleaned_data["author"]
 
-        # The user may just be updating some info about the current script, so let them
-        # do that if the JSON content is the same
+        # The user may just be updating some info about an existing script, so let them
+        # do that. The form validation should catch that the JSON content is the same.
         if not created:
-            latest = script.latest_version()
-            if latest and (latest.content == json):
+            try:
+                script_version = models.ScriptVersion.objects.get(
+                    script=script, version=form.cleaned_data["version"]
+                )
                 # We're updating an existing entry.
-                self.script_version = latest
-                self.script_version.script_type = form.cleaned_data["script_type"]
-                self.script_version.author = author
-                if form.cleaned_data.get("notes", None):
-                    self.script_version.notes = form.cleaned_data["notes"]
-                if form.cleaned_data.get("pdf", None):
-                    self.script_version.pdf = form.cleaned_data["pdf"]
-                self.script_version.tags.set(form.cleaned_data["tags"])
-                self.script_version.save()
+                # Our validation should have caught not being able to upload different
+                # JSON content for this script.
+                update_script(script_version, form.cleaned_data, author)
+                self.script_version = script_version
                 return super().form_valid(form)
-            else:
-                # If the content has changed, we're creating a new version
-                if Version(form.cleaned_data["version"]) > latest.version:
+            except models.ScriptVersion.DoesNotExist:
+                # This is not an existing version.
+                if script.latest_version().content == json:
+                    # The content hasn't change from the latest version, so just update
+                    # that.
+                    update_script(script.latest_version(), form.cleaned_data, author)
+                    self.script_version = script.latest_version()
+                    return super().form_valid(form)
+                if (
+                    Version(form.cleaned_data["version"])
+                    > script.latest_version().version
+                ):
                     # This is newer than the latest version, so set that
                     # version to not be latest.
-                    latest.latest = False
-                    latest.save()
+                    script.latest_version().latest = False
+                    script.latest_version().save()
                 else:
                     # We're uploading an older version, so don't mark this version
                     # as the latest, that's still the current latest.
