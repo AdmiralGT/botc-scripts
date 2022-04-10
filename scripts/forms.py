@@ -3,6 +3,7 @@ import json as js
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
+from versionfield import Version
 
 from scripts import models, script_json, validators
 
@@ -87,16 +88,13 @@ class ScriptForm(forms.Form):
                     "You are not the owner of this script and cannot upload a new version"
                 )
 
-            if script.latest_version():
-                # If we're attempting to upload the same JSON content, the user can have the same version
-                # (and will in fact have the same version)
-                if script.latest_version().content != json:
-                    new_version = cleaned_data["version"]
-
-                    if script.versions.count() == 0:
-                        latest_version = "0"
-                    else:
-                        latest_version = str(script.latest_version().version)
+            new_version = cleaned_data["version"]
+            for script_version in script.versions.all():
+                if Version(new_version) == script_version.version:
+                    if script_version.content != json:
+                        raise ValidationError(
+                            f"Version {new_version} already exists. You cannot upload a different script with the same version number."
+                        )
 
         except models.Script.DoesNotExist:
             pass
