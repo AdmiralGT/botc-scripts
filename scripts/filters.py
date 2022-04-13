@@ -36,12 +36,16 @@ class ScriptVersionFilter(django_filters.FilterSet):
         return queryset
 
     def include_characters(self, queryset, name, value):
-        for character in re.split(",|;|:|/", value):
+        for character in re.split(",|;|:|/| ", value):
+            if character in ",;:/ ":
+                continue
             queryset = queryset.filter(content__contains=[{"id": character.lower()}])
         return queryset
 
     def exclude_characters(self, queryset, name, value):
-        for character in re.split(",|;|:|/", value):
+        for character in re.split(",|;|:|/| ", value):
+            if character in ",;:/ ":
+                continue
             queryset = queryset.exclude(content__contains=[{"id": character.lower()}])
         return queryset
 
