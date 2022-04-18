@@ -227,7 +227,14 @@ class ScriptUploadView(generic.FormView):
         # We only want to set the owner on newly created scripts, so if we've
         # just created the script and the user is authenticated, set the owner to this user
         # unless they uploaded anonymously.
-        if created and user.is_authenticated and not form.cleaned_data["anonymous"]:
+        # It's possible the user is uploading a "new" script by uploading a new version
+        # of an existing script with a new name. In this instance, the anonymous field
+        # isn't present, so default that this is anonymous.
+        if (
+            created
+            and user.is_authenticated
+            and not form.cleaned_data.get("anonymous", True)
+        ):
             script.owner = user
             script.save()
 
@@ -263,8 +270,9 @@ class ScriptUploadView(generic.FormView):
                 ):
                     # This is newer than the latest version, so set that
                     # version to not be latest.
-                    script.latest_version().latest = False
-                    script.latest_version().save()
+                    latest_version = script.latest_version()
+                    latest_version.latest = False
+                    latest_version.save()
                 else:
                     # We're uploading an older version, so don't mark this version
                     # as the latest, that's still the current latest.
