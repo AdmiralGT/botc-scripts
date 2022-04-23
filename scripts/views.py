@@ -4,6 +4,7 @@ from tempfile import TemporaryFile
 
 # Create your views here.
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
@@ -39,9 +40,16 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     table_class = tables.ScriptTable
     template_name = "scriptlist.html"
     filterset_class = filters.ScriptVersionFilter
+    filter = None
 
     def get_table_data(self):
-        return models.ScriptVersion.objects.filter(script__owner=self.request.user)
+        if self.filter == "favourite":
+            return models.ScriptVersion.objects.filter(
+                favourites__user=self.request.user
+            )
+        elif self.filter == "owned":
+            return models.ScriptVersion.objects.filter(script__owner=self.request.user)
+        return models.ScriptVersion.objects.filter(latest=True)
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(UserScriptsListView, self).get_filterset_kwargs(filterset_class)
@@ -389,23 +397,37 @@ class UserDeleteView(LoginRequiredMixin, generic.TemplateView):
         return HttpResponseRedirect("/")
 
 
-def vote_for_script(request, pk: int):
+def get_script_version(request, pk: int, version: str) -> models.ScriptVersion:
+    try:
+        script = models.Script.objects.get(pk=pk)
+        script_version = script.versions.get(version=version)
+    except (models.Script.DoesNotExist, models.ScriptVersion.DoesNotExist):
+        return redirect(request.POST["next"])
+    return script_version
+
+
+def update_user_related_script(model, user: User, script: models.ScriptVersion) -> None:
+    if user.is_authenticated:
+        if model.objects.filter(user=user, script=script).exists():
+            object = model.objects.get(user=user, script=script)
+            object.delete()
+        else:
+            model.objects.create(user=user, script=script)
+
+
+def vote_for_script(request, pk: int, version: str) -> None:
     if request.method != "POST":
         raise Http404()
-    script_version = models.ScriptVersion.objects.get(pk=pk)
+    script_version = get_script_version(request, pk, version)
+    update_user_related_script(models.Vote, request.user, script_version)
+    return redirect(request.POST["next"])
 
-    # Authenticated users should create votes with their user profile.
-    if request.user.is_authenticated:
-        if models.Vote.objects.filter(
-            user=request.user, script=script_version
-        ).exists():
-            # If this user has already voted for this script, delete that vote. Use filter.exists()
-            # because it is more performant
-            vote = models.Vote.objects.get(user=request.user, script=script_version)
-            vote.delete()
-        else:
-            # Otherwise create a new vote.
-            models.Vote.objects.create(user=request.user, script=script_version)
+
+def favourite_script(request, pk: int, version: str) -> None:
+    if request.method != "POST":
+        raise Http404()
+    script_version = get_script_version(request, pk, version)
+    update_user_related_script(models.Favourite, request.user, script_version)
     return redirect(request.POST["next"])
 
 

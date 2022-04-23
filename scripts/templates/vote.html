@@ -3,7 +3,7 @@
 
 {% has_user_voted as user_voted_flag %}
 
-<form class="mb-0" action="{% url 'vote' record.pk %}" method="post">
+<form class="mb-0" action="{% url 'vote' record.script.pk record.version %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
 

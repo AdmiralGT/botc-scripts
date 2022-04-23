@@ -2,6 +2,10 @@
 
 {% block content %}
 {% load markdownify %}
+{% load bootstrap_icons %}
+{% load botc_script_tags %}
+
+{% has_user_favourite as favourite_flag %}
 
 <h1>
     {{ script.name }} - v{{ script_version.version }}
@@ -56,6 +60,19 @@
     {% if not script.owner or user == script_version.script.owner %}
         <div class="col-md-auto h-100 p-1">
             <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
+        </div>
+    {% endif %}
+    {% if user.is_authenticated %}
+        <div class="col-md-auto h-100 p-1">
+            <form class="mb-0" action="{% url 'favourite' script.pk script_version.version %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                {% if favourite_flag %}
+                    <button type="submit" class="btn btn-outline-secondary">{% bs_icon 'star-fill' %}</button>
+                {% else %}
+                    <button type="submit" class="btn btn-outline-secondary">{% bs_icon 'star' %}</button>
+                {% endif %}
+            </form>
         </div>
     {% endif %}
 </div>
