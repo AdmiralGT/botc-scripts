@@ -101,7 +101,7 @@ class Vote(models.Model):
     """
     Model for tracking votes on scripts indicating how popular they are.
 
-    Votes are allowed by non-authenticated users.
+    Only authenticated users may vote for scripts.
     """
 
     script = models.ForeignKey(
@@ -114,6 +114,19 @@ class Vote(models.Model):
 
     def __str__(self):
         return f"{self.pk}. Vote on {self.script.script.name} version {self.script.version}"
+
+
+class Favourite(models.Model):
+    """
+    Model for tracking a user's favourite scripts.
+
+    Only authenticated users may have favourite scripts.
+    """
+
+    script = models.ForeignKey(
+        ScriptVersion, on_delete=models.CASCADE, related_name="favourites"
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favourites")
 
 
 class Play(models.Model):

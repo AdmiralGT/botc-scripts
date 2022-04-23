@@ -1,17 +1,9 @@
 {% load bootstrap4 %}
 {% load botc_script_tags %}
 
-{% has_user_voted as user_voted_flag %}
-
-<form class="mb-0" action="{% url 'vote' record.pk %}" method="post">
+<form class="mb-0" action="{% url 'vote' record.script.pk record.version %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
 
-    {% if user.is_authenticated %}
-        {% if user_voted_flag %}
-            <button type="submit" class="btn btn-danger btn-sm">Vote</button>
-        {% else %}
-            <button type="submit" class="btn btn-primary btn-sm">Vote</button>
-        {% endif %}
-    {% endif %}
+    <button type="submit" class="btn {% user_voted record %} btn-sm">Vote</button>
 </form>

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "versionfield",
     "django_tables2",
     "bootstrap4",
+    "django_bootstrap_icons",
     "rest_framework",
     "storages",
     "allauth",

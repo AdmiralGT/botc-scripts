@@ -4,12 +4,19 @@ register = template.Library()
 
 
 @register.simple_tag(takes_context=True)
-def has_user_voted(context):
+def user_voted(context, script_version):
     user = context["user"]
-    if user.is_authenticated:
-        if user.votes.filter(script=context["record"]).exists():
-            return True
-    return False
+    if user.votes.filter(script=script_version).exists():
+        return "btn-danger"
+    return "btn-primary"
+
+
+@register.simple_tag(takes_context=True)
+def user_favourite(context, script_version):
+    user = context["user"]
+    if user.favourites.filter(script=script_version).exists():
+        return "star-fill"
+    return "star"
 
 
 @register.filter

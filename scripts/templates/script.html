@@ -2,6 +2,7 @@
 
 {% block content %}
 {% load markdownify %}
+{% load botc_script_tags %}
 
 <h1>
     {{ script.name }} - v{{ script_version.version }}
@@ -56,6 +57,11 @@
     {% if not script.owner or user == script_version.script.owner %}
         <div class="col-md-auto h-100 p-1">
             <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
+        </div>
+    {% endif %}
+    {% if user.is_authenticated %}
+        <div class="col-md-auto h-100 p-1">
+            {% include "favourite.html" with record=script_version %}
         </div>
     {% endif %}
 </div>
