@@ -1,15 +1,16 @@
 # Register your models here.
 from django.contrib import admin
 
-from scripts.models import Script, ScriptTag, ScriptVersion, Vote, WorldCup
+from scripts import models
 
 
 class ScriptVersionAdmin(admin.ModelAdmin):
     readonly_fields = ["created"]
 
 
-admin.site.register(Script)
-admin.site.register(ScriptVersion, ScriptVersionAdmin)
-admin.site.register(ScriptTag)
-admin.site.register(Vote)
-admin.site.register(WorldCup)
+admin.site.register(models.Favourite)
+admin.site.register(models.Script)
+admin.site.register(models.ScriptVersion, ScriptVersionAdmin)
+admin.site.register(models.ScriptTag)
+admin.site.register(models.Vote)
+admin.site.register(models.WorldCup)
