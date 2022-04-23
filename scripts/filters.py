@@ -68,3 +68,27 @@ class ScriptVersionFilter(django_filters.FilterSet):
             "tags",
             "all_scripts",
         ]
+
+
+class FavouriteScriptVersionFilter(ScriptVersionFilter):
+    favourites = django_filters.filters.BooleanFilter(
+        method="display_favourites", widget=forms.CheckboxInput, label="Favourites"
+    )
+
+    def display_favourites(self, queryset, name, value):
+        if value:
+            return queryset.filter(favourites__user=self.request.user)
+        return queryset
+
+    class Meta:
+        model = ScriptVersion
+        fields = [
+            "search",
+            "script_type",
+            "include",
+            "exclude",
+            "author",
+            "tags",
+            "all_scripts",
+            "favourites",
+        ]

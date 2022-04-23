@@ -6,6 +6,14 @@ table_class = {
     "td": {"class": "pl-2 p-0 pr-2 align-middle text-center"},
     "th": {"class": "align-middle text-center"},
 }
+button_table_class = {
+    "td": {"class": "pl-2 p-0 pr-2 align-middle text-center", "style": "width:1%"},
+    "th": {"class": "align-middle text-center", "style": "width:1%"},
+}
+favourite_table_class = {
+    "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
+    "th": {"class": "align-middle text-center", "style": "width:1%"},
+}
 
 
 class ScriptTable(tables.Table):
@@ -21,7 +29,6 @@ class ScriptTable(tables.Table):
             "tags",
             "json",
             "pdf",
-            "vote",
         )
         orderable = True
 
@@ -38,15 +45,12 @@ class ScriptTable(tables.Table):
     author = tables.Column(attrs=table_class)
     version = tables.Column(attrs=table_class)
     json = tables.TemplateColumn(
-        orderable=False, template_name="download_json.html", attrs=table_class
+        orderable=False, template_name="download_json.html", attrs=button_table_class
     )
     pdf = tables.TemplateColumn(
-        orderable=False, template_name="download_pdf.html", attrs=table_class
+        orderable=False, template_name="download_pdf.html", attrs=button_table_class
     )
     score = tables.Column(attrs=table_class, order_by="-score")
-    vote = tables.TemplateColumn(
-        orderable=False, template_name="vote.html", attrs=table_class
-    )
     tags = tables.TemplateColumn(
         orderable=False, template_name="tags.html", attrs=table_class
     )
@@ -56,3 +60,29 @@ class ScriptTable(tables.Table):
 
     def render_type(self, value, record):
         return record.type
+
+
+class UserScriptTable(ScriptTable):
+    class Meta:
+        model = ScriptVersion
+        exclude = ("id", "content", "script", "latest", "created", "notes")
+        sequence = (
+            "name",
+            "version",
+            "author",
+            "script_type",
+            "score",
+            "tags",
+            "json",
+            "pdf",
+            "vote",
+            "favourite",
+        )
+        orderable = True
+
+    vote = tables.TemplateColumn(
+        orderable=False, template_name="vote.html", attrs=button_table_class
+    )
+    favourite = tables.TemplateColumn(
+        orderable=False, template_name="favourite.html", attrs=favourite_table_class
+    )

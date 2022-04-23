@@ -36,8 +36,11 @@ urlpatterns = [
     path("upload", views.ScriptUploadView.as_view(), name="upload"),
     path("account/social/", include("allauth.socialaccount.urls")),
     path("account/delete/", views.UserDeleteView.as_view(), name="delete_user"),
-    path("account/favourites/", views.UserScriptsListView.as_view(filter="favourite")),
-    path("account/scripts/", views.UserScriptsListView.as_view(filter="owned")),
+    path(
+        "account/favourites/",
+        views.UserScriptsListView.as_view(script_view="favourite"),
+    ),
+    path("account/scripts/", views.UserScriptsListView.as_view(script_view="owned")),
     path("worldcup", worldcup.WorldCupView.as_view()),
     re_path(r"^login/$", login, name="account_login"),
     re_path(r"^logout/$", logout, name="account_logout"),

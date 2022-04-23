@@ -21,15 +21,19 @@ from typing import Dict, Any
 
 class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
-    table_class = tables.ScriptTable
     template_name = "scriptlist.html"
-    filterset_class = filters.ScriptVersionFilter
+    filterset_class = filters.FavouriteScriptVersionFilter
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
         if kwargs["data"] is None:
             kwargs["data"] = {"latest": True}
         return kwargs
+
+    def get_table_class(self):
+        if self.request.user.is_authenticated:
+            return tables.UserScriptTable
+        return tables.ScriptTable
 
     table_pagination = {"per_page": 20}
     ordering = ["-pk"]
@@ -39,15 +43,20 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
     table_class = tables.ScriptTable
     template_name = "scriptlist.html"
-    filterset_class = filters.ScriptVersionFilter
-    filter = None
+    script_view = None
+
+    def get_filterset_class(self):
+        if self.script_view == "favourite":
+            return filters.ScriptVersionFilter
+        return filters.FavouriteScriptVersionFilter
 
     def get_table_data(self):
-        if self.filter == "favourite":
+        if self.script_view == "favourite":
             return models.ScriptVersion.objects.filter(
                 favourites__user=self.request.user
             )
-        elif self.filter == "owned":
+        elif self.script_view == "owned":
+            self.filterset_class = filters.FavouriteScriptVersionFilter
             return models.ScriptVersion.objects.filter(script__owner=self.request.user)
         return models.ScriptVersion.objects.filter(latest=True)
 

@@ -7,11 +7,9 @@
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
 
-    {% if user.is_authenticated %}
-        {% if user_voted_flag %}
-            <button type="submit" class="btn btn-danger btn-sm">Vote</button>
-        {% else %}
-            <button type="submit" class="btn btn-primary btn-sm">Vote</button>
-        {% endif %}
+    {% if user_voted_flag %}
+        <button type="submit" class="btn btn-danger btn-sm">Vote</button>
+    {% else %}
+        <button type="submit" class="btn btn-primary btn-sm">Vote</button>
     {% endif %}
 </form>
