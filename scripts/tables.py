@@ -7,12 +7,12 @@ table_class = {
     "th": {"class": "align-middle text-center"},
 }
 button_table_class = {
-    "td": {"class": "pl-2 p-0 pr-2 align-middle text-center", "style": "width:1%"},
-    "th": {"class": "align-middle text-center", "style": "width:1%"},
+    "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
+    "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
 }
 favourite_table_class = {
     "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
-    "th": {"class": "align-middle text-center", "style": "width:1%"},
+    "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
 }
 
 
