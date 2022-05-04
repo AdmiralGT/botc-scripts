@@ -23,6 +23,8 @@ class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
     template_name = "scriptlist.html"
     filterset_class = filters.FavouriteScriptVersionFilter
+    table_pagination = {"per_page": 20}
+    ordering = ["-pk"]
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
@@ -35,15 +37,15 @@ class ScriptsListView(SingleTableMixin, FilterView):
             return tables.UserScriptTable
         return tables.ScriptTable
 
-    table_pagination = {"per_page": 20}
-    ordering = ["-pk"]
 
 
 class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
-    table_class = tables.ScriptTable
+    table_class = tables.UserScriptTable
     template_name = "scriptlist.html"
     script_view = None
+    table_pagination = {"per_page": 20}
+    ordering = ["-pk"]
 
     def get_filterset_class(self):
         if self.script_view == "favourite":
@@ -51,23 +53,21 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
         return filters.FavouriteScriptVersionFilter
 
     def get_table_data(self):
+        queryset = models.ScriptVersion.objects.filter(latest=True)
         if self.script_view == "favourite":
-            return models.ScriptVersion.objects.filter(
+            queryset = models.ScriptVersion.objects.filter(
                 favourites__user=self.request.user
             )
         elif self.script_view == "owned":
-            self.filterset_class = filters.FavouriteScriptVersionFilter
-            return models.ScriptVersion.objects.filter(script__owner=self.request.user)
-        return models.ScriptVersion.objects.filter(latest=True)
-
+            queryset = models.ScriptVersion.objects.filter(script__owner=self.request.user)
+        return queryset.order_by("-pk")
+        
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(UserScriptsListView, self).get_filterset_kwargs(filterset_class)
         if kwargs["data"] is None:
             kwargs["data"] = {"latest": True}
         return kwargs
 
-    table_pagination = {"per_page": 20}
-    ordering = ["-pk"]
 
 
 def get_json_additions(old_json, new_json):
