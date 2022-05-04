@@ -8,6 +8,7 @@ class ScriptVersionAdmin(admin.ModelAdmin):
     readonly_fields = ["created"]
 
 
+admin.site.register(models.Collection)
 admin.site.register(models.Favourite)
 admin.site.register(models.Script)
 admin.site.register(models.ScriptVersion, ScriptVersionAdmin)

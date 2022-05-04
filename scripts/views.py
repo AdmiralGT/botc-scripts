@@ -22,9 +22,10 @@ from typing import Dict, Any
 class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
     template_name = "scriptlist.html"
-    filterset_class = filters.FavouriteScriptVersionFilter
+    filterset_class = filters.ScriptVersionFilter
     table_pagination = {"per_page": 20}
     ordering = ["-pk"]
+    script_view = None
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
@@ -37,6 +38,21 @@ class ScriptsListView(SingleTableMixin, FilterView):
             return tables.UserScriptTable
         return tables.ScriptTable
 
+    def get_queryset(self):
+        queryset = super(ScriptsListView, self).get_queryset()
+        if self.script_view == "collection":
+            collection = models.Collection.objects.get(pk=self.kwargs["pk"])
+            return collection.scripts.order_by("-pk")
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        if self.script_view == "collection":
+            try:
+                models.Collection.objects.get(pk=self.kwargs["pk"])
+            except models.Collection.DoesNotExist:
+                raise Http404(("No %(verbose_name)s found matching the query") %
+                          {'verbose_name': models.Collection._meta.verbose_name})
+        return super(ScriptsListView, self).get(request, *args, **kwargs)
 
 
 class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
@@ -52,15 +68,15 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
             return filters.ScriptVersionFilter
         return filters.FavouriteScriptVersionFilter
 
-    def get_table_data(self):
-        queryset = models.ScriptVersion.objects.filter(latest=True)
+    def get_queryset(self):
+        queryset = super(UserScriptsListView, self).get_queryset()
         if self.script_view == "favourite":
-            queryset = models.ScriptVersion.objects.filter(
+            queryset = queryset.filter(
                 favourites__user=self.request.user
             )
         elif self.script_view == "owned":
-            queryset = models.ScriptVersion.objects.filter(script__owner=self.request.user)
-        return queryset.order_by("-pk")
+            queryset = queryset.filter(script__owner=self.request.user)
+        return queryset
         
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(UserScriptsListView, self).get_filterset_kwargs(filterset_class)

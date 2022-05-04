@@ -12,6 +12,7 @@ router.register(r"scripts", viewsets.ScriptViewSet)
 urlpatterns = [
     path("", views.ScriptsListView.as_view()),
     path("api/", include(router.urls)),
+    path("collection/<int:pk>", views.ScriptsListView.as_view(script_view="collection")),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>/vote", views.vote_for_script, name="vote"),
     path(
