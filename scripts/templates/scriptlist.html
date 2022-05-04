@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 
 {% load static %}
-{% load render_table from django_tables2 %}
 {% load bootstrap4 %}
 
 {% block content %}
@@ -27,11 +26,6 @@
 </form>
 {% endif %}
 
-<div class="container w-100 p-0">
-    <div class="row p-0">
-        <div class="table-striped w-100 p-0">
-            {% render_table table %}
-        </div>
-    </div>
-</div>
+{% include "table.html" %}
+
 {% endblock %}

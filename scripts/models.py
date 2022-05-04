@@ -163,3 +163,12 @@ class WorldCup(models.Model):
     )
     vod = models.CharField(max_length=100, blank=True)
     form = models.CharField(max_length=100, blank=True)
+
+
+class Collection(models.Model):
+    """
+    Model for collections, a shareable set of scripts.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="collections")
+    scripts = models.ManyToManyField(ScriptVersion)
+    name = models.CharField(max_length=100)
