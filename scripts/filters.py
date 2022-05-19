@@ -3,8 +3,10 @@ import re
 import django_filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
-from scripts.models import ScriptVersion, ScriptTag
+from scripts.models import ScriptVersion, ScriptTag, Collection
 
 
 def annotate_queryset(queryset, field, value):
@@ -91,4 +93,27 @@ class FavouriteScriptVersionFilter(ScriptVersionFilter):
             "tags",
             "all_scripts",
             "favourites",
+        ]
+
+
+def owned_collections(request):
+    if request is None:
+        return User.objects.none()
+
+    return User.objects.all()
+
+
+class CollectionFilter(
+    django_filters.FilterSet, django_filters.filters.QuerySetRequestMixin
+):
+    owner = django_filters.filters.ModelChoiceFilter(
+        widget=forms.CheckboxInput,
+        label="My Collections",
+        queryset=owned_collections,
+    )
+
+    class Meta:
+        model = Collection
+        fields = [
+            "owner",
         ]

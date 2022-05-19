@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load bootstrap4 %}
+
+{% block content %}
+
+<form action="" method="get" class="form mb-0">
+    <div class="form-group row p-1 mb-0">
+        {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
+        {% bootstrap_button 'filter' extra_classes="btn-sm mr-1" %}
+        {% bootstrap_button 'clear' extra_classes="btn-sm" href="/collections" %}
+</div>
+</form>
+
+{% include "table.html" %}
+
+{% endblock %}

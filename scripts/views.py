@@ -473,7 +473,7 @@ class CollectionScriptListView(SingleTableView):
 
     def get_table_class(self):
         collection = models.Collection.objects.get(pk=self.kwargs["pk"])
-        if self.request.user == collection.user:
+        if self.request.user == collection.owner:
             return tables.CollectionScriptTable
         elif self.request.user.is_authenticated:
             return tables.UserScriptTable
@@ -482,6 +482,15 @@ class CollectionScriptListView(SingleTableView):
     def get_queryset(self):
         collection = models.Collection.objects.get(pk=self.kwargs["pk"])
         return collection.scripts.order_by("pk")
+
+
+class CollectionListView(SingleTableMixin, FilterView):
+    model = models.Collection
+    template_name = "collection_list.html"
+    table_pagination = {"per_page": 20}
+    ordering = ["pk"]
+    table_class = tables.CollectionTable
+    filterset_class = filters.CollectionFilter
 
 
 class CollectionCreateView(LoginRequiredMixin, generic.edit.CreateView):
@@ -565,7 +574,7 @@ class RemoveScriptFromCollectionView(LoginRequiredMixin, generic.View):
         except models.Collection.DoesNotExist:
             raise Http404("Unknown collection.")
 
-        if collection.user != self.request.user:
+        if collection.owner != self.request.user:
             raise Http404("Cannot edit a collection you don't own.")
 
         try:
