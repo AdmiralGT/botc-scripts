@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from scripts.models import ScriptVersion
+from scripts.models import ScriptVersion, Collection
 
 table_class = {
     "td": {"class": "pl-2 p-0 pr-2 align-middle text-center"},
@@ -34,7 +34,6 @@ class ScriptTable(tables.Table):
 
     name = tables.Column(
         empty_values=(),
-        order_by="script.name",
         linkify=(
             "script",
             {"pk": tables.A("script.pk"), "version": tables.A("version")},
@@ -112,3 +111,24 @@ class CollectionScriptTable(UserScriptTable):
         attrs=button_table_class,
         verbose_name="Remove",
     )
+
+
+class CollectionTable(tables.Table):
+    class Meta:
+        model = Collection
+        exclude = ("id", "owner", "scripts", "notes")
+        sequence = (
+            "name",
+            "scripts_in_collection",
+        )
+        orderable = True
+
+    name = tables.Column(
+        empty_values=(),
+        linkify=(
+            "collection",
+            {"pk": tables.A("pk")},
+        ),
+        attrs={"td": {"class": "pl-1 p-0 pr-2 align-middle"}},
+    )
+    scripts_in_collection = tables.Column(attrs=table_class, verbose_name="Scripts")

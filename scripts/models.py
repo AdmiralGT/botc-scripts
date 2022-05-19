@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from versionfield import VersionField
 
-from scripts.managers import ScriptViewManager
+from scripts.managers import ScriptViewManager, CollectionManager
 
 
 class ScriptTypes(models.TextChoices):
@@ -170,7 +170,11 @@ class Collection(models.Model):
     Model for collections, a shareable set of scripts.
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="collections")
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="collections"
+    )
     scripts = models.ManyToManyField(ScriptVersion, blank=True)
     name = models.CharField(max_length=100)
     notes = models.TextField(blank=True)
+
+    objects = CollectionManager()
