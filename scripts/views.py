@@ -10,13 +10,13 @@ from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin
+from django_tables2.views import SingleTableMixin, SingleTableView
 from versionfield import Version
 
 from scripts import filters, forms, models, script_json, tables, characters
 from collections import Counter
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -38,22 +38,6 @@ class ScriptsListView(SingleTableMixin, FilterView):
             return tables.UserScriptTable
         return tables.ScriptTable
 
-    def get_queryset(self):
-        queryset = super(ScriptsListView, self).get_queryset()
-        if self.script_view == "collection":
-            collection = models.Collection.objects.get(pk=self.kwargs["pk"])
-            return collection.scripts.order_by("-pk")
-        return queryset
-
-    def get(self, request, *args, **kwargs):
-        if self.script_view == "collection":
-            try:
-                models.Collection.objects.get(pk=self.kwargs["pk"])
-            except models.Collection.DoesNotExist:
-                raise Http404(("No %(verbose_name)s found matching the query") %
-                          {'verbose_name': models.Collection._meta.verbose_name})
-        return super(ScriptsListView, self).get(request, *args, **kwargs)
-
 
 class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
@@ -71,19 +55,16 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     def get_queryset(self):
         queryset = super(UserScriptsListView, self).get_queryset()
         if self.script_view == "favourite":
-            queryset = queryset.filter(
-                favourites__user=self.request.user
-            )
+            queryset = queryset.filter(favourites__user=self.request.user)
         elif self.script_view == "owned":
             queryset = queryset.filter(script__owner=self.request.user)
         return queryset
-        
+
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(UserScriptsListView, self).get_filterset_kwargs(filterset_class)
         if kwargs["data"] is None:
             kwargs["data"] = {"latest": True}
         return kwargs
-
 
 
 def get_json_additions(old_json, new_json):
@@ -126,9 +107,9 @@ class ScriptView(generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        if "sel_name" in self.request.GET:
+        if "selected_version" in self.request.GET:
             current_script = self.object.versions.get(
-                version=self.request.GET["sel_name"]
+                version=self.request.GET["selected_version"]
             )
         elif "version" in self.kwargs:
             current_script = self.object.versions.get(version=self.kwargs["version"])
@@ -477,3 +458,120 @@ def download_pdf(request, pk: int, version: str) -> FileResponse:
         return FileResponse(script_version.pdf, as_attachment=True)
     else:
         return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True)
+
+
+class CollectionScriptListView(SingleTableView):
+    model = models.ScriptVersion
+    template_name = "collection.html"
+    table_pagination = {"per_page": 20}
+    ordering = ["pk"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["collection"] = models.Collection.objects.get(pk=self.kwargs["pk"])
+        return context
+
+    def get_table_class(self):
+        collection = models.Collection.objects.get(pk=self.kwargs["pk"])
+        if self.request.user == collection.user:
+            return tables.CollectionScriptTable
+        elif self.request.user.is_authenticated:
+            return tables.UserScriptTable
+        return tables.ScriptTable
+
+    def get_queryset(self):
+        collection = models.Collection.objects.get(pk=self.kwargs["pk"])
+        return collection.scripts.order_by("pk")
+
+
+class CollectionCreateView(LoginRequiredMixin, generic.edit.CreateView):
+    template_name = "upload.html"
+    form_class = forms.CollectionForm
+    model = models.Collection
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return "/collection/" + str(self.object.id)
+
+
+class CollectionEditView(LoginRequiredMixin, generic.edit.UpdateView):
+    template_name = "upload.html"
+    form_class = forms.CollectionForm
+    model = models.Collection
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return "/collection/" + str(self.object.id)
+
+    def get(self, request, *args, **kwargs):
+        """
+        A user should only be able to edit the collections they own.
+        """
+        self.object = self.get_object()
+        if self.object.user != self.request.user:
+            raise Http404("Cannot edit a collection you don't own.")
+        return super(CollectionEditView, self).get(request, *args, **kwargs)
+
+
+class CollectionDeleteView(
+    LoginRequiredMixin, generic.edit.DeletionMixin, generic.View
+):
+    """
+    Deletes a collection.
+    """
+
+    model = models.Collection
+
+    def get_success_url(self) -> str:
+        return "/"
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.user != request.user:
+            raise Http404("Cannot delete a collection you don't own.")
+        success_url = self.get_success_url()
+        self.object.delete()
+        return HttpResponseRedirect(success_url)
+
+
+class AddScriptToCollectionView(LoginRequiredMixin, generic.View):
+    """
+    Adds a script to a collection.
+    """
+
+    def post(self, request, *args, **kwargs):
+        collection = models.Collection.objects.get(pk=request.POST.get("collection"))
+        script = models.ScriptVersion.objects.get(pk=request.POST.get("script_version"))
+        collection.scripts.add(script)
+        return HttpResponseRedirect("/")
+
+
+class RemoveScriptFromCollectionView(LoginRequiredMixin, generic.View):
+    """
+    Removes a script from a collection.
+    """
+
+    model = models.Collection
+
+    def post(self, request, *args, **kwargs):
+        try:
+            collection = models.Collection.objects.get(pk=kwargs["collection"])
+        except models.Collection.DoesNotExist:
+            raise Http404("Unknown collection.")
+
+        if collection.user != self.request.user:
+            raise Http404("Cannot edit a collection you don't own.")
+
+        try:
+            script = models.ScriptVersion.objects.get(pk=kwargs["script"])
+        except models.ScriptVersion.DoesNotExist:
+            raise Http404("Unknown script.")
+
+        collection.scripts.remove(script)
+        return HttpResponseRedirect(f"/collection/{collection.pk}")

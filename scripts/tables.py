@@ -86,3 +86,29 @@ class UserScriptTable(ScriptTable):
     favourite = tables.TemplateColumn(
         orderable=False, template_name="favourite.html", attrs=favourite_table_class
     )
+
+
+class CollectionScriptTable(UserScriptTable):
+    class Meta:
+        model = ScriptVersion
+        exclude = ("id", "content", "script", "latest", "created", "notes")
+        sequence = (
+            "name",
+            "version",
+            "author",
+            "script_type",
+            "score",
+            "tags",
+            "json",
+            "pdf",
+            "vote",
+            "favourite",
+            "remove_from_collection",
+        )
+
+    remove_from_collection = tables.TemplateColumn(
+        orderable=False,
+        template_name="remove_collection.html",
+        attrs=button_table_class,
+        verbose_name="Remove",
+    )

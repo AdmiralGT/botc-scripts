@@ -169,6 +169,8 @@ class Collection(models.Model):
     """
     Model for collections, a shareable set of scripts.
     """
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="collections")
-    scripts = models.ManyToManyField(ScriptVersion)
+    scripts = models.ManyToManyField(ScriptVersion, blank=True)
     name = models.CharField(max_length=100)
+    notes = models.TextField(blank=True)

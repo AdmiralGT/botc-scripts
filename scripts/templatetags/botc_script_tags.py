@@ -19,6 +19,21 @@ def user_favourite(context, script_version):
     return "star"
 
 
+@register.simple_tag()
+def script_in_collection(collection, script_version):
+    if script_version in collection.scripts.all():
+        return True
+    return False
+
+
+@register.simple_tag()
+def script_not_in_user_collection(user, script_version):
+    for collection in user.collections.all():
+        if script_version not in collection.scripts.all():
+            return True
+    return False
+
+
 @register.filter
 def split(string):
     return string.split(" ")
