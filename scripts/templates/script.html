@@ -38,7 +38,7 @@
 <div class="row p-1">
     <div class="col-md-auto p-1">
         <form class="mb-0">
-            <select class="custom-select" id="sel_id" name="sel_name" onchange="this.form.submit();">
+            <select class="custom-select" name="selected_version" onchange="this.form.submit();">
                 {% for versions in script.versions.all|dictsortreversed:"version" %}
                     <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
                 {% endfor %}
@@ -60,6 +60,14 @@
         </div>
     {% endif %}
     {% if user.is_authenticated %}
+        <div class="col-md-auto h-100 p-1">
+        {% if user.collections.count > 0 %}
+            {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}
+            {% if script_can_be_added_to_collection %}
+                {% include "add_to_collection.html" %}
+            {% endif %}    
+        {% endif %}
+        </div>
         <div class="col-md-auto h-100 p-1">
             {% include "favourite.html" with record=script_version %}
         </div>
