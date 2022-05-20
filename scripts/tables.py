@@ -14,6 +14,10 @@ favourite_table_class = {
     "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
     "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
 }
+script_table_class = {
+    "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:10%"},
+    "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:10%"},
+}
 
 
 class ScriptTable(tables.Table):
@@ -131,4 +135,6 @@ class CollectionTable(tables.Table):
         ),
         attrs={"td": {"class": "pl-1 p-0 pr-2 align-middle"}},
     )
-    scripts_in_collection = tables.Column(attrs=table_class, verbose_name="Scripts")
+    scripts_in_collection = tables.Column(
+        attrs=script_table_class, verbose_name="Scripts"
+    )
