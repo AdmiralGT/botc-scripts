@@ -24,7 +24,11 @@ urlpatterns = [
         name="add_to_collection",
     ),
     path("collection/<int:pk>/edit", views.CollectionEditView.as_view()),
-    path("collection/<int:pk>/delete", views.CollectionDeleteView.as_view()),
+    path(
+        "collection/<int:pk>/delete",
+        views.CollectionDeleteView.as_view(),
+        name="delete_collection",
+    ),
     path(
         "collection/<int:collection>/remove/<int:script>",
         views.RemoveScriptFromCollectionView.as_view(),
