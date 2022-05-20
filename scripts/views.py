@@ -523,14 +523,12 @@ class CollectionEditView(LoginRequiredMixin, generic.edit.UpdateView):
         A user should only be able to edit the collections they own.
         """
         self.object = self.get_object()
-        if self.object.user != self.request.user:
+        if self.object.owner != self.request.user:
             raise Http404("Cannot edit a collection you don't own.")
         return super(CollectionEditView, self).get(request, *args, **kwargs)
 
 
-class CollectionDeleteView(
-    LoginRequiredMixin, generic.edit.DeletionMixin, generic.View
-):
+class CollectionDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
     """
     Deletes a collection.
     """
@@ -542,7 +540,7 @@ class CollectionDeleteView(
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if self.object.user != request.user:
+        if self.object.owner != request.user:
             raise Http404("Cannot delete a collection you don't own.")
         success_url = self.get_success_url()
         self.object.delete()
