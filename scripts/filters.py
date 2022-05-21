@@ -96,24 +96,27 @@ class FavouriteScriptVersionFilter(ScriptVersionFilter):
         ]
 
 
-def owned_collections(request):
-    if request is None:
-        return User.objects.none()
-
-    return User.objects.all()
-
-
 class CollectionFilter(
     django_filters.FilterSet, django_filters.filters.QuerySetRequestMixin
 ):
-    owner = django_filters.filters.ModelChoiceFilter(
-        widget=forms.CheckboxInput,
-        label="My Collections",
-        queryset=owned_collections,
+    is_owner = django_filters.filters.BooleanFilter(
+        widget=forms.CheckboxInput, label="My Collections", method="is_owner_function"
     )
 
     class Meta:
         model = Collection
         fields = [
-            "owner",
+            "is_owner",
         ]
+
+    def __init__(self, *args, **kwargs):
+        super(django_filters.FilterSet, self).__init__(*args, **kwargs)
+        if kwargs.get("data") and kwargs.get("data").get("is_owner") == "on":
+            self.queryset = Collection.objects.filter(owner=self.request.user)
+
+    def is_owner_function(self, queryset, name, value):
+        """
+        This function exists so that we can use a non-model field. The queryset was already
+        altered in the __init__ function.
+        """
+        return queryset

@@ -136,5 +136,7 @@ class CollectionTable(tables.Table):
         attrs={"td": {"class": "pl-1 p-0 pr-2 align-middle"}},
     )
     scripts_in_collection = tables.Column(
-        attrs=script_table_class, verbose_name="Scripts"
+        attrs=script_table_class,
+        verbose_name="Scripts",
+        order_by="-scripts_in_collection",
     )
