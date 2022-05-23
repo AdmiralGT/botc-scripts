@@ -16,7 +16,7 @@ from versionfield import Version
 from scripts import filters, forms, models, script_json, tables, characters
 from collections import Counter
 
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 
 class ScriptsListView(SingleTableMixin, FilterView):

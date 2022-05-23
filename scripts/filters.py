@@ -3,7 +3,6 @@ import re
 import django_filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
-from django.contrib.auth.decorators import login_required
 
 from scripts import models, characters
 
