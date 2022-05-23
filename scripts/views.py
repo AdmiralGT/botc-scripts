@@ -364,6 +364,13 @@ class StatisticsView(generic.TemplateView):
             except ValueError:
                 pass
 
+        if "edition" in self.request.GET:
+            try:
+                edition = models.Edition(self.request.GET.get("edition"))
+                queryset = filters.filter_by_edition(queryset, edition)
+            except ValueError:
+                pass
+
         context["total"] = queryset.count()
 
         character_count = {}
@@ -499,7 +506,7 @@ class CollectionCreateView(LoginRequiredMixin, generic.edit.CreateView):
     model = models.Collection
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+        form.instance.owner = self.request.user
         return super().form_valid(form)
 
     def get_success_url(self) -> str:
@@ -512,7 +519,7 @@ class CollectionEditView(LoginRequiredMixin, generic.edit.UpdateView):
     model = models.Collection
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+        form.instance.owner = self.request.user
         return super().form_valid(form)
 
     def get_success_url(self) -> str:

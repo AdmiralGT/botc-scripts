@@ -5,6 +5,12 @@ from versionfield import VersionField
 from scripts.managers import ScriptViewManager, CollectionManager
 
 
+class Edition(models.TextChoices):
+    BASE = "Base"
+    KICKSTARTER = "Kickstarter"
+    UNRELEASED = "Unreleased"
+
+
 class ScriptTypes(models.TextChoices):
     TEENSYVILLE = "Teensyville"
     FULL = "Full"
@@ -173,8 +179,11 @@ class Collection(models.Model):
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="collections"
     )
-    scripts = models.ManyToManyField(ScriptVersion, blank=True)
+    scripts = models.ManyToManyField(
+        ScriptVersion, blank=True, related_name="collections"
+    )
     name = models.CharField(max_length=100)
-    notes = models.TextField(blank=True)
+    description = models.TextField(null=True, blank=True, max_length=255)
+    notes = models.TextField(null=True, blank=True)
 
     objects = CollectionManager()

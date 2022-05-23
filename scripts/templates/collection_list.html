@@ -5,6 +5,7 @@
 
 {% block content %}
 
+{% if user.is_authenticated %}
 <form action="" method="get" class="form mb-0">
     <div class="form-group row p-1 mb-0">
         {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
@@ -12,6 +13,7 @@
         {% bootstrap_button 'clear' extra_classes="btn-sm" href="/collections" %}
 </div>
 </form>
+{% endif %}
 
 {% include "table.html" %}
 

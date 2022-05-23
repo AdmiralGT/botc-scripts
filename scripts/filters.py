@@ -4,9 +4,20 @@ import django_filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 
-from scripts.models import ScriptVersion, ScriptTag, Collection
+from scripts import models, characters
+
+edition_choices = (
+    (models.Edition.BASE.value, models.Edition.BASE),
+    (models.Edition.KICKSTARTER.value, models.Edition.KICKSTARTER),
+    (models.Edition.UNRELEASED.value, models.Edition.UNRELEASED),
+)
+
+
+def filter_by_edition(queryset, value):
+    for character in characters.get_characters_not_in_edition(value):
+        queryset = queryset.exclude(content__contains=[{"id": character.json_id}])
+    return queryset
 
 
 def annotate_queryset(queryset, field, value):
@@ -28,8 +39,13 @@ class ScriptVersionFilter(django_filters.FilterSet):
     author = django_filters.filters.CharFilter(method="search_authors", label="Author")
     search = django_filters.filters.CharFilter(method="search_scripts", label="Search")
     tags = django_filters.filters.ModelMultipleChoiceFilter(
-        queryset=ScriptTag.objects.all(),
+        queryset=models.ScriptTag.objects.all(),
         widget=forms.CheckboxSelectMultiple,
+    )
+    edition = django_filters.filters.ChoiceFilter(
+        field_name=None,
+        method="filter_edition",
+        choices=edition_choices,
     )
 
     def display_all_scripts(self, queryset, name, value):
@@ -59,13 +75,17 @@ class ScriptVersionFilter(django_filters.FilterSet):
         queryset = annotate_queryset(queryset, "author", value)
         return queryset.filter(similarity__gt=0.3).order_by("-similarity")
 
+    def filter_edition(self, queryset, name, value):
+        return filter_by_edition(queryset, value)
+
     class Meta:
-        model = ScriptVersion
+        model = models.ScriptVersion
         fields = [
             "search",
             "script_type",
             "include",
             "exclude",
+            "edition",
             "author",
             "tags",
             "all_scripts",
@@ -83,12 +103,13 @@ class FavouriteScriptVersionFilter(ScriptVersionFilter):
         return queryset
 
     class Meta:
-        model = ScriptVersion
+        model = models.ScriptVersion
         fields = [
             "search",
             "script_type",
             "include",
             "exclude",
+            "edition",
             "author",
             "tags",
             "all_scripts",
@@ -104,7 +125,7 @@ class CollectionFilter(
     )
 
     class Meta:
-        model = Collection
+        model = models.Collection
         fields = [
             "is_owner",
         ]
@@ -112,7 +133,7 @@ class CollectionFilter(
     def __init__(self, *args, **kwargs):
         super(django_filters.FilterSet, self).__init__(*args, **kwargs)
         if kwargs.get("data") and kwargs.get("data").get("is_owner") == "on":
-            self.queryset = Collection.objects.filter(owner=self.request.user)
+            self.queryset = models.Collection.objects.filter(owner=self.request.user)
 
     def is_owner_function(self, queryset, name, value):
         """

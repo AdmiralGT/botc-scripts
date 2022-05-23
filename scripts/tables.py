@@ -38,6 +38,7 @@ class ScriptTable(tables.Table):
 
     name = tables.Column(
         empty_values=(),
+        order_by="script.name",
         linkify=(
             "script",
             {"pk": tables.A("script.pk"), "version": tables.A("version")},
@@ -123,6 +124,7 @@ class CollectionTable(tables.Table):
         exclude = ("id", "owner", "scripts", "notes")
         sequence = (
             "name",
+            "description",
             "scripts_in_collection",
         )
         orderable = True
@@ -135,6 +137,7 @@ class CollectionTable(tables.Table):
         ),
         attrs={"td": {"class": "pl-1 p-0 pr-2 align-middle"}},
     )
+    description = tables.Column(attrs=table_class)
     scripts_in_collection = tables.Column(
         attrs=script_table_class,
         verbose_name="Scripts",

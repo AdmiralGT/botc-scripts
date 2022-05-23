@@ -114,7 +114,7 @@ def get_json_content(data):
 class CollectionForm(forms.ModelForm):
     class Meta:
         model = models.Collection
-        fields = ["name", "notes"]
+        fields = ["name", "description", "notes"]
         widgets = {
             "notes": forms.Textarea(
                 attrs={
