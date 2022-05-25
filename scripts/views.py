@@ -563,7 +563,9 @@ class AddScriptToCollectionView(LoginRequiredMixin, generic.View):
         collection = models.Collection.objects.get(pk=request.POST.get("collection"))
         script = models.ScriptVersion.objects.get(pk=request.POST.get("script_version"))
         collection.scripts.add(script)
-        return HttpResponseRedirect("/")
+        return HttpResponseRedirect(
+            "/script/" + str(script.script.pk) + "/" + str(script.version)
+        )
 
 
 class RemoveScriptFromCollectionView(LoginRequiredMixin, generic.View):
