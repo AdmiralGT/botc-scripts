@@ -4,6 +4,13 @@
 {% load markdownify %}
 {% load botc_script_tags %}
 
+<script>
+    function CopyLink() {
+        navigator.clipboard.writeText("{{request.scheme}}://{{request.META.HTTP_HOST}}/api/scripts/{{script_version.pk}}/json/")
+    }
+</script>
+
+
 <h1>
     {{ script.name }} - v{{ script_version.version }}
 </h1>
@@ -59,6 +66,9 @@
             <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
         </div>
     {% endif %}
+    <div class="col-md-auto h-100 p-1">
+        <button class="btn btn-primary" onclick="CopyLink()">JSON</button>
+    </div>
     {% if user.is_authenticated %}
         <div class="col-md-auto h-100 p-1">
         {% if user.collections.count > 0 %}
