@@ -41,37 +41,38 @@ def character_colourisation(character):
         characters.Character.get(character).character_type
         == characters.CharacterType.TOWNSFOLK
     ):
-        return "color:#0000ff"
+        return "style=color:#0000ff"
     if (
         characters.Character.get(character).character_type
         == characters.CharacterType.OUTSIDER
     ):
-        return "color:#00ccff"
+        return "style=color:#00ccff"
     if (
         characters.Character.get(character).character_type
         == characters.CharacterType.MINION
     ):
-        return "color:#ff8000"
+        return "style=color:#ff8000"
     if (
         characters.Character.get(character).character_type
         == characters.CharacterType.DEMON
     ):
-        return "color:#ff0000"
+        return "style=color:#ff0000"
     if (
         characters.Character.get(character).character_type
         == characters.CharacterType.TRAVELLER
     ):
-        return "color:#cc0099"
+        return "style=color:#cc0099"
     if (
         characters.Character.get(character).character_type
         == characters.CharacterType.FABLED
     ):
-        return "color:#996600"
+        return "style=color:#996600"
+
 
 @register.simple_tag()
 def character_type_change(content, counter):
     if counter > 0:
-        prev_character_id = content[counter-1]["id"]
+        prev_character_id = content[counter - 1]["id"]
         curr_character_id = content[counter]["id"]
         prev_character = characters.Character.get(prev_character_id)
         curr_character = characters.Character.get(curr_character_id)

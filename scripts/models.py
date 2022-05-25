@@ -5,10 +5,10 @@ from versionfield import VersionField
 from scripts.managers import ScriptViewManager, CollectionManager
 
 
-class Edition(models.TextChoices):
-    BASE = "Base"
-    KICKSTARTER = "+ Kickstarter"
-    UNRELEASED = "+ Unreleased"
+class Edition(models.IntegerChoices):
+    BASE = 0, "Base"
+    KICKSTARTER = 1, "+ Kickstarter"
+    UNRELEASED = 2, "+ Unreleased"
 
 
 class ScriptTypes(models.TextChoices):

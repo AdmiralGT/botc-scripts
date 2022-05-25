@@ -7,14 +7,15 @@ from django.contrib.postgres.search import TrigramSimilarity
 from scripts import models, characters
 
 edition_choices = (
-    (models.Edition.BASE.value, models.Edition.BASE),
-    (models.Edition.KICKSTARTER.value, models.Edition.KICKSTARTER),
-    (models.Edition.UNRELEASED.value, models.Edition.UNRELEASED),
+    (models.Edition.BASE, models.Edition.BASE.label),
+    (models.Edition.KICKSTARTER, models.Edition.KICKSTARTER.label),
+    (models.Edition.UNRELEASED, models.Edition.UNRELEASED.label),
 )
 
 
 def filter_by_edition(queryset, value):
-    for character in characters.get_characters_not_in_edition(value):
+    edition = models.Edition(int(value))
+    for character in characters.get_characters_not_in_edition(edition):
         queryset = queryset.exclude(content__contains=[{"id": character.json_id}])
     return queryset
 

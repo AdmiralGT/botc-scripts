@@ -121,7 +121,8 @@
                 {% if newline %}
                     <br>
                 {% endif %}
-                <li><span style="{% character_colourisation role.id %}">{% convert_id_to_friendly_text role.id %}</span></li>
+                {% character_colourisation role.id as character_colour %}
+                <li><span {{ character_colour }}>{% convert_id_to_friendly_text role.id %}</span></li>
             {% endif %}
         {% endfor %}
     </div>
