@@ -36,13 +36,13 @@ urlpatterns = [
     ),
     path("collection/new", views.CollectionCreateView.as_view()),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
+    path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>/vote", views.vote_for_script, name="vote"),
     path(
         "script/<int:pk>/<str:version>/favourite",
         views.favourite_script,
         name="favourite",
     ),
-    path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path(
         "script/<int:pk>/<str:version>/download",
         views.download_json,
