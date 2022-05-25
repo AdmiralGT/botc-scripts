@@ -95,27 +95,33 @@
     <li class="nav-item">
         <a class="nav-link" id="similarity-tab" data-toggle="tab" href="#similarity" role="tab" aria-controls="similarity" aria-selected="false">Similar Scripts</a>
     </li>
+    {% if script_version.collections.count > 0 %}
     <li class="nav-item">
-        <a class="nav-link" id="collection-tab" data-toggle="tab" href="#collection" role="tab" aria-controls="collections" aria-selected="false">Collections</a>
+        <a class="nav-link" id="collection-tab" data-toggle="tab" href="#collection" role="tab" aria-controls="collection" aria-selected="false">Collections</a>
     </li>
+    {% endif %}
 </ul>
 <div class="tab-content row p-1" height="720">
     {% if script_version.pdf %}
-        <div class="col-sm-6">
-            <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
-        </div>
+    <div class="col-sm-6">
+        <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
+    </div>
     {% endif %}
     {% if script_version.notes %}
-        <div class="tab-pane fade show active col-sm-4" id="notes" role="tabpanel" aria-labelledby="notes-tab">
-            {{ script_version.notes|markdownify }}
-        </div>
-        <div class="tab-pane fade col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade show active col-sm-4" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+        {{ script_version.notes|markdownify }}
+    </div>
+    <div class="tab-pane fade col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% else %}
-        <div class="tab-pane fade show active col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade show active col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% endif %}
         {% for role in script_version.content %}
             {% if role.id != "_meta" %}
-                <li><span style="{% character_colourisation role.id %}">{{ role.id }}</span></li>
+                {% character_type_change script_version.content forloop.counter0 as newline %}
+                {% if newline %}
+                    <br>
+                {% endif %}
+                <li><span style="{% character_colourisation role.id %}">{% convert_id_to_friendly_text role.id %}</span></li>
             {% endif %}
         {% endfor %}
     </div>
@@ -127,14 +133,14 @@
                 <div class="col-sm-5">
                     <ul class="p-0">
                         {% for role in diffs.additions %}
-                            <li class="list-group-item p-0 border-0">+ {{ role.id }}</li>
+                            <li class="list-group-item p-0 border-0">+ {% convert_id_to_friendly_text role.id %}</li>
                         {% endfor %}
                     </ul>
                 </div>
                 <div class="col-sm-5">
                     <ul class="p-0">
                         {% for role in diffs.deletions %}
-                            <li class="list-group-item p-0 border-0">- {{ role.id }}</li>
+                            <li class="list-group-item p-0 border-0">- {% convert_id_to_friendly_text role.id %}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -149,10 +155,10 @@
             {% endfor %}
         </ul>
     </div>
-    <div class="tab-pane fade col-sm-4" id="collections" role="tabpanel" aria-labelledby="collection-tab">
+    <div class="tab-pane fade col-sm-4" id="collection" role="tabpanel" aria-labelledby="collection-tab">
         <ul class="p-0">
-            {% for script_version, similarness in similarity %}
-                <li class="list-group-item p-0 border-0">{{ similarness }}% <a href="/script/{{script_version.script.pk}}">{{script_version.script.name}}</a></li>
+            {% for collection in script_version.collections.all %}
+                <li><a href="/collection/{{collection.pk}}">{{collection.name}}</a></li>
             {% endfor %}
         </ul>
     </div>
