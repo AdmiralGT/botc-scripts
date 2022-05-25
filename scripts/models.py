@@ -7,8 +7,8 @@ from scripts.managers import ScriptViewManager, CollectionManager
 
 class Edition(models.TextChoices):
     BASE = "Base"
-    KICKSTARTER = "Kickstarter"
-    UNRELEASED = "Unreleased"
+    KICKSTARTER = "+ Kickstarter"
+    UNRELEASED = "+ Unreleased"
 
 
 class ScriptTypes(models.TextChoices):
