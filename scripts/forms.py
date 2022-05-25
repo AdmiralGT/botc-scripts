@@ -109,3 +109,17 @@ def get_json_content(data):
     json = js.loads(json_content.read().decode("utf-8"))
     json_content.seek(0)
     return json
+
+
+class CollectionForm(forms.ModelForm):
+    class Meta:
+        model = models.Collection
+        fields = ["name", "description", "notes"]
+        widgets = {
+            "notes": forms.Textarea(
+                attrs={
+                    "rows": 17,
+                    "placeholder": "Notes (enter using Markdown formatting)",
+                }
+            ),
+        }

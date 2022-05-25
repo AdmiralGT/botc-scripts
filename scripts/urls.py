@@ -12,6 +12,29 @@ router.register(r"scripts", viewsets.ScriptViewSet)
 urlpatterns = [
     path("", views.ScriptsListView.as_view()),
     path("api/", include(router.urls)),
+    path("collections", views.CollectionListView.as_view()),
+    path(
+        "collection/<int:pk>",
+        views.CollectionScriptListView.as_view(),
+        name="collection",
+    ),
+    path(
+        "collection/add",
+        views.AddScriptToCollectionView.as_view(),
+        name="add_to_collection",
+    ),
+    path("collection/<int:pk>/edit", views.CollectionEditView.as_view()),
+    path(
+        "collection/<int:pk>/delete",
+        views.CollectionDeleteView.as_view(),
+        name="delete_collection",
+    ),
+    path(
+        "collection/<int:collection>/remove/<int:script>",
+        views.RemoveScriptFromCollectionView.as_view(),
+        name="remove_from_collection",
+    ),
+    path("collection/new", views.CollectionCreateView.as_view()),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>/vote", views.vote_for_script, name="vote"),
     path(
@@ -30,10 +53,10 @@ urlpatterns = [
         views.download_pdf,
         name="download_pdf",
     ),
+    path("script/upload", views.ScriptUploadView.as_view(), name="upload"),
     path("statistics", views.StatisticsView.as_view()),
     path("statistics/<str:character>", views.StatisticsView.as_view()),
     path("statistics/tags/<int:tags>", views.StatisticsView.as_view()),
-    path("upload", views.ScriptUploadView.as_view(), name="upload"),
     path("account/social/", include("allauth.socialaccount.urls")),
     path("account/delete/", views.UserDeleteView.as_view(), name="delete_user"),
     path(

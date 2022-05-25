@@ -10,3 +10,13 @@ class ScriptViewManager(models.Manager):
             .annotate(score=Coalesce(models.Count("votes"), 0))
         )
         return qs
+
+
+class CollectionManager(models.Manager):
+    def get_queryset(self):
+        qs = (
+            super(CollectionManager, self)
+            .get_queryset()
+            .annotate(scripts_in_collection=models.Count("scripts"))
+        )
+        return qs

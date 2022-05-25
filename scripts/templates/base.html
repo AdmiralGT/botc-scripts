@@ -17,11 +17,26 @@
                     <a class="nav-link" href="/">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/upload">Upload</a>
+                    <a class="nav-link" href="/script/upload">Upload</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/statistics">Statistics</a>
                 </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="collectionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Collections
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="collectionDropdown">
+                        <a class="dropdown-item" href="/collections">View</a>
+                        <a class="dropdown-item" href="/collection/new">New</a>
+                    </div>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/collections">Collections</a>
+                </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link" href="/worldcup">🏆 World Cup</a>
                 </li>
@@ -31,8 +46,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'account_login' %}">Login/Signup</a>
                 </li>
-                {% endif %}
-                {% if user.is_authenticated %}
+                {% else %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Account
