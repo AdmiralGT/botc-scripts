@@ -31,13 +31,21 @@
                 <tbody>
                     {% for entry in round1 %}
                     <tr>
+                        {% if entry.winner == "Home" %}
+                        <td class="align-middle text-center p-0 table-success">
+                        {% else %}
                         <td class="align-middle text-center p-0">
+                        {% endif %}
                             <a href="{% url 'script' pk=entry.script1.script.pk version=entry.script1.version %}">{{ entry.script1.script.name }}</a>
                         </td>   
                         <td class="align-middle text-center p-0">
                             vs
                         </td>   
+                        {% if entry.winner == "Away" %}
+                        <td class="align-middle text-center p-0 table-success">
+                        {% else %}
                         <td class="align-middle text-center p-0">
+                        {% endif %}
                             <a href="{% url 'script' pk=entry.script2.script.pk version=entry.script2.version %}">{{ entry.script2.script.name }}</a>
                         </td>   
                         <td class="align-middle text-center p-0">
