@@ -152,6 +152,8 @@ class WorldCup(models.Model):
     Model for displaying World Cup data.
     """
 
+    winner_choices = [("Unknown", "Unknown"), ("Home", "Home"), ("Away", "Away")]
+
     round = models.IntegerField()
     script1 = models.ForeignKey(
         ScriptVersion,
@@ -169,6 +171,7 @@ class WorldCup(models.Model):
     )
     vod = models.CharField(max_length=100, blank=True)
     form = models.CharField(max_length=100, blank=True)
+    winner = models.CharField(max_length=10, choices=winner_choices, default="Unknown")
 
 
 class Collection(models.Model):
