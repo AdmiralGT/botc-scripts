@@ -86,18 +86,29 @@ def get_json_additions(old_json, new_json):
     return new_json
 
 
-def get_similarity(json1: Dict, json2: Dict) -> int:
+def get_similarity(json1: Dict, json2: Dict, same_type: bool) -> int:
     similarity = 0
-    similarity_max = 0
+    similarity_max = max(len(json1), len(json2))
+    similarity_min = min(len(json1), len(json2))
+    id2_meta = 0
     for id in json1:
         if id["id"] == "_meta":
+            similarity_max = min(similarity_max, len(json1) - 1)
+            similarity_min = min(similarity_min, len(json1) - 1)
             continue
-        similarity_max += 1
         for id2 in json2:
+            if id2["id"] == "_meta":
+                similarity_max = min(similarity_max, len(json2) - 1)
+                similarity_min = min(similarity_min, len(json2) - 1)
+                id2_meta = 1
+                continue
             if id["id"] == id2["id"]:
                 similarity += 1
+                break
 
-    return round((similarity / similarity_max) * 100)
+    similarity_comp = similarity_max if same_type else similarity_min
+
+    return round((similarity / similarity_comp) * 100)
 
 
 class ScriptView(generic.DetailView):
@@ -141,15 +152,29 @@ class ScriptView(generic.DetailView):
         context["changes"] = changes
 
         similarity = {}
-        for script_version in models.ScriptVersion.objects.filter(latest=True):
+        similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
+        similarity[models.ScriptTypes.FULL.value] = {}
+        for script_version in models.ScriptVersion.objects.filter(latest=True).order_by(
+            "pk"
+        ):
             if current_script == script_version:
                 continue
 
-            similarity[script_version] = get_similarity(
-                current_script.content, script_version.content
+            similarity[script_version.script_type][script_version] = get_similarity(
+                current_script.content,
+                script_version.content,
+                current_script.script_type == script_version.script_type,
             )
-        context["similarity"] = sorted(
-            similarity.items(), key=lambda x: x[1], reverse=True
+        context["similarity"] = {}
+        context["similarity"][models.ScriptTypes.TEENSYVILLE.value] = sorted(
+            similarity[models.ScriptTypes.TEENSYVILLE].items(),
+            key=lambda x: x[1],
+            reverse=True,
+        )[:10]
+        context["similarity"][models.ScriptTypes.FULL.value] = sorted(
+            similarity[models.ScriptTypes.FULL].items(),
+            key=lambda x: x[1],
+            reverse=True,
         )[:10]
         context["script_version"] = current_script
 
