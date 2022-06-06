@@ -110,6 +110,9 @@
         <a class="nav-link" id="collection-tab" data-toggle="tab" href="#collection" role="tab" aria-controls="collection" aria-selected="false">Collections</a>
     </li>
     {% endif %}
+    <li class="nav-item">
+        <a class="nav-link" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments</a>
+    </li>
 </ul>
 <div class="tab-content row p-1" height="720">
     {% if script_version.pdf %}
@@ -179,6 +182,28 @@
                 <li><a href="/collection/{{collection.pk}}">{{collection.name}}</a></li>
             {% endfor %}
         </ul>
+    </div>
+    <div class="tab-pane fade col-lg-8" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+        {% for comment in script.comments.all %}
+            <div class="row">
+                <div class="col">
+                    {{ comment.comment|markdownify }}
+                </div>
+                <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment.pk}}" role="button" aria-expanded="false" aria-controls="replyPanel_{{comment.pk}}">Reply</a>
+            </div>
+            <div class="row">
+                <div class="col offset-sm-1 collapse" id="reply_{{comment.pk}}" aria-labelledby="replyPanel_{{comment.pk}}">
+                    <form action="{% url 'create_comment' %}" method="post" id="comment_create_form">
+                        {% csrf_token %}
+                        <textarea class="form-control" name="comment" rows="5"></textarea>
+                        <input type="hidden" name="script" value="{{script.pk}}">
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-secondary btn-sm">Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
     </div>
 
 {% endblock %}

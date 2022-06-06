@@ -598,8 +598,6 @@ class RemoveScriptFromCollectionView(LoginRequiredMixin, generic.View):
     Removes a script from a collection.
     """
 
-    model = models.Collection
-
     def post(self, request, *args, **kwargs):
         try:
             collection = models.Collection.objects.get(pk=kwargs["collection"])
@@ -616,3 +614,23 @@ class RemoveScriptFromCollectionView(LoginRequiredMixin, generic.View):
 
         collection.scripts.remove(script)
         return HttpResponseRedirect(f"/collection/{collection.pk}")
+
+
+class CommentCreateView(LoginRequiredMixin, generic.View):
+    """
+    Creates comments on scripts.
+    """
+
+    model = models.Comment
+
+    def post(self, request, *args, **kwargs):
+        try:
+            script = models.Script.objects.get(pk=request.POST["script"])
+        except models.Script.DoesNotExist:
+            return HttpResponseRedirect("/")
+
+        if request.POST["comment"]:
+            models.Comment.objects.create(
+                user=request.user, comment=request.POST["comment"], script=script
+            )
+        return HttpResponseRedirect(f"/script/{script.pk}")
