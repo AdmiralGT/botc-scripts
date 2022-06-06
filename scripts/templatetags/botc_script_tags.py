@@ -36,36 +36,21 @@ def script_not_in_user_collection(user, script_version):
 
 
 @register.simple_tag()
-def character_colourisation(character):
-    if (
-        characters.Character.get(character).character_type
-        == characters.CharacterType.TOWNSFOLK
-    ):
+def character_colourisation(character_id):
+    character = characters.Character.get(character_id)
+    if not character:
+        return "style=color:#000000"
+    if character.character_type == characters.CharacterType.TOWNSFOLK:
         return "style=color:#0000ff"
-    if (
-        characters.Character.get(character).character_type
-        == characters.CharacterType.OUTSIDER
-    ):
+    if character.character_type == characters.CharacterType.OUTSIDER:
         return "style=color:#00ccff"
-    if (
-        characters.Character.get(character).character_type
-        == characters.CharacterType.MINION
-    ):
+    if character.character_type == characters.CharacterType.MINION:
         return "style=color:#ff8000"
-    if (
-        characters.Character.get(character).character_type
-        == characters.CharacterType.DEMON
-    ):
+    if character.character_type == characters.CharacterType.DEMON:
         return "style=color:#ff0000"
-    if (
-        characters.Character.get(character).character_type
-        == characters.CharacterType.TRAVELLER
-    ):
+    if character.character_type == characters.CharacterType.TRAVELLER:
         return "style=color:#cc0099"
-    if (
-        characters.Character.get(character).character_type
-        == characters.CharacterType.FABLED
-    ):
+    if character.character_type == characters.CharacterType.FABLED:
         return "style=color:#996600"
 
 
@@ -84,6 +69,9 @@ def character_type_change(content, counter):
 
 @register.simple_tag()
 def convert_id_to_friendly_text(character_id):
+    character = characters.Character.get(character_id)
+    if not character:
+        return character_id
     return characters.Character.get(character_id).character_name
 
 
