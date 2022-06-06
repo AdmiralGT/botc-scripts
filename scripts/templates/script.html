@@ -184,12 +184,14 @@
         </ul>
     </div>
     <div class="tab-pane fade col-lg-8" id="comments" role="tabpanel" aria-labelledby="comments-tab">
-        {% for comment in script.comments.all %}
+        {% for comment in script.comments.all recursive %}
             <div class="row">
                 <div class="col">
                     {{ comment.comment|markdownify }}
                 </div>
-                <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment.pk}}" role="button" aria-expanded="false" aria-controls="replyPanel_{{comment.pk}}">Reply</a>
+                <div>
+                    <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment.pk}}" role="button" aria-expanded="false" aria-controls="replyPanel_{{comment.pk}}">Reply</a>
+                </div>
             </div>
             <div class="row">
                 <div class="col offset-sm-1 collapse" id="reply_{{comment.pk}}" aria-labelledby="replyPanel_{{comment.pk}}">
@@ -197,6 +199,7 @@
                         {% csrf_token %}
                         <textarea class="form-control" name="comment" rows="5"></textarea>
                         <input type="hidden" name="script" value="{{script.pk}}">
+                        <input type="hidden" name="parent" value="{{comment.pk}}">
                         <div class="text-right">
                             <button type="submit" class="btn btn-secondary btn-sm">Add</button>
                         </div>
@@ -204,6 +207,19 @@
                 </div>
             </div>
         {% endfor %}
+    <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply" role="button" aria-expanded="false" aria-controls="replyPanel">New Comment</a>
+    <div class="row">
+        <div class="col offset-sm-1 collapse" id="reply" aria-labelledby="replyPanel">
+            <form action="{% url 'create_comment' %}" method="post" id="comment_create_form">
+                {% csrf_token %}
+                <textarea class="form-control" name="comment" rows="5"></textarea>
+                <input type="hidden" name="script" value="{{script.pk}}">
+                <div class="text-right">
+                    <button type="submit" class="btn btn-secondary btn-sm">Add</button>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
 {% endblock %}

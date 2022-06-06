@@ -624,13 +624,28 @@ class CommentCreateView(LoginRequiredMixin, generic.View):
     model = models.Comment
 
     def post(self, request, *args, **kwargs):
+        parent = None
         try:
             script = models.Script.objects.get(pk=request.POST["script"])
         except models.Script.DoesNotExist:
             return HttpResponseRedirect("/")
 
+        if request.POST.get("parent"):
+            try:
+                parent = models.Comment.objects.get(pk=request.POST["parent"])
+            except models.Comment.DoesNotExist:
+                return HttpResponseRedirect(f"/script/{script.pk}")
+
         if request.POST["comment"]:
-            models.Comment.objects.create(
-                user=request.user, comment=request.POST["comment"], script=script
-            )
+            if parent:
+                models.Comment.objects.create(
+                    user=request.user,
+                    comment=request.POST["comment"],
+                    script=script,
+                    parent=parent,
+                )
+            else:
+                models.Comment.objects.create(
+                    user=request.user, comment=request.POST["comment"], script=script
+                )
         return HttpResponseRedirect(f"/script/{script.pk}")
