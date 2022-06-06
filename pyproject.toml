@@ -21,9 +21,9 @@ django-markdownify = "^0.9.0"
 django-bootstrap-icons = "^0.7.8"
 
 [tool.poetry.dev-dependencies]
-black = "^21.12b0"
-isort = "^5.9.3"
-mypy = "^0.931"
+black = "*"
+isort = "*"
+mypy = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

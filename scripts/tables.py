@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from scripts.models import ScriptVersion
+from scripts.models import ScriptVersion, Collection
 
 table_class = {
     "td": {"class": "pl-2 p-0 pr-2 align-middle text-center"},
@@ -13,6 +13,10 @@ button_table_class = {
 favourite_table_class = {
     "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
     "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
+}
+script_table_class = {
+    "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:10%"},
+    "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:10%"},
 }
 
 
@@ -85,4 +89,57 @@ class UserScriptTable(ScriptTable):
     )
     favourite = tables.TemplateColumn(
         orderable=False, template_name="favourite.html", attrs=favourite_table_class
+    )
+
+
+class CollectionScriptTable(UserScriptTable):
+    class Meta:
+        model = ScriptVersion
+        exclude = ("id", "content", "script", "latest", "created", "notes")
+        sequence = (
+            "name",
+            "version",
+            "author",
+            "script_type",
+            "score",
+            "tags",
+            "json",
+            "pdf",
+            "vote",
+            "favourite",
+            "remove_from_collection",
+        )
+
+    remove_from_collection = tables.TemplateColumn(
+        orderable=False,
+        template_name="remove_collection.html",
+        attrs=button_table_class,
+        verbose_name="Remove",
+    )
+
+
+class CollectionTable(tables.Table):
+    class Meta:
+        model = Collection
+        exclude = ("id", "owner", "scripts", "notes")
+        sequence = (
+            "name",
+            "description",
+            "scripts_in_collection",
+        )
+        orderable = True
+
+    name = tables.Column(
+        empty_values=(),
+        linkify=(
+            "collection",
+            {"pk": tables.A("pk")},
+        ),
+        attrs={"td": {"class": "pl-1 p-0 pr-2 align-middle"}},
+    )
+    description = tables.Column(attrs=table_class)
+    scripts_in_collection = tables.Column(
+        attrs=script_table_class,
+        verbose_name="Scripts",
+        order_by="-scripts_in_collection",
     )

@@ -2,7 +2,13 @@ from django.contrib.auth.models import User
 from django.db import models
 from versionfield import VersionField
 
-from scripts.managers import ScriptViewManager
+from scripts.managers import ScriptViewManager, CollectionManager
+
+
+class Edition(models.IntegerChoices):
+    BASE = 0, "Base"
+    KICKSTARTER = 1, "+ Kickstarter"
+    UNRELEASED = 2, "+ Unreleased"
 
 
 class ScriptTypes(models.TextChoices):
@@ -146,6 +152,8 @@ class WorldCup(models.Model):
     Model for displaying World Cup data.
     """
 
+    winner_choices = [("Unknown", "Unknown"), ("Home", "Home"), ("Away", "Away")]
+
     round = models.IntegerField()
     script1 = models.ForeignKey(
         ScriptVersion,
@@ -163,3 +171,22 @@ class WorldCup(models.Model):
     )
     vod = models.CharField(max_length=100, blank=True)
     form = models.CharField(max_length=100, blank=True)
+    winner = models.CharField(max_length=10, choices=winner_choices, default="Unknown")
+
+
+class Collection(models.Model):
+    """
+    Model for collections, a shareable set of scripts.
+    """
+
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="collections"
+    )
+    scripts = models.ManyToManyField(
+        ScriptVersion, blank=True, related_name="collections"
+    )
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True, max_length=255)
+    notes = models.TextField(null=True, blank=True)
+
+    objects = CollectionManager()
