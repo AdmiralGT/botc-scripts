@@ -16,7 +16,7 @@ from versionfield import Version
 from scripts import filters, forms, models, script_json, tables, characters
 from collections import Counter
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -111,6 +111,24 @@ def get_similarity(json1: Dict, json2: Dict, same_type: bool) -> int:
     return round((similarity / similarity_comp) * 100)
 
 
+def get_comment_data(comment: models.Comment, indent: int) -> List:
+    data = []
+    comment_data = {}
+    comment_data["comment"] = comment
+    comment_data["indent"] = indent
+    data.append(comment_data)
+    for child_comment in comment.children.all():
+        data.extend(get_comment_data(child_comment, indent + 1))
+    return data
+
+
+def get_comments(script: models.Script) -> Dict:
+    comments = []
+    for comment in script.comments.filter(parent__isnull=True):
+        comments.extend(get_comment_data(comment, 0))
+    return comments
+
+
 class ScriptView(generic.DetailView):
     template_name = "script.html"
     model = models.Script
@@ -177,6 +195,7 @@ class ScriptView(generic.DetailView):
             reverse=True,
         )[:10]
         context["script_version"] = current_script
+        context["comments"] = get_comments(current_script.script)
 
         return context
 

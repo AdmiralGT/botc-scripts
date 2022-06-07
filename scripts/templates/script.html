@@ -184,22 +184,30 @@
         </ul>
     </div>
     <div class="tab-pane fade col-lg-8" id="comments" role="tabpanel" aria-labelledby="comments-tab">
-        {% for comment in script.comments.all recursive %}
+        {% for comment_info in comments %}
             <div class="row">
+                {% if comment_info.indent == 0 %}
                 <div class="col">
-                    {{ comment.comment|markdownify }}
+                {% else %}
+                <div class="col offset-sm-{{comment_info.indent}}">
+                {% endif %}
+                    {{ comment_info.comment.comment|markdownify }}
                 </div>
                 <div>
-                    <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment.pk}}" role="button" aria-expanded="false" aria-controls="replyPanel_{{comment.pk}}">Reply</a>
+                    <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="replyPanel_{{comment.pk}}">Reply</a>
                 </div>
             </div>
             <div class="row">
-                <div class="col offset-sm-1 collapse" id="reply_{{comment.pk}}" aria-labelledby="replyPanel_{{comment.pk}}">
+                {% if comment_info.indent > 0 %}
+                <div class="col offset-sm-{{comment_info.indent}} collapse" id="reply_{{comment_info.comment.pk}}" aria-labelledby="replyPanel_{{comment_info.comment.pk}}">
+                {% else %}
+                <div class="col collapse" id="reply_{{comment_info.comment.pk}}" aria-labelledby="replyPanel_{{comment_info.comment.pk}}">
+                {% endif %}
                     <form action="{% url 'create_comment' %}" method="post" id="comment_create_form">
                         {% csrf_token %}
                         <textarea class="form-control" name="comment" rows="5"></textarea>
                         <input type="hidden" name="script" value="{{script.pk}}">
-                        <input type="hidden" name="parent" value="{{comment.pk}}">
+                        <input type="hidden" name="parent" value="{{comment_info.comment.pk}}">
                         <div class="text-right">
                             <button type="submit" class="btn btn-secondary btn-sm">Add</button>
                         </div>
