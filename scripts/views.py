@@ -3,6 +3,7 @@ import os
 from tempfile import TemporaryFile
 
 # Create your views here.
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
@@ -117,14 +118,14 @@ def get_comment_data(comment: models.Comment, indent: int) -> List:
     comment_data["comment"] = comment
     comment_data["indent"] = indent
     data.append(comment_data)
-    for child_comment in comment.children.all():
+    for child_comment in comment.children.all().order_by("created"):
         data.extend(get_comment_data(child_comment, indent + 1))
     return data
 
 
 def get_comments(script: models.Script) -> Dict:
     comments = []
-    for comment in script.comments.filter(parent__isnull=True):
+    for comment in script.comments.filter(parent__isnull=True).order_by("created"):
         comments.extend(get_comment_data(comment, 0))
     return comments
 
@@ -132,6 +133,15 @@ def get_comments(script: models.Script) -> Dict:
 class ScriptView(generic.DetailView):
     template_name = "script.html"
     model = models.Script
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        context["active-tab"] = ""
+        _messages = messages.get_messages(request)
+        for message in _messages:
+            context["activetab"] = message.message
+        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -640,8 +650,6 @@ class CommentCreateView(LoginRequiredMixin, generic.View):
     Creates comments on scripts.
     """
 
-    model = models.Comment
-
     def post(self, request, *args, **kwargs):
         parent = None
         try:
@@ -667,4 +675,49 @@ class CommentCreateView(LoginRequiredMixin, generic.View):
                 models.Comment.objects.create(
                     user=request.user, comment=request.POST["comment"], script=script
                 )
+        messages.success(request, "comments-tab")
         return HttpResponseRedirect(f"/script/{script.pk}")
+
+
+class CommentEditView(LoginRequiredMixin, generic.View):
+    """
+    Edits a comment.
+    """
+
+    def post(self, request, *args, **kwargs):
+        if request.POST["comment"]:
+            comment = models.Comment.objects.get(pk=kwargs["pk"])
+
+            if comment.user != request.user:
+                raise Http404("Cannot edit a comment you did not create.")
+
+            comment.comment = request.POST["comment"]
+            comment.save()
+
+        messages.success(request, "comments-tab")
+        success_url = f"/script/{comment.script.pk}"
+        return HttpResponseRedirect(success_url)
+
+
+class CommentDeleteView(LoginRequiredMixin, generic.View):
+    """
+    Removes a script from a collection.
+    """
+
+    def post(self, request, *args, **kwargs):
+        comment = models.Comment.objects.get(pk=kwargs["pk"])
+
+        if comment.user != request.user:
+            raise Http404("Cannot delete a comment you did not make.")
+
+        if comment.parent:
+            # If this comment has a parent then update all our child comments to point
+            # to that same parent.
+            for child in comment.children.all():
+                child.parent = comment.parent
+                child.save()
+
+        success_url = f"/script/{comment.script.pk}"
+        comment.delete()
+        messages.success(request, "comments-tab")
+        return HttpResponseRedirect(success_url)

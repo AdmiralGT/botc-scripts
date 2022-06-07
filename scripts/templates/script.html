@@ -3,13 +3,13 @@
 {% block content %}
 {% load markdownify %}
 {% load botc_script_tags %}
+{% load bootstrap_icons %}
 
 <script>
     function CopyLink() {
         navigator.clipboard.writeText("{{request.scheme}}://{{request.META.HTTP_HOST}}/api/scripts/{{script_version.pk}}/json/")
     }
 </script>
-
 
 <h1>
     {{ script.name }} - v{{ script_version.version }}
@@ -39,6 +39,11 @@
             {% endfor %}    
         </div>
     {% endif %}
+    <div class="col-auto ml-auto">
+        <span style="color:red">{% bs_icon 'hand-thumbs-up-fill' %}{{ script_version.votes.all|length }}</span>
+        <span style="color:#ffc000">{% bs_icon 'star-fill' %}{{ script_version.favourites.all|length }}</span>
+        <span style="color:green">{% bs_icon 'pen-fill' %}{{ script_version.script.comments.all|length }}</span>
+    </div>
     </div>
 {% endif %}
 
@@ -87,14 +92,14 @@
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     {% if script_version.notes %}
     <li class="nav-item">
-        <a class="nav-link active" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="true">Notes</a>
+        <a class="nav-link {% active_aria_status 'notes-tab' activetab %}" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="true">Notes</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" id="characters-tab" data-toggle="tab" href="#characters" role="tab" aria-controls="characters" aria-selected="false">Characters</a>
     </li>
     {% else %}
     <li class="nav-item">
-        <a class="nav-link active" id="characters-tab" data-toggle="tab" href="#characters" role="tab" aria-controls="characters" aria-selected="false">Characters</a>
+        <a class="nav-link {% active_aria_status 'characters-tab' activetab %}" id="characters-tab" data-toggle="tab" href="#characters" role="tab" aria-controls="characters" aria-selected="true">Characters</a>
     </li>
     {% endif %}
     {% if changes.items|length > 0 %}
@@ -111,7 +116,7 @@
     </li>
     {% endif %}
     <li class="nav-item">
-        <a class="nav-link" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments</a>
+        <a class="nav-link {% active_aria_status 'comments-tab' activetab %}" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments</a>
     </li>
 </ul>
 <div class="tab-content row p-1" height="720">
@@ -121,12 +126,12 @@
     </div>
     {% endif %}
     {% if script_version.notes %}
-    <div class="tab-pane fade show active col-sm-4" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+    <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-sm-4" id="notes" role="tabpanel" aria-labelledby="notes-tab">
         {{ script_version.notes|markdownify }}
     </div>
     <div class="tab-pane fade col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% else %}
-    <div class="tab-pane fade show active col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade {% active_tab_status 'characters-tab' activetab %} col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% endif %}
         {% for role in script_version.content %}
             {% if role.id != "_meta" %}
@@ -183,7 +188,7 @@
             {% endfor %}
         </ul>
     </div>
-    <div class="tab-pane fade col-lg-8" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    <div class="tab-pane fade col-lg-8 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
         {% for comment_info in comments %}
             <div class="row">
                 {% if comment_info.indent == 0 %}
@@ -193,8 +198,23 @@
                 {% endif %}
                     {{ comment_info.comment.comment|markdownify }}
                 </div>
-                <div>
+                <div class="align-self-end">
+                    {% if comment_info.comment.user == user %}
+                    <a class="btn btn-info btn-sm" data-toggle="collapse" href="#edit_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="editPanel_{{comment.pk}}">Edit</a>
+                    {% include "delete_comment.html" with comment=comment_info.comment %}
+                    {% endif %}
                     <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="replyPanel_{{comment.pk}}">Reply</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col collapse" id="edit_{{comment_info.comment.pk}}" aria-labelledby="editPanel_{{comment_info.comment.pk}}">
+                    <form action="{% url 'edit_comment' comment_info.comment.pk %}" method="post" id="comment_edit_form">
+                        {% csrf_token %}
+                        <textarea class="form-control" name="comment" rows="5">{{comment_info.comment.comment}}</textarea>
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-secondary btn-sm">Save</button>
+                        </div>
+                    </form>
                 </div>
             </div>
             <div class="row">
@@ -217,7 +237,7 @@
         {% endfor %}
     <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply" role="button" aria-expanded="false" aria-controls="replyPanel">New Comment</a>
     <div class="row">
-        <div class="col offset-sm-1 collapse" id="reply" aria-labelledby="replyPanel">
+        <div class="col collapse" id="reply" aria-labelledby="replyPanel">
             <form action="{% url 'create_comment' %}" method="post" id="comment_create_form">
                 {% csrf_token %}
                 <textarea class="form-control" name="comment" rows="5"></textarea>
