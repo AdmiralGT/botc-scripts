@@ -119,7 +119,7 @@ def get_comment_data(comment: models.Comment, indent: int) -> List:
     comment_data["indent"] = indent
     data.append(comment_data)
     for child_comment in comment.children.all().order_by("created"):
-        data.extend(get_comment_data(child_comment, indent + 1))
+        data.extend(get_comment_data(child_comment, min(indent + 1, 6)))
     return data
 
 

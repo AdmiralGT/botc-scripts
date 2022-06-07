@@ -188,7 +188,7 @@
             {% endfor %}
         </ul>
     </div>
-    <div class="tab-pane fade col-lg-8 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    <div class="tab-pane fade col-lg-6 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
         {% for comment_info in comments %}
             <div class="row">
                 {% if comment_info.indent == 0 %}
