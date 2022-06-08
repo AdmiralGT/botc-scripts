@@ -56,7 +56,7 @@ class ScriptTable(tables.Table):
     )
     info = tables.TemplateColumn(
         template_name="info.html",
-        attrs=table_class,
+        attrs=script_table_class,
         order_by=("-score", "-num_favs", "-num_comments"),
     )
     tags = tables.TemplateColumn(
