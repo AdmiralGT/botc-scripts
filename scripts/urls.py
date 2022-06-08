@@ -35,6 +35,13 @@ urlpatterns = [
         name="remove_from_collection",
     ),
     path("collection/new", views.CollectionCreateView.as_view()),
+    path(
+        "comment/<int:pk>/delete",
+        views.CommentDeleteView.as_view(),
+        name="delete_comment",
+    ),
+    path("comment/<int:pk>/edit", views.CommentEditView.as_view(), name="edit_comment"),
+    path("comment/new", views.CommentCreateView.as_view(), name="create_comment"),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>/vote", views.vote_for_script, name="vote"),

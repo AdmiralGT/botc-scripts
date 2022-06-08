@@ -10,12 +10,18 @@
     }
 </script>
 
+<div class="row">
+    <div class="col-auto">
+        <h1>
+            {{ script.name }} - v{{ script_version.version }}
+        </h1>
+    </div>
+    <div class="col-auto ml-auto align-self-end">
+        {% include "info.html" with record=script_version %}
+    </div>
+</div>
 
-<h1>
-    {{ script.name }} - v{{ script_version.version }}
-</h1>
-
-{% if script_version.author or script_version.tags %}
+{% if script_version.author or script_version.tags.all %}
     <div class="row">
     {% if script_version.author %}
         <div class="col-auto pr-1">
@@ -31,7 +37,7 @@
         </div>
     {% endif %}
 
-    {% if script_version.tags %}
+    {% if script_version.tags.all|length > 0 %}
         {% load botc_script_tags %}
         <div class="col-auto align-self-center">
             {% for tag in script_version.tags.all %}
@@ -87,14 +93,14 @@
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     {% if script_version.notes %}
     <li class="nav-item">
-        <a class="nav-link active" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="true">Notes</a>
+        <a class="nav-link {% active_aria_status 'notes-tab' activetab %}" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="true">Notes</a>
     </li>
     <li class="nav-item">
         <a class="nav-link" id="characters-tab" data-toggle="tab" href="#characters" role="tab" aria-controls="characters" aria-selected="false">Characters</a>
     </li>
     {% else %}
     <li class="nav-item">
-        <a class="nav-link active" id="characters-tab" data-toggle="tab" href="#characters" role="tab" aria-controls="characters" aria-selected="false">Characters</a>
+        <a class="nav-link {% active_aria_status 'characters-tab' activetab %}" id="characters-tab" data-toggle="tab" href="#characters" role="tab" aria-controls="characters" aria-selected="true">Characters</a>
     </li>
     {% endif %}
     {% if changes.items|length > 0 %}
@@ -110,6 +116,9 @@
         <a class="nav-link" id="collection-tab" data-toggle="tab" href="#collection" role="tab" aria-controls="collection" aria-selected="false">Collections</a>
     </li>
     {% endif %}
+    <li class="nav-item">
+        <a class="nav-link {% active_aria_status 'comments-tab' activetab %}" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments</a>
+    </li>
 </ul>
 <div class="tab-content row p-1" height="720">
     {% if script_version.pdf %}
@@ -118,12 +127,12 @@
     </div>
     {% endif %}
     {% if script_version.notes %}
-    <div class="tab-pane fade show active col-sm-4" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+    <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-sm-6" id="notes" role="tabpanel" aria-labelledby="notes-tab">
         {{ script_version.notes|markdownify }}
     </div>
-    <div class="tab-pane fade col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade col-sm-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% else %}
-    <div class="tab-pane fade show active col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade {% active_tab_status 'characters-tab' activetab %} col-sm-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% endif %}
         {% for role in script_version.content %}
             {% if role.id != "_meta" %}
@@ -137,7 +146,7 @@
         {% endfor %}
     </div>
     {% if changes.items|length > 0 %}
-    <div class="tab-pane fade col-sm-4" id="history" role="tabpanel" aria-labelledby="history-tab">
+    <div class="tab-pane fade col-sm-6" id="history" role="tabpanel" aria-labelledby="history-tab">
         {% for version, diffs in changes.items %}
             <h2>{{ diffs.previous_version }} -> {{ version }}</h2>
             <div class="row">
@@ -159,7 +168,7 @@
         {% endfor %}
     </div>
     {% endif %}
-    <div class="tab-pane fade col-sm-4" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
+    <div class="tab-pane fade col-sm-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
         <h3>Full Scripts</h3>
         <ul class="p-0">
             {% for script_version, similarness in similarity.Full %}
@@ -173,12 +182,77 @@
             {% endfor %}
         </ul>
     </div>
-    <div class="tab-pane fade col-sm-4" id="collection" role="tabpanel" aria-labelledby="collection-tab">
+    <div class="tab-pane fade col-sm-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
         <ul class="p-0">
             {% for collection in script_version.collections.all %}
                 <li><a href="/collection/{{collection.pk}}">{{collection.name}}</a></li>
             {% endfor %}
         </ul>
     </div>
+    {% if script_version.pdf %}
+    <div class="tab-pane fade col-sm-6 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    {% else %}
+    <div class="tab-pane fade col-sm-8 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    {% endif %}
+        {% for comment_info in comments %}
+            <div class="row">
+                {% if comment_info.indent == 0 %}
+                <div class="col">
+                {% else %}
+                <div class="col offset-sm-{{comment_info.indent}}">
+                {% endif %}
+                    {{ comment_info.comment.comment|markdownify }}
+                </div>
+                <div class="align-self-end">
+                    {% if comment_info.comment.user == user %}
+                    <a class="btn btn-info btn-sm" data-toggle="collapse" href="#edit_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="editPanel_{{comment.pk}}">Edit</a>
+                    {% include "delete_comment.html" with comment=comment_info.comment %}
+                    {% endif %}
+                    <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="replyPanel_{{comment.pk}}">Reply</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col collapse" id="edit_{{comment_info.comment.pk}}" aria-labelledby="editPanel_{{comment_info.comment.pk}}">
+                    <form action="{% url 'edit_comment' comment_info.comment.pk %}" method="post" id="comment_edit_form">
+                        {% csrf_token %}
+                        <textarea class="form-control" name="comment" rows="5">{{comment_info.comment.comment}}</textarea>
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-secondary btn-sm">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row">
+                {% if comment_info.indent > 0 %}
+                <div class="col offset-sm-{{comment_info.indent}} collapse" id="reply_{{comment_info.comment.pk}}" aria-labelledby="replyPanel_{{comment_info.comment.pk}}">
+                {% else %}
+                <div class="col collapse" id="reply_{{comment_info.comment.pk}}" aria-labelledby="replyPanel_{{comment_info.comment.pk}}">
+                {% endif %}
+                    <form action="{% url 'create_comment' %}" method="post" id="comment_create_form">
+                        {% csrf_token %}
+                        <textarea class="form-control" name="comment" rows="5"></textarea>
+                        <input type="hidden" name="script" value="{{script.pk}}">
+                        <input type="hidden" name="parent" value="{{comment_info.comment.pk}}">
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-secondary btn-sm">Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply" role="button" aria-expanded="false" aria-controls="replyPanel">New Comment</a>
+    <div class="row">
+        <div class="col collapse" id="reply" aria-labelledby="replyPanel">
+            <form action="{% url 'create_comment' %}" method="post" id="comment_create_form">
+                {% csrf_token %}
+                <textarea class="form-control" name="comment" rows="5"></textarea>
+                <input type="hidden" name="script" value="{{script.pk}}">
+                <div class="text-right">
+                    <button type="submit" class="btn btn-secondary btn-sm">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
