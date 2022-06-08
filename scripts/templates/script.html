@@ -11,11 +11,20 @@
     }
 </script>
 
-<h1>
-    {{ script.name }} - v{{ script_version.version }}
-</h1>
+<div class="row">
+    <div class="col-auto">
+        <h1>
+            {{ script.name }} - v{{ script_version.version }}
+        </h1>
+    </div>
+    <div class="col-auto ml-auto align-self-end">
+        <span style="color:red">{% bs_icon 'hand-thumbs-up-fill' %}{{ script_version.votes.all|length }}</span>
+        <span style="color:#ffc000">{% bs_icon 'star-fill' %}{{ script_version.favourites.all|length }}</span>
+        <span style="color:green">{% bs_icon 'pen-fill' %}{{ script_version.script.comments.all|length }}</span>
+    </div>
+</div>
 
-{% if script_version.author or script_version.tags %}
+{% if script_version.author or script_version.tags.all %}
     <div class="row">
     {% if script_version.author %}
         <div class="col-auto pr-1">
@@ -31,7 +40,7 @@
         </div>
     {% endif %}
 
-    {% if script_version.tags %}
+    {% if script_version.tags.all|length > 0 %}
         {% load botc_script_tags %}
         <div class="col-auto align-self-center">
             {% for tag in script_version.tags.all %}
@@ -39,11 +48,6 @@
             {% endfor %}    
         </div>
     {% endif %}
-    <div class="col-auto ml-auto">
-        <span style="color:red">{% bs_icon 'hand-thumbs-up-fill' %}{{ script_version.votes.all|length }}</span>
-        <span style="color:#ffc000">{% bs_icon 'star-fill' %}{{ script_version.favourites.all|length }}</span>
-        <span style="color:green">{% bs_icon 'pen-fill' %}{{ script_version.script.comments.all|length }}</span>
-    </div>
     </div>
 {% endif %}
 
@@ -126,12 +130,12 @@
     </div>
     {% endif %}
     {% if script_version.notes %}
-    <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-sm-4" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+    <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-sm-6" id="notes" role="tabpanel" aria-labelledby="notes-tab">
         {{ script_version.notes|markdownify }}
     </div>
-    <div class="tab-pane fade col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade col-sm-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% else %}
-    <div class="tab-pane fade {% active_tab_status 'characters-tab' activetab %} col-sm-4" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade {% active_tab_status 'characters-tab' activetab %} col-sm-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% endif %}
         {% for role in script_version.content %}
             {% if role.id != "_meta" %}
@@ -145,7 +149,7 @@
         {% endfor %}
     </div>
     {% if changes.items|length > 0 %}
-    <div class="tab-pane fade col-sm-4" id="history" role="tabpanel" aria-labelledby="history-tab">
+    <div class="tab-pane fade col-sm-6" id="history" role="tabpanel" aria-labelledby="history-tab">
         {% for version, diffs in changes.items %}
             <h2>{{ diffs.previous_version }} -> {{ version }}</h2>
             <div class="row">
@@ -167,7 +171,7 @@
         {% endfor %}
     </div>
     {% endif %}
-    <div class="tab-pane fade col-sm-4" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
+    <div class="tab-pane fade col-sm-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
         <h3>Full Scripts</h3>
         <ul class="p-0">
             {% for script_version, similarness in similarity.Full %}
@@ -181,14 +185,18 @@
             {% endfor %}
         </ul>
     </div>
-    <div class="tab-pane fade col-sm-4" id="collection" role="tabpanel" aria-labelledby="collection-tab">
+    <div class="tab-pane fade col-sm-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
         <ul class="p-0">
             {% for collection in script_version.collections.all %}
                 <li><a href="/collection/{{collection.pk}}">{{collection.name}}</a></li>
             {% endfor %}
         </ul>
     </div>
-    <div class="tab-pane fade col-lg-6 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    {% if script_version.pdf %}
+    <div class="tab-pane fade col-sm-6 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    {% else %}
+    <div class="tab-pane fade col-sm-8 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    {% endif %}
         {% for comment_info in comments %}
             <div class="row">
                 {% if comment_info.indent == 0 %}
