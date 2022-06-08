@@ -78,25 +78,3 @@ def convert_id_to_friendly_text(character_id):
 @register.filter
 def split(string):
     return string.split(" ")
-
-
-@register.simple_tag()
-def active_tab_status(tab: str, active_tab: str):
-    if tab in ["notes-tab", "characters-tab"]:
-        if active_tab:
-            return ""
-        return "show active"
-    if tab == active_tab:
-        return "show active"
-    return ""
-
-
-@register.simple_tag()
-def active_aria_status(aria: str, active_tab: str):
-    if aria in ["notes-tab", "characters-tab"]:
-        if active_tab:
-            return ""
-        return "active"
-    if aria == active_tab:
-        return "active"
-    return ""

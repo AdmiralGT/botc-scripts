@@ -29,7 +29,7 @@ class ScriptTable(tables.Table):
             "version",
             "author",
             "script_type",
-            "info",
+            "score",
             "tags",
             "json",
             "pdf",
@@ -54,11 +54,7 @@ class ScriptTable(tables.Table):
     pdf = tables.TemplateColumn(
         orderable=False, template_name="download_pdf.html", attrs=button_table_class
     )
-    info = tables.TemplateColumn(
-        template_name="info.html",
-        attrs=script_table_class,
-        order_by=("-score", "-num_favs", "-num_comments"),
-    )
+    score = tables.Column(attrs=table_class, order_by="-score")
     tags = tables.TemplateColumn(
         orderable=False, template_name="tags.html", attrs=table_class
     )
@@ -79,7 +75,7 @@ class UserScriptTable(ScriptTable):
             "version",
             "author",
             "script_type",
-            "info",
+            "score",
             "tags",
             "json",
             "pdf",
@@ -105,7 +101,7 @@ class CollectionScriptTable(UserScriptTable):
             "version",
             "author",
             "script_type",
-            "info",
+            "score",
             "tags",
             "json",
             "pdf",
