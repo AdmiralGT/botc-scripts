@@ -18,9 +18,7 @@
         </h1>
     </div>
     <div class="col-auto ml-auto align-self-end">
-        <span style="color:red">{% bs_icon 'hand-thumbs-up-fill' %}{{ script_version.votes.all|length }}</span>
-        <span style="color:#ffc000">{% bs_icon 'star-fill' %}{{ script_version.favourites.all|length }}</span>
-        <span style="color:green">{% bs_icon 'pen-fill' %}{{ script_version.script.comments.all|length }}</span>
+        {% include "info.html" with record=script_version %}
     </div>
 </div>
 

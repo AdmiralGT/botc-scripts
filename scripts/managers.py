@@ -8,6 +8,8 @@ class ScriptViewManager(models.Manager):
             super(ScriptViewManager, self)
             .get_queryset()
             .annotate(score=Coalesce(models.Count("votes"), 0))
+            .annotate(num_favs=Coalesce(models.Count("favourites"), 0))
+            .annotate(num_comments=Coalesce(models.Count("script__comments"), 0))
         )
         return qs
 
