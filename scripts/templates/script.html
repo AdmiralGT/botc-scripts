@@ -208,9 +208,12 @@
                     <a class="btn btn-info btn-sm" data-toggle="collapse" href="#edit_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="editPanel_{{comment.pk}}">Edit</a>
                     {% include "delete_comment.html" with comment=comment_info.comment %}
                     {% endif %}
+                    {% if user.is_authenticated %}
                     <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="replyPanel_{{comment.pk}}">Reply</a>
+                    {% endif %}
                 </div>
             </div>
+            {% if user.is_authenticated %}
             <div class="row">
                 <div class="col collapse" id="edit_{{comment_info.comment.pk}}" aria-labelledby="editPanel_{{comment_info.comment.pk}}">
                     <form action="{% url 'edit_comment' comment_info.comment.pk %}" method="post" id="comment_edit_form">
@@ -239,7 +242,9 @@
                     </form>
                 </div>
             </div>
+            {% endif %}
         {% endfor %}
+    {% if user.is_authenticated %}
     <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply" role="button" aria-expanded="false" aria-controls="replyPanel">New Comment</a>
     <div class="row">
         <div class="col collapse" id="reply" aria-labelledby="replyPanel">
@@ -253,6 +258,7 @@
             </form>
         </div>
     </div>
+    {% endif %}
 </div>
 
 {% endblock %}
