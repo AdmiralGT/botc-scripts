@@ -1,5 +1,5 @@
 {% load bootstrap_icons %}
 
-<span style="color:red">{% bs_icon 'hand-thumbs-up-fill' %}{{ record.votes.all|length }}</span>
-<span style="color:#ffc000">{% bs_icon 'star-fill' %}{{ record.favourites.all|length }}</span>
-<span style="color:green">{% bs_icon 'pen-fill' %}{{ record.script.comments.all|length }}</span>
+<span style="color:red">{% bs_icon 'hand-thumbs-up-fill' %}{{ record.score }}</span>
+<span style="color:#ffc000">{% bs_icon 'star-fill' %}{{ record.num_favs }}</span>
+<span style="color:green">{% bs_icon 'pen-fill' %}{{ record.num_comments }}</span>
