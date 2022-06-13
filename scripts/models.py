@@ -197,3 +197,30 @@ class Collection(models.Model):
     notes = models.TextField(null=True, blank=True)
 
     objects = CollectionManager()
+
+
+class Translation(models.Model):
+    """
+    Model for translations of characters.
+    """
+
+    language = models.CharField(max_length=10)
+    friendly_language = models.CharField(max_length=20)
+    character_id = models.CharField(max_length=20)
+    character_name = models.CharField(max_length=20)
+    ability = models.TextField()
+    first_night_reminder = models.TextField(blank=True, null=True)
+    other_night_reminder = models.TextField(blank=True, null=True)
+    global_reminders = models.TextField(blank=True, null=True)
+    reminders = models.TextField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["language", "character_id"], name="character_language"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["language", "character_id"]),
+        ]
+        permissions = [("update_translation", "Can update a translation")]

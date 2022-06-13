@@ -88,6 +88,13 @@
             {% include "favourite.html" with record=script_version %}
         </div>
     {% endif %}
+    <div class="col-md-auto h-100 p-1">
+        <select class="custom-select" name="language_select">
+            {% for language in languages %}
+                <option>{{ language }} </option>
+            {% endfor %}
+        </select>    
+    </div>
 </div>
 
 <ul class="nav nav-tabs" id="myTab" role="tablist">

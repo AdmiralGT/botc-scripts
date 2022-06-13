@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models.functions import Coalesce
 
 
 class ScriptViewManager(models.Manager):
