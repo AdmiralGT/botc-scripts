@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from scripts.models import ScriptVersion
+from scripts import models
 
 
 # Serializers define the API representation.
@@ -9,5 +9,18 @@ class ScriptSerializer(serializers.ModelSerializer):
     score = serializers.ReadOnlyField(source="votes.count")
 
     class Meta:
-        model = ScriptVersion
+        model = models.ScriptVersion
         fields = ["pk", "name", "version", "content", "score"]
+
+
+class TranslationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Translation
+        fields = [
+            "character_name",
+            "ability",
+            "first_night_reminder",
+            "other_night_reminder",
+            "global_reminders",
+            "reminders",
+        ]

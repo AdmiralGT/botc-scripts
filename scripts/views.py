@@ -206,6 +206,11 @@ class ScriptView(generic.DetailView):
         )[:10]
         context["script_version"] = current_script
         context["comments"] = get_comments(current_script.script)
+        context["languages"] = (
+            models.Translation.objects.values_list("friendly_language", flat=True)
+            .distinct("friendly_language")
+            .order_by("friendly_language")
+        )
 
         return context
 
