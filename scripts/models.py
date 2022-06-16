@@ -17,6 +17,15 @@ class ScriptTypes(models.TextChoices):
     FULL = "Full"
 
 
+class CharacterType(models.TextChoices):
+    TOWNSFOLK = "Townsfolk"
+    OUTSIDER = "Outsider"
+    MINION = "Minion"
+    DEMON = "Demon"
+    TRAVELLER = "Traveller"
+    FABLED = "Fabled"
+
+
 class TagStyles(models.TextChoices):
     BLUE = "badge-primary"
     GREY = "badge-secondary"
@@ -210,12 +219,12 @@ class Collection(models.Model):
 
 
 class BaseCharacterInfo(models.Model):
-    character_id = models.CharField(max_length=20)
-    character_name = models.CharField(max_length=20)
+    character_id = models.CharField(max_length=30)
+    character_name = models.CharField(max_length=30)
     ability = models.TextField()
     first_night_reminder = models.TextField(blank=True, null=True)
     other_night_reminder = models.TextField(blank=True, null=True)
-    global_reminders = models.CharField(max_length=10, blank=True, null=True)
+    global_reminders = models.CharField(max_length=30, blank=True, null=True)
     reminders = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -228,7 +237,6 @@ class Translation(BaseCharacterInfo):
     """
 
     language = models.CharField(max_length=10)
-    friendly_language = models.CharField(max_length=20)
 
     class Meta:
         constraints = [
@@ -243,14 +251,14 @@ class Translation(BaseCharacterInfo):
 
     def full_character_json(self) -> Dict:
         character_json = {}
-        character_json["id"] = self.character_id
+        character_json["id"] = f"{self.language}_{self.character_id}"
         character_json["name"] = self.character_name
         character_json["firstNightReminder"] = self.first_night_reminder
-        character_json["otherNightReminder"] = self.other_night_reminder
+        character_json["otherNightReminder"] = (
+            self.other_night_reminder if self.other_night_reminder else ""
+        )
         character_json["reminders"] = self.reminders.split(",")
-        character_json["setup"] = self.modifies_setup
         character_json["ability"] = self.ability
-        character_json["image"] = self.image_url
         return character_json
 
 
@@ -259,10 +267,10 @@ class Character(BaseCharacterInfo):
     Model for characters.
     """
 
-    type = models.CharField(max_length=10, choices=CharacterType.choices)
-    edition = models.CharField(max_length=20, choices=Edition.choices)
-    first_night_position = models.IntegerField()
-    other_night_position = models.IntegerField()
+    character_type = models.CharField(max_length=30, choices=CharacterType.choices)
+    edition = models.IntegerField(choices=Edition.choices)
+    first_night_position = models.IntegerField(blank=True, null=True)
+    other_night_position = models.IntegerField(blank=True, null=True)
     image_url = models.CharField(max_length=100)
     modifies_setup = models.BooleanField(default=False)
 
@@ -273,13 +281,18 @@ class Character(BaseCharacterInfo):
         character_json = {}
         character_json["id"] = self.character_id
         character_json["name"] = self.character_name
-        character_json["team"] = self.type.value
+        character_json["team"] = self.character_type.lower()
         character_json["firstNight"] = self.first_night_position
         character_json["firstNightReminder"] = self.first_night_reminder
         character_json["otherNight"] = self.other_night_position
-        character_json["otherNightReminder"] = self.other_night_reminder
+        character_json["otherNightReminder"] = (
+            self.other_night_reminder if self.other_night_reminder else ""
+        )
         character_json["reminders"] = self.reminders.split(",")
         character_json["setup"] = self.modifies_setup
         character_json["ability"] = self.ability
         character_json["image"] = self.image_url
         return character_json
+
+    def __str__(self):
+        return f"{self.character_name}"

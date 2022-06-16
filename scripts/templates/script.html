@@ -63,6 +63,7 @@
         <form class="form-inline mt-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
             <div class="col-md-auto h-100 p-1 pt-0">
                 <select class="custom-select" name="language_select">
+                    <option selected>English</option>
                     {% for language in languages %}
                         <option>{{ language }} </option>
                     {% endfor %}
