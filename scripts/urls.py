@@ -61,6 +61,7 @@ urlpatterns = [
         views.download_json,
         name="download_json",
     ),
+    path("script/<int:pk>/<str:version>/download/<str:language>", views.download_json),
     path(
         "script/<int:pk>/<str:version>/download_pdf",
         views.download_pdf,

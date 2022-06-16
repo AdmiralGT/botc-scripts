@@ -17,7 +17,7 @@ from versionfield import Version
 from scripts import filters, forms, models, script_json, tables, characters
 from collections import Counter
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -503,10 +503,39 @@ def favourite_script(request, pk: int, version: str) -> None:
     return redirect(request.POST["next"])
 
 
-def download_json(request, pk: int, version: str) -> FileResponse:
+def translate_character(character_id: str, language: str) -> Dict:
+    try:
+        character = models.Character.objects.get(character_id=character_id)
+    except models.Character.DoesNotExist:
+        return {}
+
+    original_character = character.full_character_json()
+    try:
+        translated_character = models.Translation.objects.get(
+            character_id=character_id, langauge=language
+        )
+    except models.Translation.DoesNotExist:
+        return original_character
+
+    return original_character.update(translated_character)
+
+
+def translate_json_content(json_content: List, language: str):
+    translated_content = []
+    for character_id in json_content:
+        translated_content.append(translate_character(character_id, language))
+    return translated_content
+
+
+def download_json(
+    request, pk: int, version: str, language: Optional[str] = None
+) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     json_content = js.JSONEncoder().encode(script_version.content)
+    if language or request.GET.get("language_select"):
+        language = language if language else request.GET.get("language_select")
+        json_content = translate_json_content(json_content, language)
     temp_file = TemporaryFile()
     temp_file.write(json_content.encode("utf-8"))
     temp_file.flush()
