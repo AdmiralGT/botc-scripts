@@ -10,7 +10,7 @@ router = routers.DefaultRouter()
 router.register(r"scripts", viewsets.ScriptViewSet)
 
 translation_detail = viewsets.TranslationViewSet.as_view(
-    {"get": "retrieve", "put": "update"}
+    {"get": "retrieve", "put": "update", "post": "create"}
 )
 
 

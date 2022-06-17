@@ -25,6 +25,8 @@ Babel = "^2.10.3"
 black = "*"
 isort = "*"
 mypy = "*"
+uritemplate = "*"
+PyYAML = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
