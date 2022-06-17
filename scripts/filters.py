@@ -4,7 +4,7 @@ import django_filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
 
-from scripts import models
+from scripts import models, characters
 
 edition_choices = (
     (models.Edition.BASE, models.Edition.BASE.label),
@@ -13,18 +13,10 @@ edition_choices = (
 )
 
 
-def get_characters_by_type(type: models.CharacterType):
-    return models.Character.objects.filter(character_type=type)
-
-
-def get_characters_not_in_edition(edition: models.Edition):
-    return models.Character.objects.filter(edition__gte=edition)
-
-
 def filter_by_edition(queryset, value):
     edition = models.Edition(int(value))
-    for character in get_characters_not_in_edition(edition):
-        queryset = queryset.exclude(content__contains=[{"id": character.character_id}])
+    for character in characters.get_characters_not_in_edition(edition):
+        queryset = queryset.exclude(content__contains=[{"id": character.json_id}])
     return queryset
 
 

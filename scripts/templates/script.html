@@ -51,7 +51,6 @@
 <div class="row p-1">
     <div class="col-md-auto p-1">
         <form class="mb-0">
-            {% csrf_token %}
             <select class="custom-select" name="selected_version" onchange="this.form.submit();">
                 {% for versions in script.versions.all|dictsortreversed:"version" %}
                     <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
@@ -59,21 +58,10 @@
             </select>    
         </form>
     </div>
-    <div class="col-md-auto h-100 p-0">
-        <form class="form-inline mt-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
-            <div class="col-md-auto h-100 p-1 pt-0">
-                <select class="custom-select" name="language_select">
-                    <option selected>English</option>
-                    {% for language in languages %}
-                        <option>{{ language }} </option>
-                    {% endfor %}
-                </select>
-            </div>  
-            <div class="col-md-auto h-100 p-1 pt-0">
-                <button type="submit" class="btn btn-primary">Download JSON</button>
-            </div>
-        </form>
-    </div>  
+    {% csrf_token %}
+    <div class="col-md-auto h-100 p-1">
+        <a class="btn btn-primary" href="{% url 'download_json' script.pk script_version.version %}">Download JSON</a>
+    </div>
     {% if script_version.pdf %}
         <div class="col-md-auto h-100 p-1">
             <a class="btn btn-primary" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
