@@ -7,17 +7,23 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.http import FileResponse, Http404, HttpResponseRedirect
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
 from versionfield import Version
 
-from scripts import filters, forms, models, script_json, tables, characters
+from scripts import (
+    filters,
+    forms,
+    models,
+    script_json,
+    tables,
+)
 from collections import Counter
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -206,6 +212,11 @@ class ScriptView(generic.DetailView):
         )[:10]
         context["script_version"] = current_script
         context["comments"] = get_comments(current_script.script)
+        context["languages"] = (
+            models.Translation.objects.values_list("language", flat=True)
+            .distinct("language")
+            .order_by("language")
+        )
 
         return context
 
@@ -387,12 +398,14 @@ class StatisticsView(generic.TemplateView):
             queryset = models.ScriptVersion.objects.filter(latest=True)
 
         if "character" in kwargs:
-            if characters.Character.get(kwargs.get("character")):
-                stats_character = characters.Character.get(kwargs.get("character"))
-                queryset = queryset.filter(
-                    content__contains=[{"id": stats_character.json_id}]
+            try:
+                stats_character = models.Character.objects.get(
+                    character_id=kwargs.get("character")
                 )
-            else:
+                queryset = queryset.filter(
+                    content__contains=[{"id": stats_character.character_id}]
+                )
+            except models.Character.DoesNotExist:
                 raise Http404()
         elif "tags" in kwargs:
             tags = models.ScriptTag.objects.get(pk=kwargs.get("tags"))
@@ -428,18 +441,18 @@ class StatisticsView(generic.TemplateView):
         context["total"] = queryset.count()
 
         character_count = {}
-        for type in characters.CharacterType:
+        for type in models.CharacterType:
             character_count[type.value] = Counter()
-        for character in characters.Character:
+        for character in models.Character.objects.all():
             # If we're on a Character Statistics page, don't include this character in the count.
             if character == stats_character:
                 continue
 
-            character_count[character.character_type.value][
-                character
-            ] = queryset.filter(content__contains=[{"id": character.json_id}]).count()
+            character_count[character.character_type][character] = queryset.filter(
+                content__contains=[{"id": character.character_id}]
+            ).count()
 
-        for type in characters.CharacterType:
+        for type in models.CharacterType:
             context[type.value] = character_count[type.value].most_common(
                 characters_to_display
             )
@@ -498,10 +511,45 @@ def favourite_script(request, pk: int, version: str) -> None:
     return redirect(request.POST["next"])
 
 
-def download_json(request, pk: int, version: str) -> FileResponse:
+def translate_character(character_id: str, language: str) -> Dict:
+    try:
+        character = models.Character.objects.get(character_id=character_id)
+    except models.Character.DoesNotExist:
+        return {}
+
+    original_character = character.full_character_json()
+    try:
+        translation = models.Translation.objects.get(
+            character_id=character_id, language=language
+        )
+        translated_character = translation.full_character_json()
+    except models.Translation.DoesNotExist:
+        return original_character
+
+    return_object = {**original_character, **translated_character}
+    return return_object
+
+
+def translate_json_content(json_content: List, language: str):
+    translated_content = []
+    for character_id in json_content:
+        translated_content.append(
+            translate_character(character_id.get("id").replace("_", ""), language)
+        )
+    return translated_content
+
+
+def download_json(
+    request, pk: int, version: str, language: Optional[str] = None
+) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     json_content = js.JSONEncoder().encode(script_version.content)
+    if language or request.GET.get("language_select"):
+        language = language if language else request.GET.get("language_select")
+        if language != "English":
+            json_content = translate_json_content(script_version.content, language)
+            json_content = js.JSONEncoder(ensure_ascii=False).encode(json_content)
     temp_file = TemporaryFile()
     temp_file.write(json_content.encode("utf-8"))
     temp_file.flush()
