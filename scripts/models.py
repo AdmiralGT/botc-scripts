@@ -261,6 +261,9 @@ class Translation(BaseCharacterInfo):
         character_json["ability"] = self.ability
         return character_json
 
+    def __str__(self):
+        return f"{self.language} - {self.character_id}"
+
 
 class Character(BaseCharacterInfo):
     """
