@@ -17,15 +17,6 @@ class ScriptTypes(models.TextChoices):
     FULL = "Full"
 
 
-class CharacterType(models.TextChoices):
-    TOWNSFOLK = "Townsfolk"
-    OUTSIDER = "Outsider"
-    MINION = "Minion"
-    DEMON = "Demon"
-    TRAVELLER = "Traveller"
-    FABLED = "Fabled"
-
-
 class TagStyles(models.TextChoices):
     BLUE = "badge-primary"
     GREY = "badge-secondary"
@@ -219,6 +210,10 @@ class Collection(models.Model):
 
 
 class BaseCharacterInfo(models.Model):
+    """
+    Abstract model used to describe a character and translation information.
+    """
+
     character_id = models.CharField(max_length=30)
     character_name = models.CharField(max_length=30)
     ability = models.TextField()
@@ -229,40 +224,6 @@ class BaseCharacterInfo(models.Model):
 
     class Meta:
         abstract = True
-
-
-class Translation(BaseCharacterInfo):
-    """
-    Model for translations of characters.
-    """
-
-    language = models.CharField(max_length=10)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["language", "character_id"], name="character_language"
-            )
-        ]
-        indexes = [
-            models.Index(fields=["language", "character_id"]),
-        ]
-        permissions = [("update_translation", "Can update a translation")]
-
-    def full_character_json(self) -> Dict:
-        character_json = {}
-        character_json["id"] = f"{self.language}_{self.character_id}"
-        character_json["name"] = self.character_name
-        character_json["firstNightReminder"] = self.first_night_reminder
-        character_json["otherNightReminder"] = (
-            self.other_night_reminder if self.other_night_reminder else ""
-        )
-        character_json["reminders"] = self.reminders.split(",")
-        character_json["ability"] = self.ability
-        return character_json
-
-    def __str__(self):
-        return f"{self.language} - {self.character_id}"
 
 
 class Character(BaseCharacterInfo):
@@ -299,3 +260,37 @@ class Character(BaseCharacterInfo):
 
     def __str__(self):
         return f"{self.character_name}"
+
+
+class Translation(BaseCharacterInfo):
+    """
+    Model for translations of characters.
+    """
+
+    language = models.CharField(max_length=10)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["language", "character_id"], name="character_language"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["language", "character_id"]),
+        ]
+        permissions = [("update_translation", "Can update a translation")]
+
+    def full_character_json(self) -> Dict:
+        character_json = {}
+        character_json["id"] = f"{self.language}_{self.character_id}"
+        character_json["name"] = self.character_name
+        character_json["firstNightReminder"] = self.first_night_reminder
+        character_json["otherNightReminder"] = (
+            self.other_night_reminder if self.other_night_reminder else ""
+        )
+        character_json["reminders"] = self.reminders.split(",")
+        character_json["ability"] = self.ability
+        return character_json
+
+    def __str__(self):
+        return f"{self.language} - {self.character_id}"
