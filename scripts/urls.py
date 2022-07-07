@@ -9,9 +9,15 @@ from scripts import views, viewsets, worldcup
 router = routers.DefaultRouter()
 router.register(r"scripts", viewsets.ScriptViewSet)
 
+translation_detail = viewsets.TranslationViewSet.as_view(
+    {"get": "retrieve", "put": "update", "post": "create"}
+)
+
+
 urlpatterns = [
     path("", views.ScriptsListView.as_view()),
     path("api/", include(router.urls)),
+    path("api/translations/<str:language>/<str:character_id>/", translation_detail),
     path("collections", views.CollectionListView.as_view()),
     path(
         "collection/<int:pk>",
@@ -55,6 +61,7 @@ urlpatterns = [
         views.download_json,
         name="download_json",
     ),
+    path("script/<int:pk>/<str:version>/download/<str:language>", views.download_json),
     path(
         "script/<int:pk>/<str:version>/download_pdf",
         views.download_pdf,

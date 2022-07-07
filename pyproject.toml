@@ -19,11 +19,14 @@ django-storages = {version = "1.11.1", extras = ["azure"]}
 django-allauth = "^0.50.0"
 django-markdownify = "^0.9.0"
 django-bootstrap-icons = "^0.7.8"
+Babel = "^2.10.3"
 
 [tool.poetry.dev-dependencies]
 black = "*"
 isort = "*"
 mypy = "*"
+uritemplate = "*"
+PyYAML = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

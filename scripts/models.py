@@ -3,6 +3,7 @@ from django.db import models
 from versionfield import VersionField
 
 from scripts.managers import ScriptViewManager, CollectionManager
+from typing import Dict
 
 
 class Edition(models.IntegerChoices):
@@ -25,6 +26,15 @@ class TagStyles(models.TextChoices):
     CYAN = "badge-info"
     WHITE = "badge-light"
     BLACK = "badge-dark"
+
+
+class CharacterType(models.TextChoices):
+    TOWNSFOLK = "Townsfolk"
+    OUTSIDER = "Outsider"
+    MINION = "Minion"
+    DEMON = "Demon"
+    TRAVELLER = "Traveller"
+    FABLED = "Fabled"
 
 
 class ScriptTag(models.Model):
@@ -197,3 +207,90 @@ class Collection(models.Model):
     notes = models.TextField(null=True, blank=True)
 
     objects = CollectionManager()
+
+
+class BaseCharacterInfo(models.Model):
+    """
+    Abstract model used to describe a character and translation information.
+    """
+
+    character_id = models.CharField(max_length=30)
+    character_name = models.CharField(max_length=30)
+    ability = models.TextField()
+    first_night_reminder = models.TextField(blank=True, null=True)
+    other_night_reminder = models.TextField(blank=True, null=True)
+    global_reminders = models.CharField(max_length=30, blank=True, null=True)
+    reminders = models.TextField(blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class Character(BaseCharacterInfo):
+    """
+    Model for characters.
+    """
+
+    character_type = models.CharField(max_length=30, choices=CharacterType.choices)
+    edition = models.IntegerField(choices=Edition.choices)
+    first_night_position = models.IntegerField(blank=True, null=True)
+    other_night_position = models.IntegerField(blank=True, null=True)
+    image_url = models.CharField(max_length=100)
+    modifies_setup = models.BooleanField(default=False)
+
+    class Meta:
+        permissions = [("update_characters", "Can update character information")]
+
+    def full_character_json(self) -> Dict:
+        character_json = {}
+        character_json["id"] = self.character_id
+        character_json["name"] = self.character_name
+        character_json["team"] = self.character_type.lower()
+        character_json["firstNight"] = self.first_night_position
+        character_json["firstNightReminder"] = self.first_night_reminder
+        character_json["otherNight"] = self.other_night_position
+        character_json["otherNightReminder"] = (
+            self.other_night_reminder if self.other_night_reminder else ""
+        )
+        character_json["reminders"] = self.reminders.split(",")
+        character_json["setup"] = self.modifies_setup
+        character_json["ability"] = self.ability
+        character_json["image"] = self.image_url
+        return character_json
+
+    def __str__(self):
+        return f"{self.character_name}"
+
+
+class Translation(BaseCharacterInfo):
+    """
+    Model for translations of characters.
+    """
+
+    language = models.CharField(max_length=10)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["language", "character_id"], name="character_language"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["language", "character_id"]),
+        ]
+        permissions = [("update_translation", "Can update a translation")]
+
+    def full_character_json(self) -> Dict:
+        character_json = {}
+        character_json["id"] = f"{self.language}_{self.character_id}"
+        character_json["name"] = self.character_name
+        character_json["firstNightReminder"] = self.first_night_reminder
+        character_json["otherNightReminder"] = (
+            self.other_night_reminder if self.other_night_reminder else ""
+        )
+        character_json["reminders"] = self.reminders.split(",")
+        character_json["ability"] = self.ability
+        return character_json
+
+    def __str__(self):
+        return f"{self.language} - {self.character_id}"
