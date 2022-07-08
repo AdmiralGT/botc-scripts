@@ -117,7 +117,7 @@
     </li>
     {% endif %}
     <li class="nav-item">
-        <a class="nav-link {% active_aria_status 'comments-tab' activetab %}" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments</a>
+        <a class="nav-link {% active_aria_status 'comments-tab' activetab %}" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments ({{ comments|length }})</a>
     </li>
 </ul>
 <div class="tab-content row p-1" height="720">
