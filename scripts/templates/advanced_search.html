@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% load bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="d-flex flex-row">
+        <div class="m-1 flex-shrink-0">
+            {% bootstrap_form form form_group_class="form-group m-1" %}
+        </div>
+    </div>
+    {% buttons %}
+        <button type="submit" class="btn btn-primary m-1">Submit</button>
+    {% endbuttons %}
+</form>
+  
+{% endblock %}

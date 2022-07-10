@@ -7,15 +7,19 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
+from django.db.models import Count
 from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
+from django_tables2.config import RequestConfig
+from django.shortcuts import render
 from versionfield import Version
 
 from scripts import filters, forms, models, script_json, tables, characters
 from collections import Counter
+from django.contrib.postgres.search import TrigramSimilarity
 
 from typing import Dict, Any, List
 
@@ -128,6 +132,17 @@ def get_comments(script: models.Script) -> Dict:
     for comment in script.comments.filter(parent__isnull=True).order_by("created"):
         comments.extend(get_comment_data(comment, 0))
     return comments
+
+
+def count_character(
+    script_content: Dict, character_type: characters.CharacterType
+) -> int:
+    count = 0
+    for json_entry in script_content:
+        character = characters.Character.get(json_entry.get("id"))
+        if character and character.character_type == character_type:
+            count += 1
+    return count
 
 
 class ScriptView(generic.DetailView):
@@ -346,6 +361,12 @@ class ScriptUploadView(generic.FormView):
                     # as the latest, that's still the current latest.
                     is_latest = False
 
+        num_townsfolk = count_character(json, characters.CharacterType.TOWNSFOLK)
+        num_outsiders = count_character(json, characters.CharacterType.OUTSIDER)
+        num_minions = count_character(json, characters.CharacterType.MINION)
+        num_demons = count_character(json, characters.CharacterType.DEMON)
+        num_fabled = count_character(json, characters.CharacterType.FABLED)
+
         # Create the Script Version object from the form.
         if form.cleaned_data.get("notes", None):
             self.script_version = models.ScriptVersion.objects.create(
@@ -357,6 +378,11 @@ class ScriptUploadView(generic.FormView):
                 author=author,
                 notes=form.cleaned_data["notes"],
                 latest=is_latest,
+                num_townsfolk=num_townsfolk,
+                num_outsiders=num_outsiders,
+                num_minions=num_minions,
+                num_demons=num_demons,
+                num_fabled=num_fabled,
             )
         else:
             self.script_version = models.ScriptVersion.objects.create(
@@ -367,6 +393,11 @@ class ScriptUploadView(generic.FormView):
                 pdf=form.cleaned_data["pdf"],
                 author=author,
                 latest=is_latest,
+                num_townsfolk=num_townsfolk,
+                num_outsiders=num_outsiders,
+                num_minions=num_minions,
+                num_demons=num_demons,
+                num_fabled=num_fabled,
             )
         self.script_version.tags.set(form.cleaned_data["tags"])
 
@@ -721,3 +752,81 @@ class CommentDeleteView(LoginRequiredMixin, generic.View):
         comment.delete()
         messages.success(request, "comments-tab")
         return HttpResponseRedirect(success_url)
+
+
+class AdvancedSearchView(generic.FormView, SingleTableMixin):
+    template_name = "advanced_search.html"
+    form_class = forms.AdvancedSearchForm
+    script_version = None
+
+    def form_valid(self, form):
+        queryset = models.ScriptVersion.objects.all()
+        if form.cleaned_data.get("name"):
+            queryset = queryset.annotate(
+                name_similarity=TrigramSimilarity(
+                    "script__name", form.cleaned_data.get("name")
+                )
+            )
+            queryset = queryset.filter(name_similarity__gt=0).order_by(
+                "-name_similarity"
+            )
+        if form.cleaned_data.get("author"):
+            queryset = queryset.annotate(
+                author_similarity=TrigramSimilarity(
+                    "author", form.cleaned_data.get("author")
+                )
+            )
+            queryset = queryset.filter(author_similarity__gt=0).order_by(
+                "-author_similarity"
+            )
+
+        if form.cleaned_data.get("includes_characters"):
+            queryset = filters.include_characters(
+                queryset, form.cleaned_data.get("includes_characters")
+            )
+        if form.cleaned_data.get("excludes_characters"):
+            queryset = filters.exclude_characters(
+                queryset, form.cleaned_data.get("excludes_characters")
+            )
+
+        queryset = filters.filter_by_edition(queryset, form.cleaned_data.get("edition"))
+        for tag in form.cleaned_data.get("tags"):
+            queryset = queryset.filter(tags=tag)
+
+        for number in form.cleaned_data.get("number_of_townsfolk"):
+            queryset = queryset.filter(num_townsfolk=number)
+
+        for number in form.cleaned_data.get("number_of_outsiders"):
+            queryset = queryset.filter(num_outsider=number)
+
+        for number in form.cleaned_data.get("number_of_minions"):
+            queryset = queryset.filter(num_minions=number)
+
+        for number in form.cleaned_data.get("number_of_demons"):
+            queryset = queryset.filter(num_demons=number)
+
+        for number in form.cleaned_data.get("number_of_fabled"):
+            queryset = queryset.filter(num_fabled=number)
+
+        if form.cleaned_data.get("minimum_number_of_likes"):
+            queryset = queryset.annotate(score=Count("votes"))
+            queryset = queryset.filter(
+                score__gte=form.cleaned_data.get("minimum_number_of_likes")
+            )
+
+        if form.cleaned_data.get("minimum_number_of_favourites"):
+            queryset = queryset.annotate(num_favs=Count("favourites"))
+            queryset = queryset.filter(
+                num_favs__gte=form.cleaned_data.get("minimum_number_of_favourites")
+            )
+
+        if form.cleaned_data.get("minimum_number_of_comments"):
+            queryset = queryset.annotate(num_comments=Count("script__comments"))
+            queryset = queryset.filter(
+                num_comments__gte=form.cleaned_data.get("minimum_number_of_comments")
+            )
+
+        context = {}
+        table = tables.ScriptTable(queryset[:20])
+        context["table"] = table
+        return render(self.request, "scriptlist.html", context)

@@ -123,3 +123,51 @@ class CollectionForm(forms.ModelForm):
                 }
             ),
         }
+
+
+class AdvancedSearchForm(forms.Form):
+    name = forms.CharField(max_length=100, required=False)
+    author = forms.CharField(max_length=30, required=False)
+    script_type = forms.ChoiceField(
+        choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
+    )
+    includes_characters = forms.CharField(max_length=30, required=False)
+    excludes_characters = forms.CharField(max_length=30, required=False)
+    edition = forms.ChoiceField(
+        choices=models.Edition.choices, initial=models.Edition.UNRELEASED
+    )
+    tags = forms.ModelMultipleChoiceField(
+        queryset=models.ScriptTag.objects.all(),
+        to_field_name="name",
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+    # We can actually get the min,max by querying the database.
+    number_of_townsfolk = forms.MultipleChoiceField(
+        choices=[(i, i) for i in range(10, 15)],
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+    number_of_outsiders = forms.MultipleChoiceField(
+        choices=[(i, i) for i in range(1, 6)],
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+    number_of_minions = forms.MultipleChoiceField(
+        choices=[(i, i) for i in range(1, 6)],
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+    number_of_demons = forms.MultipleChoiceField(
+        choices=[(i, i) for i in range(1, 6)],
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+    number_of_fabled = forms.MultipleChoiceField(
+        choices=[(i, i) for i in range(0, 10)],
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+    minimum_number_of_likes = forms.IntegerField(required=False)
+    minimum_number_of_favourites = forms.IntegerField(required=False)
+    minimum_number_of_comments = forms.IntegerField(required=False)
