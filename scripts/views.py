@@ -793,6 +793,8 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
         for tag in form.cleaned_data.get("tags"):
             queryset = queryset.filter(tags=tag)
 
+        # These probably don't work, because we're filtering on a single value each time so if more than
+        # one value is selected, they're filter each other out.
         for number in form.cleaned_data.get("number_of_townsfolk"):
             queryset = queryset.filter(num_townsfolk=number)
 

@@ -9,9 +9,12 @@
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    <div class="d-flex flex-row">
-        <div class="m-1 flex-shrink-0">
-            {% bootstrap_form form form_group_class="form-group m-1" %}
+    <div class="row">
+        <div class="col">
+            {% bootstrap_form form exclude="tags,number_of_townsfolk,number_of_outsiders,number_of_minions,number_of_demons, number_of_fabled" %}
+        </div>
+        <div class="col">
+            {% bootstrap_form form layout='horizontal' exclude="name,author,script_type,includes_characters,excludes_characters,edition,minimum_number_of_likes,minimum_number_of_favourites,minimum_number_of_comments" %}
         </div>
     </div>
     {% buttons %}

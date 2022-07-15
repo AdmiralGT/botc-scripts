@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from versionfield import Version
 
-from scripts import models, script_json, validators
+from scripts import models, script_json, validators, widgets
 
 
 class JSONError(Exception):
@@ -139,33 +139,35 @@ class AdvancedSearchForm(forms.Form):
     tags = forms.ModelMultipleChoiceField(
         queryset=models.ScriptTag.objects.all(),
         to_field_name="name",
-        widget=forms.CheckboxSelectMultiple,
+        widget=widgets.BadgePillCheckboxSelectMultiple(),
         required=False,
     )
     # We can actually get the min,max by querying the database.
     number_of_townsfolk = forms.MultipleChoiceField(
         choices=[(i, i) for i in range(10, 15)],
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(
+            attrs={"class": "form-check-inline", "id": "badge-pill"}
+        ),
         required=False,
     )
     number_of_outsiders = forms.MultipleChoiceField(
         choices=[(i, i) for i in range(1, 6)],
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple,
         required=False,
     )
     number_of_minions = forms.MultipleChoiceField(
         choices=[(i, i) for i in range(1, 6)],
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple,
         required=False,
     )
     number_of_demons = forms.MultipleChoiceField(
         choices=[(i, i) for i in range(1, 6)],
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple,
         required=False,
     )
     number_of_fabled = forms.MultipleChoiceField(
         choices=[(i, i) for i in range(0, 10)],
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple,
         required=False,
     )
     minimum_number_of_likes = forms.IntegerField(required=False)
