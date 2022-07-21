@@ -1,0 +1,41 @@
+{% load botc_script_tags %}
+
+<tr>
+    {% if entry.winner == "Home" %}
+    <td class="align-middle text-center p-0 table-success">
+    {% else %}
+    <td class="align-middle text-center p-0">
+    {% endif %}
+        <a href="{% url 'script' pk=entry.script1.script.pk version=entry.script1.version %}">{{ entry.script1.script.name }}</a>
+    </td>   
+    <td class="align-middle text-center p-0">
+        vs
+    </td>   
+    {% if entry.winner == "Away" %}
+    <td class="align-middle text-center p-0 table-success">
+    {% else %}
+    <td class="align-middle text-center p-0">
+    {% endif %}
+        <a href="{% url 'script' pk=entry.script2.script.pk version=entry.script2.version %}">{{ entry.script2.script.name }}</a>
+    </td>   
+    <td class="align-middle text-center p-0">
+    {% if entry.vod %}
+        {% for vod in entry.vod|split %}
+            <a href="{{ vod }}" target="_blank">
+                <button class="btn btn-link btn-sm p-0">
+                VoD
+                </button>
+            </a>
+        {% endfor %}
+    {% endif %}
+    </td>
+    <td class="align-middle text-center p-0">
+        {% if entry.form %}
+        <a href="{{ entry.form }}" target="_blank">
+            <button class="btn btn-link btn-sm p-0">
+                Vote
+            </button>
+        </a>
+        {% endif %}
+    </td>   
+</tr>
