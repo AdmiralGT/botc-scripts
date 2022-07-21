@@ -37,8 +37,14 @@
                     <a class="nav-link" href="/collections">Collections</a>
                 </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="/worldcup">🏆 World Cup</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="worldcupDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        🏆 World Cup
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="worldcupDropdown">
+                        <a class="dropdown-item" href="/worldcup">Fixtures</a>
+                        <a class="dropdown-item" href="/worldcup/statistics">Statistics</a>
+                    </div>
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">

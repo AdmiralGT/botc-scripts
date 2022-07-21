@@ -1,0 +1,29 @@
+<div class="row">
+    <div class="col w-50 pl-0">
+        <h4 class="mt-2">{{ left_title }}</h4>
+        <table class="w-100 table-sm {{ table_style }}">
+            <tbody>
+                {% for character, count in addition %}
+                <tr background-color="#">
+                    <td class="w-75"><a href="/statistics/{{ character.json_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <td class="w-25 text-center">{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="col w-50 pr-0">
+        <h4 class="mt-2">{{ right_title }}</h4>
+        <table class="w-100 table-sm {{ table_style }}">
+            <tbody>
+                {% for character, count in deletion %}
+                <tr background-color="#">
+                    <td class="w-75"><a href="/statistics/{{ character.json_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <td class="w-25 text-center">{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
