@@ -5,7 +5,7 @@ from collections import Counter
 
 
 class WorldCupView(generic.TemplateView):
-    template_name = "worldcup/worldcup.html"
+    template_name = "worldcup/fixtures.html"
 
     def get_world_cup_script(self, script: models.Script):
         for version in script.versions.all():
@@ -23,7 +23,7 @@ class WorldCupView(generic.TemplateView):
 
 
 class WorldCupStatisticsView(generic.TemplateView):
-    template_name = "worldcup/worldcupstatistics.html"
+    template_name = "worldcup/statistics.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
