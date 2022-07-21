@@ -79,6 +79,7 @@ urlpatterns = [
     ),
     path("account/scripts/", views.UserScriptsListView.as_view(script_view="owned")),
     path("worldcup", worldcup.WorldCupView.as_view()),
+    path("worldcup/statistics", worldcup.WorldCupStatisticsView.as_view()),
     re_path(r"^login/$", login, name="account_login"),
     re_path(r"^logout/$", logout, name="account_logout"),
     re_path(r"^signup/$", login, name="account_signup"),
