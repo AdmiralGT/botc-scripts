@@ -14,6 +14,13 @@ class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ["pk", "score"]
     ordering = ["-pk"]
 
+    def get_queryset(self):
+        queryset = models.ScriptVersion.objects.all()
+        latest = self.request.query_params.get("latest")
+        if latest:
+            queryset = models.ScriptVersion.objects.filter(latest=True)
+        return queryset
+
     @action(methods=["get"], detail=True)
     def json(self, request, pk=None):
         return Response(models.ScriptVersion.objects.get(pk=pk).content)
