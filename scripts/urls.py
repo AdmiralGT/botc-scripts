@@ -4,6 +4,7 @@ from allauth.account.views import login, logout
 from allauth.socialaccount import providers
 from importlib import import_module
 from scripts import views, viewsets, worldcup
+from django.views.generic.base import TemplateView
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
@@ -48,6 +49,10 @@ urlpatterns = [
     ),
     path("comment/<int:pk>/edit", views.CommentEditView.as_view(), name="edit_comment"),
     path("comment/new", views.CommentCreateView.as_view(), name="create_comment"),
+    path(
+        "robots.txt",
+        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
+    ),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>/vote", views.vote_for_script, name="vote"),
