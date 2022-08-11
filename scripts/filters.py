@@ -141,3 +141,31 @@ class CollectionFilter(
         altered in the __init__ function.
         """
         return queryset
+
+
+class StatisticsFilter(
+    django_filters.FilterSet, django_filters.filters.QuerySetRequestMixin
+):
+    is_owner = django_filters.filters.BooleanFilter(
+        widget=forms.CheckboxInput, label="My Scripts only", method="is_owner_function"
+    )
+
+    class Meta:
+        model = models.ScriptVersion
+        fields = [
+            "is_owner",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super(django_filters.FilterSet, self).__init__(*args, **kwargs)
+        if kwargs.get("data") and kwargs.get("data").get("is_owner") == "on":
+            self.queryset = models.ScriptVersion.objects.filter(
+                script__owner=self.request.user
+            )
+
+    def is_owner_function(self, queryset, name, value):
+        """
+        This function exists so that we can use a non-model field. The queryset was already
+        altered in the __init__ function.
+        """
+        return queryset

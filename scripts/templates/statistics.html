@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load bootstrap4 %}
+
 {% block content %}
 
 <style>
@@ -36,7 +38,23 @@
     }
 </style>
 
-<h1>Total Scripts in Database: {{ total }}</h1>
+
+<div class="container">
+    <div class="row">
+        <h1>Total Scripts in Database: {{ total }}</h1>
+        <div class="col">
+        {% if user.is_authenticated and filter %}
+        <form action="" method="get" class="form mb-0">
+            <div class="float-right form-group row p-1 mb-0">
+                {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
+                {% bootstrap_button 'filter' extra_classes="btn-sm mr-1" %}
+                {% bootstrap_button 'clear' extra_classes="btn-sm" href="/statistics" %}
+            </div>
+        </form>
+        {% endif %}
+        </div>
+    </div>
+</div>
 
 <div class="container">
     <div class="row">
