@@ -373,10 +373,13 @@ class ScriptUploadView(generic.FormView):
         return super().form_valid(form)
 
 
-class StatisticsView(generic.TemplateView):
+class StatisticsView(generic.ListView, FilterView):
+    model = models.ScriptVersion
     template_name = "statistics.html"
+    filterset_class = filters.StatisticsFilter
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        self.object_list = super().get_queryset()
         context = super().get_context_data(**kwargs)
         stats_character = None
         characters_to_display = 5
@@ -385,6 +388,11 @@ class StatisticsView(generic.TemplateView):
             queryset = models.ScriptVersion.objects.all()
         else:
             queryset = models.ScriptVersion.objects.filter(latest=True)
+
+        if self.request.user.is_authenticated:
+            context["filter"] = self.get_filterset(self.get_filterset_class())
+            if "is_owner" in self.request.GET:
+                queryset = queryset.filter(script__owner=self.request.user)
 
         if "character" in kwargs:
             if characters.Character.get(kwargs.get("character")):
