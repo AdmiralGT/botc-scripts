@@ -136,6 +136,12 @@ class AdvancedSearchForm(forms.Form):
     edition = forms.ChoiceField(
         choices=models.Edition.choices, initial=models.Edition.UNRELEASED
     )
+    all_scripts = forms.BooleanField(
+        initial=False, label="Display All Scripts", required=False
+    )
+    tag_combinations = forms.ChoiceField(
+        choices=[("AND", "AND"), ("OR", "OR")], initial="AND", widget=forms.RadioSelect
+    )
     tags = forms.ModelMultipleChoiceField(
         queryset=models.ScriptTag.objects.all(),
         to_field_name="name",
@@ -144,32 +150,47 @@ class AdvancedSearchForm(forms.Form):
     )
     # We can actually get the min,max by querying the database.
     number_of_townsfolk = forms.MultipleChoiceField(
-        choices=[(i, i) for i in range(10, 15)],
-        widget=forms.CheckboxSelectMultiple(
-            attrs={"class": "form-check-inline", "id": "badge-pill"}
-        ),
+        choices=[(0, 0)],
+        widget=forms.SelectMultiple,
         required=False,
     )
     number_of_outsiders = forms.MultipleChoiceField(
-        choices=[(i, i) for i in range(1, 6)],
+        choices=[(0, 0)],
         widget=forms.SelectMultiple,
         required=False,
     )
     number_of_minions = forms.MultipleChoiceField(
-        choices=[(i, i) for i in range(1, 6)],
+        choices=[(0, 0)],
         widget=forms.SelectMultiple,
         required=False,
     )
     number_of_demons = forms.MultipleChoiceField(
-        choices=[(i, i) for i in range(1, 6)],
+        choices=[(0, 0)],
         widget=forms.SelectMultiple,
         required=False,
     )
     number_of_fabled = forms.MultipleChoiceField(
-        choices=[(i, i) for i in range(0, 10)],
+        choices=[(0, 0)],
         widget=forms.SelectMultiple,
         required=False,
     )
     minimum_number_of_likes = forms.IntegerField(required=False)
     minimum_number_of_favourites = forms.IntegerField(required=False)
     minimum_number_of_comments = forms.IntegerField(required=False)
+
+    def __init__(
+        self,
+        townsfolk_choices,
+        outsider_choices,
+        minion_choices,
+        demon_choices,
+        fabled_choices,
+        *args,
+        **kwargs,
+    ):
+        super(AdvancedSearchForm, self).__init__(*args, **kwargs)
+        self.fields["number_of_townsfolk"].choices = townsfolk_choices
+        self.fields["number_of_outsiders"].choices = outsider_choices
+        self.fields["number_of_minions"].choices = minion_choices
+        self.fields["number_of_demons"].choices = demon_choices
+        self.fields["number_of_fabled"].choices = fabled_choices

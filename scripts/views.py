@@ -754,13 +754,79 @@ class CommentDeleteView(LoginRequiredMixin, generic.View):
         return HttpResponseRedirect(success_url)
 
 
+class AdvancedSearchResultsView(SingleTableView):
+    model = models.ScriptVersion
+    template_name = "scriptlist.html"
+    table_pagination = {"per_page": 20}
+    ordering = ["-pk"]
+    script_view = None
+
+    def get_queryset(self):
+        if self.request.session.get("queryset"):
+            queryset = models.ScriptVersion.objects.filter(
+                pk__in=self.request.session.get("queryset")
+            )
+            return queryset
+        else:
+            return models.ScriptVersion.objects.all()
+
+    def get_table_class(self):
+        if self.request.user.is_authenticated:
+            return tables.UserScriptTable
+        return tables.ScriptTable
+
+
 class AdvancedSearchView(generic.FormView, SingleTableMixin):
     template_name = "advanced_search.html"
     form_class = forms.AdvancedSearchForm
     script_version = None
 
+    def get_form(self):
+        townsfolk = models.ScriptVersion.objects.all().order_by("num_townsfolk")
+        townsfolk_choices = [
+            (i, i)
+            for i in range(
+                townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1
+            )
+        ]
+        outsider = models.ScriptVersion.objects.all().order_by("num_outsiders")
+        outsider_choices = [
+            (i, i)
+            for i in range(
+                outsider.first().num_outsiders, outsider.last().num_outsiders + 1
+            )
+        ]
+        minion = models.ScriptVersion.objects.all().order_by("num_minions")
+        minion_choices = [
+            (i, i)
+            for i in range(minion.first().num_minions, minion.last().num_minions + 1)
+        ]
+        demon = models.ScriptVersion.objects.all().order_by("num_demons")
+        demon_choices = [
+            (i, i) for i in range(demon.first().num_demons, demon.last().num_demons + 1)
+        ]
+        fabled = models.ScriptVersion.objects.all().order_by("num_fabled")
+        fabled_choices = [
+            (i, i)
+            for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1)
+        ]
+
+        return forms.AdvancedSearchForm(
+            townsfolk_choices=townsfolk_choices,
+            outsider_choices=outsider_choices,
+            minion_choices=minion_choices,
+            demon_choices=demon_choices,
+            fabled_choices=fabled_choices,
+            **self.get_form_kwargs(),
+        )
+
     def form_valid(self, form):
-        queryset = models.ScriptVersion.objects.all()
+        all_scripts = form.cleaned_data.get("all_scripts", False)
+        if all_scripts:
+            queryset = models.ScriptVersion.objects.all()
+        else:
+            queryset = models.ScriptVersion.objects.filter(latest=True)
+
         if form.cleaned_data.get("name"):
             queryset = queryset.annotate(
                 name_similarity=TrigramSimilarity(
@@ -790,25 +856,38 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
             )
 
         queryset = filters.filter_by_edition(queryset, form.cleaned_data.get("edition"))
-        for tag in form.cleaned_data.get("tags"):
-            queryset = queryset.filter(tags=tag)
+        tag_combination = form.cleaned_data.get("tag_combinations")
+        if tag_combination == "AND":
+            for tag in form.cleaned_data.get("tags"):
+                queryset = queryset.filter(tags=tag)
+        else:
+            if form.cleaned_data.get("tags"):
+                queryset = queryset.filter(tags__in=form.cleaned_data.get("tags"))
 
-        # These probably don't work, because we're filtering on a single value each time so if more than
-        # one value is selected, they're filter each other out.
-        for number in form.cleaned_data.get("number_of_townsfolk"):
-            queryset = queryset.filter(num_townsfolk=number)
+        if form.cleaned_data.get("number_of_townsfolk"):
+            queryset = queryset.filter(
+                num_townsfolk__in=form.cleaned_data.get("number_of_townsfolk")
+            )
 
-        for number in form.cleaned_data.get("number_of_outsiders"):
-            queryset = queryset.filter(num_outsider=number)
+        if form.cleaned_data.get("number_of_outsiders"):
+            queryset = queryset.filter(
+                num_outsiders__in=form.cleaned_data.get("number_of_outsiders")
+            )
 
-        for number in form.cleaned_data.get("number_of_minions"):
-            queryset = queryset.filter(num_minions=number)
+        if form.cleaned_data.get("number_of_minions"):
+            queryset = queryset.filter(
+                num_minions__in=form.cleaned_data.get("number_of_minions")
+            )
 
-        for number in form.cleaned_data.get("number_of_demons"):
-            queryset = queryset.filter(num_demons=number)
+        if form.cleaned_data.get("number_of_demons"):
+            queryset = queryset.filter(
+                num_demons__in=form.cleaned_data.get("number_of_demons")
+            )
 
-        for number in form.cleaned_data.get("number_of_fabled"):
-            queryset = queryset.filter(num_fabled=number)
+        if form.cleaned_data.get("number_of_fabled"):
+            queryset = queryset.filter(
+                num_fabled__in=form.cleaned_data.get("number_of_fabled")
+            )
 
         if form.cleaned_data.get("minimum_number_of_likes"):
             queryset = queryset.annotate(score=Count("votes"))
@@ -828,7 +907,5 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
                 num_comments__gte=form.cleaned_data.get("minimum_number_of_comments")
             )
 
-        context = {}
-        table = tables.ScriptTable(queryset[:20])
-        context["table"] = table
-        return render(self.request, "scriptlist.html", context)
+        self.request.session["queryset"] = list(queryset.values_list("pk", flat=True))
+        return redirect("/script/search/results")

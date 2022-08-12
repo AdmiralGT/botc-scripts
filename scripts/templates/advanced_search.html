@@ -11,7 +11,7 @@
     {% csrf_token %}
     <div class="row">
         <div class="col">
-            {% bootstrap_form form exclude="tags,number_of_townsfolk,number_of_outsiders,number_of_minions,number_of_demons, number_of_fabled" %}
+            {% bootstrap_form form exclude="all_scripts,tag_combinations,tags,number_of_townsfolk,number_of_outsiders,number_of_minions,number_of_demons, number_of_fabled" %}
         </div>
         <div class="col">
             {% bootstrap_form form layout='horizontal' exclude="name,author,script_type,includes_characters,excludes_characters,edition,minimum_number_of_likes,minimum_number_of_favourites,minimum_number_of_comments" %}
