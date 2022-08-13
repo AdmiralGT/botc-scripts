@@ -366,6 +366,7 @@ class ScriptUploadView(generic.FormView):
         num_minions = count_character(json, characters.CharacterType.MINION)
         num_demons = count_character(json, characters.CharacterType.DEMON)
         num_fabled = count_character(json, characters.CharacterType.FABLED)
+        num_travellers = count_character(json, characters.CharacterType.TRAVELLER)
 
         # Create the Script Version object from the form.
         if form.cleaned_data.get("notes", None):
@@ -383,6 +384,7 @@ class ScriptUploadView(generic.FormView):
                 num_minions=num_minions,
                 num_demons=num_demons,
                 num_fabled=num_fabled,
+                num_travellers=num_travellers,
             )
         else:
             self.script_version = models.ScriptVersion.objects.create(
@@ -398,6 +400,7 @@ class ScriptUploadView(generic.FormView):
                 num_minions=num_minions,
                 num_demons=num_demons,
                 num_fabled=num_fabled,
+                num_travellers=num_travellers,
             )
         self.script_version.tags.set(form.cleaned_data["tags"])
 
@@ -767,6 +770,8 @@ class AdvancedSearchResultsView(SingleTableView):
                 pk__in=self.request.session.get("queryset")
             )
             return queryset
+        elif self.request.session.get("num_results") == 0:
+            return models.ScriptVersion.objects.none()
         else:
             return models.ScriptVersion.objects.all()
 
@@ -810,6 +815,14 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
             (i, i)
             for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1)
         ]
+        travellers = models.ScriptVersion.objects.all().order_by("num_travellers")
+        traveller_choices = [
+            (i, i)
+            for i in range(
+                travellers.first().num_travellers, travellers.last().num_travellers + 1
+            )
+        ]
+        travellers = travellers.last()
 
         return forms.AdvancedSearchForm(
             townsfolk_choices=townsfolk_choices,
@@ -817,6 +830,7 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
             minion_choices=minion_choices,
             demon_choices=demon_choices,
             fabled_choices=fabled_choices,
+            traveller_choices=traveller_choices,
             **self.get_form_kwargs(),
         )
 
@@ -889,6 +903,11 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
                 num_fabled__in=form.cleaned_data.get("number_of_fabled")
             )
 
+        if form.cleaned_data.get("number_of_travellers"):
+            queryset = queryset.filter(
+                num_travellers__in=form.cleaned_data.get("number_of_travellers")
+            )
+
         if form.cleaned_data.get("minimum_number_of_likes"):
             queryset = queryset.annotate(score=Count("votes"))
             queryset = queryset.filter(
@@ -908,4 +927,6 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
             )
 
         self.request.session["queryset"] = list(queryset.values_list("pk", flat=True))
+        if len(self.request.session["queryset"]) == 0:
+            self.request.session["num_results"] = 0
         return redirect("/script/search/results")

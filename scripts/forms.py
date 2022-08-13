@@ -136,6 +136,9 @@ class AdvancedSearchForm(forms.Form):
     edition = forms.ChoiceField(
         choices=models.Edition.choices, initial=models.Edition.UNRELEASED
     )
+    minimum_number_of_likes = forms.IntegerField(required=False)
+    minimum_number_of_favourites = forms.IntegerField(required=False)
+    minimum_number_of_comments = forms.IntegerField(required=False)
     all_scripts = forms.BooleanField(
         initial=False, label="Display All Scripts", required=False
     )
@@ -174,9 +177,11 @@ class AdvancedSearchForm(forms.Form):
         widget=forms.SelectMultiple,
         required=False,
     )
-    minimum_number_of_likes = forms.IntegerField(required=False)
-    minimum_number_of_favourites = forms.IntegerField(required=False)
-    minimum_number_of_comments = forms.IntegerField(required=False)
+    number_of_travellers = forms.MultipleChoiceField(
+        choices=[(0, 0)],
+        widget=forms.SelectMultiple,
+        required=False,
+    )
 
     def __init__(
         self,
@@ -185,6 +190,7 @@ class AdvancedSearchForm(forms.Form):
         minion_choices,
         demon_choices,
         fabled_choices,
+        traveller_choices,
         *args,
         **kwargs,
     ):
@@ -194,3 +200,4 @@ class AdvancedSearchForm(forms.Form):
         self.fields["number_of_minions"].choices = minion_choices
         self.fields["number_of_demons"].choices = demon_choices
         self.fields["number_of_fabled"].choices = fabled_choices
+        self.fields["number_of_travellers"].choices = traveller_choices
