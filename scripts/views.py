@@ -428,22 +428,21 @@ class StatisticsView(generic.ListView, FilterView):
             if "is_owner" in self.request.GET:
                 queryset = queryset.filter(script__owner=self.request.user)
 
-        if "character" in kwargs:
-            if characters.Character.get(kwargs.get("character")):
-                stats_character = characters.Character.get(kwargs.get("character"))
+        if "character" in self.kwargs:
+            if characters.Character.get(self.kwargs.get("character")):
+                stats_character = characters.Character.get(self.kwargs.get("character"))
                 queryset = queryset.filter(
                     content__contains=[{"id": stats_character.json_id}]
                 )
             else:
                 raise Http404()
-        elif "tags" in kwargs:
-            tags = models.ScriptTag.objects.get(pk=kwargs.get("tags"))
+        elif "tags" in self.kwargs:
+            tags = models.ScriptTag.objects.get(pk=self.kwargs.get("tags"))
             if tags:
                 queryset = models.ScriptVersion.objects.filter(tags__in=[tags])
 
         if "tags" in self.request.GET:
             try:
-                int(self.request.GET.get("tags"))
                 tags = models.ScriptTag.objects.get(pk=self.request.GET.get("tags"))
                 if tags:
                     queryset = queryset.filter(tags__in=[tags])
@@ -452,7 +451,6 @@ class StatisticsView(generic.ListView, FilterView):
 
         if "num" in self.request.GET:
             try:
-                int(self.request.GET.get("num"))
                 if int(self.request.GET.get("num")):
                     characters_to_display = int(self.request.GET.get("num"))
                     if characters_to_display < 1:
@@ -470,8 +468,10 @@ class StatisticsView(generic.ListView, FilterView):
         context["total"] = queryset.count()
 
         character_count = {}
+        num_count = {}
         for type in characters.CharacterType:
             character_count[type.value] = Counter()
+            num_count[type.value] = Counter()
         for character in characters.Character:
             # If we're on a Character Statistics page, don't include this character in the count.
             if character == stats_character:
@@ -488,6 +488,46 @@ class StatisticsView(generic.ListView, FilterView):
             context[type.value + "least"] = character_count[type.value].most_common()[
                 : ((characters_to_display + 1) * -1) : -1
             ]
+
+        townsfolk = queryset.order_by("num_townsfolk")
+        for i in range(
+            townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1
+        ):
+            num_count[characters.CharacterType.TOWNSFOLK.value][
+                str(i)
+            ] = queryset.filter(num_townsfolk=i).count()
+        outsider = queryset.order_by("num_outsiders")
+        for i in range(
+            outsider.first().num_outsiders, outsider.last().num_outsiders + 1
+        ):
+            num_count[characters.CharacterType.OUTSIDER.value][
+                str(i)
+            ] = queryset.filter(num_outsiders=i).count()
+        minion = queryset.order_by("num_minions")
+        for i in range(minion.first().num_minions, minion.last().num_minions + 1):
+            num_count[characters.CharacterType.MINION.value][str(i)] = queryset.filter(
+                num_minions=i
+            ).count()
+        demon = queryset.order_by("num_demons")
+        for i in range(demon.first().num_demons, demon.last().num_demons + 1):
+            num_count[characters.CharacterType.DEMON.value][str(i)] = queryset.filter(
+                num_demons=i
+            ).count()
+        traveller = queryset.order_by("num_travellers")
+        for i in range(
+            traveller.first().num_travellers, traveller.last().num_travellers + 1
+        ):
+            num_count[characters.CharacterType.TRAVELLER.value][
+                str(i)
+            ] = queryset.filter(num_travellers=i).count()
+        fabled = queryset.order_by("num_fabled")
+        for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1):
+            num_count[characters.CharacterType.FABLED.value][str(i)] = queryset.filter(
+                num_fabled=i
+            ).count()
+        for type in characters.CharacterType:
+            num_count[type.value] = dict(num_count[type.value])
+        context["num_count"] = num_count
 
         return context
 

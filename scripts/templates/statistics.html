@@ -4,6 +4,9 @@
 
 {% block content %}
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" integrity="sha256-Uv9BNBucvCPipKQ2NS9wYpJmi8DTOEfTA/nH2aoJALw=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" integrity="sha256-aa0xaJgmK/X74WM224KMQeNQC2xYKwlAt08oZqjeF0E=" crossorigin="anonymous" />
+
 <style>
     .table-striped-good>tbody>tr:nth-child(odd)>td {
         background-color: #85c1e9;
@@ -38,6 +41,14 @@
     }
 </style>
 
+<script>
+    {% include "chart.html" with ChartName="TownsfolkChart" ChartLabel="Number of Townsfolk" ChartDictionary=num_count.Townsfolk ChartColor="rgba(214,234,248,1)" ChartBorder="rgba(133,193,233,1)" %}
+    {% include "chart.html" with ChartName="OutsiderChart" ChartLabel="Number of Outsiders" ChartDictionary=num_count.Outsider ChartColor="rgba(214,234,248,1)" ChartBorder="rgbargba(133,193,233,1)" %}
+    {% include "chart.html" with ChartName="MinionChart" ChartLabel="Number of Minions" ChartDictionary=num_count.Minion ChartColor="rgba(250,219,216,1)" ChartBorder="rgba(245,183,177,1)" %}
+    {% include "chart.html" with ChartName="DemonChart" ChartLabel="Number of Demons" ChartDictionary=num_count.Demon ChartColor="rgba(250,219,216,1)" ChartBorder="rgba(245,183,177,1)" %}
+    {% include "chart.html" with ChartName="TravellerChart" ChartLabel="Number of Travellers" ChartDictionary=num_count.Traveller ChartColor="rgba(0,0,255,0.2)" ChartBorder="rgbargba(133,193,233,1)" %}
+    {% include "chart.html" with ChartName="FabledChart" ChartLabel="Number of Fabled" ChartDictionary=num_count.Fabled ChartColor="rgba(255,240,204,1)" ChartBorder="rgba(255,240,153,1)" %}
+</script>
 
 <div class="container">
     <div class="row">
@@ -232,5 +243,11 @@
     </div>
 </div>
 
+<canvas id="TownsfolkChart" width="400" height="100"></canvas>  
+<canvas id="OutsiderChart" width="400" height="100"></canvas>  
+<canvas id="MinionChart" width="400" height="100"></canvas>  
+<canvas id="DemonChart" width="400" height="100"></canvas>  
+<canvas id="TravellerChart" width="400" height="100"></canvas>  
+<canvas id="FabledChart" width="400" height="100"></canvas>  
 
 {% endblock %}
