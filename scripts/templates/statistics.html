@@ -43,14 +43,14 @@
 
 <script>
     $(document).ready(function() {
-        var ctx = document.getElementById('myChart').getContext('2d');
+        var ctx = document.getElementById('TownsfolkChart').getContext('2d');
         var myChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: [{% for character, count in Townsfolk %}'{{character.name}}',{% endfor %}],
+                labels: [{% for number, count in num_count.Townsfolk %}'{{number}}',{% endfor %}],
                 datasets: [{
                     label: '# of users',
-                    data: [{% for character, count in Townsfolk %}{{count}},{% endfor %}],
+                    data: [{% for number, count in num_count.Townsfolk %}{{count}},{% endfor %}],
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.2)', 
                         'rgba(54, 162, 235, 0.2)',

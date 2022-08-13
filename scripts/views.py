@@ -491,9 +491,14 @@ class StatisticsView(generic.ListView, FilterView):
                 : ((characters_to_display + 1) * -1) : -1
             ]
 
-        #for type in characters.CharacterType:
-        #    for i in range(0, 26):
-        #        num_count[character.character_type.value] = queryset.filter()
+        townsfolk = models.ScriptVersion.objects.all().order_by("num_townsfolk")
+        for i in range(
+            townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1
+        ):
+            num_count[character.character_type.value][i] = queryset.filter(
+                num_townsfolk=i
+            )
+        context["num_count"] = num_count
 
         return context
 
