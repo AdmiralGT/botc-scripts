@@ -24,6 +24,22 @@ def annotate_queryset(queryset, field, value):
     return queryset.annotate(similarity=TrigramSimilarity(field, value))
 
 
+def include_characters(queryset, value):
+    for character in re.split(",|;|:|/| ", value):
+        if character in ",;:/ ":
+            continue
+        queryset = queryset.filter(content__contains=[{"id": character.lower()}])
+    return queryset
+
+
+def exclude_characters(queryset, value):
+    for character in re.split(",|;|:|/| ", value):
+        if character in ",;:/ ":
+            continue
+        queryset = queryset.exclude(content__contains=[{"id": character.lower()}])
+    return queryset
+
+
 class ScriptVersionFilter(django_filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
         method="display_all_scripts",
@@ -54,18 +70,10 @@ class ScriptVersionFilter(django_filters.FilterSet):
         return queryset
 
     def include_characters(self, queryset, name, value):
-        for character in re.split(",|;|:|/| ", value):
-            if character in ",;:/ ":
-                continue
-            queryset = queryset.filter(content__contains=[{"id": character.lower()}])
-        return queryset
+        return include_characters(queryset, value)
 
     def exclude_characters(self, queryset, name, value):
-        for character in re.split(",|;|:|/| ", value):
-            if character in ",;:/ ":
-                continue
-            queryset = queryset.exclude(content__contains=[{"id": character.lower()}])
-        return queryset
+        return exclude_characters(queryset, value)
 
     def search_scripts(self, queryset, name, value):
         queryset = annotate_queryset(queryset, "script__name", value)

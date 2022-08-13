@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from versionfield import Version
 
-from scripts import models, script_json, validators
+from scripts import models, script_json, validators, widgets
 
 
 class JSONError(Exception):
@@ -123,3 +123,81 @@ class CollectionForm(forms.ModelForm):
                 }
             ),
         }
+
+
+class AdvancedSearchForm(forms.Form):
+    name = forms.CharField(max_length=100, required=False)
+    author = forms.CharField(max_length=30, required=False)
+    script_type = forms.ChoiceField(
+        choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
+    )
+    includes_characters = forms.CharField(max_length=30, required=False)
+    excludes_characters = forms.CharField(max_length=30, required=False)
+    edition = forms.ChoiceField(
+        choices=models.Edition.choices, initial=models.Edition.UNRELEASED
+    )
+    minimum_number_of_likes = forms.IntegerField(required=False)
+    minimum_number_of_favourites = forms.IntegerField(required=False)
+    minimum_number_of_comments = forms.IntegerField(required=False)
+    all_scripts = forms.BooleanField(
+        initial=False, label="Display All Scripts", required=False
+    )
+    tag_combinations = forms.ChoiceField(
+        choices=[("AND", "AND"), ("OR", "OR")], initial="AND", widget=forms.RadioSelect
+    )
+    tags = forms.ModelMultipleChoiceField(
+        queryset=models.ScriptTag.objects.all(),
+        to_field_name="name",
+        widget=widgets.BadgePillCheckboxSelectMultiple(),
+        required=False,
+    )
+    # We can actually get the min,max by querying the database.
+    number_of_townsfolk = forms.MultipleChoiceField(
+        choices=[(0, 0)],
+        widget=forms.SelectMultiple,
+        required=False,
+    )
+    number_of_outsiders = forms.MultipleChoiceField(
+        choices=[(0, 0)],
+        widget=forms.SelectMultiple,
+        required=False,
+    )
+    number_of_minions = forms.MultipleChoiceField(
+        choices=[(0, 0)],
+        widget=forms.SelectMultiple,
+        required=False,
+    )
+    number_of_demons = forms.MultipleChoiceField(
+        choices=[(0, 0)],
+        widget=forms.SelectMultiple,
+        required=False,
+    )
+    number_of_fabled = forms.MultipleChoiceField(
+        choices=[(0, 0)],
+        widget=forms.SelectMultiple,
+        required=False,
+    )
+    number_of_travellers = forms.MultipleChoiceField(
+        choices=[(0, 0)],
+        widget=forms.SelectMultiple,
+        required=False,
+    )
+
+    def __init__(
+        self,
+        townsfolk_choices,
+        outsider_choices,
+        minion_choices,
+        demon_choices,
+        fabled_choices,
+        traveller_choices,
+        *args,
+        **kwargs,
+    ):
+        super(AdvancedSearchForm, self).__init__(*args, **kwargs)
+        self.fields["number_of_townsfolk"].choices = townsfolk_choices
+        self.fields["number_of_outsiders"].choices = outsider_choices
+        self.fields["number_of_minions"].choices = minion_choices
+        self.fields["number_of_demons"].choices = demon_choices
+        self.fields["number_of_fabled"].choices = fabled_choices
+        self.fields["number_of_travellers"].choices = traveller_choices

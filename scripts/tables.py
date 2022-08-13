@@ -19,11 +19,26 @@ script_table_class = {
     "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:10%"},
 }
 
+excluded_script_version_fields = (
+    "id",
+    "content",
+    "script",
+    "latest",
+    "created",
+    "notes",
+    "num_townsfolk",
+    "num_outsiders",
+    "num_minions",
+    "num_demons",
+    "num_travellers",
+    "num_fabled",
+)
+
 
 class ScriptTable(tables.Table):
     class Meta:
         model = ScriptVersion
-        exclude = ("id", "content", "script", "latest", "created", "notes")
+        exclude = excluded_script_version_fields
         sequence = (
             "name",
             "version",
@@ -73,7 +88,7 @@ class ScriptTable(tables.Table):
 class UserScriptTable(ScriptTable):
     class Meta:
         model = ScriptVersion
-        exclude = ("id", "content", "script", "latest", "created", "notes")
+        exclude = excluded_script_version_fields
         sequence = (
             "name",
             "version",
@@ -99,7 +114,7 @@ class UserScriptTable(ScriptTable):
 class CollectionScriptTable(UserScriptTable):
     class Meta:
         model = ScriptVersion
-        exclude = ("id", "content", "script", "latest", "created", "notes")
+        exclude = excluded_script_version_fields
         sequence = (
             "name",
             "version",
