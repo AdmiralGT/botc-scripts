@@ -428,22 +428,21 @@ class StatisticsView(generic.ListView, FilterView):
             if "is_owner" in self.request.GET:
                 queryset = queryset.filter(script__owner=self.request.user)
 
-        if "character" in kwargs:
-            if characters.Character.get(kwargs.get("character")):
-                stats_character = characters.Character.get(kwargs.get("character"))
+        if "character" in self.kwargs:
+            if characters.Character.get(self.kwargs.get("character")):
+                stats_character = characters.Character.get(self.kwargs.get("character"))
                 queryset = queryset.filter(
                     content__contains=[{"id": stats_character.json_id}]
                 )
             else:
                 raise Http404()
-        elif "tags" in kwargs:
-            tags = models.ScriptTag.objects.get(pk=kwargs.get("tags"))
+        elif "tags" in self.kwargs:
+            tags = models.ScriptTag.objects.get(pk=self.kwargs.get("tags"))
             if tags:
                 queryset = models.ScriptVersion.objects.filter(tags__in=[tags])
 
         if "tags" in self.request.GET:
             try:
-                int(self.request.GET.get("tags"))
                 tags = models.ScriptTag.objects.get(pk=self.request.GET.get("tags"))
                 if tags:
                     queryset = queryset.filter(tags__in=[tags])
@@ -452,7 +451,6 @@ class StatisticsView(generic.ListView, FilterView):
 
         if "num" in self.request.GET:
             try:
-                int(self.request.GET.get("num"))
                 if int(self.request.GET.get("num")):
                     characters_to_display = int(self.request.GET.get("num"))
                     if characters_to_display < 1:
