@@ -470,8 +470,10 @@ class StatisticsView(generic.ListView, FilterView):
         context["total"] = queryset.count()
 
         character_count = {}
+        num_count = {}
         for type in characters.CharacterType:
             character_count[type.value] = Counter()
+            num_count[type.value] = Counter()
         for character in characters.Character:
             # If we're on a Character Statistics page, don't include this character in the count.
             if character == stats_character:
@@ -488,6 +490,10 @@ class StatisticsView(generic.ListView, FilterView):
             context[type.value + "least"] = character_count[type.value].most_common()[
                 : ((characters_to_display + 1) * -1) : -1
             ]
+
+        #for type in characters.CharacterType:
+        #    for i in range(0, 26):
+        #        num_count[character.character_type.value] = queryset.filter()
 
         return context
 
