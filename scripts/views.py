@@ -341,25 +341,30 @@ class ScriptUploadView(generic.FormView):
                 return super().form_valid(form)
             except models.ScriptVersion.DoesNotExist:
                 # This is not an existing version.
-                if script.latest_version().content == json:
-                    # The content hasn't change from the latest version, so just update
-                    # that.
-                    update_script(script.latest_version(), form.cleaned_data, author)
-                    self.script_version = script.latest_version()
-                    return super().form_valid(form)
-                if (
-                    Version(form.cleaned_data["version"])
-                    > script.latest_version().version
-                ):
-                    # This is newer than the latest version, so set that
-                    # version to not be latest.
-                    latest_version = script.latest_version()
-                    latest_version.latest = False
-                    latest_version.save()
-                else:
-                    # We're uploading an older version, so don't mark this version
-                    # as the latest, that's still the current latest.
-                    is_latest = False
+                if script.latest_version():
+                    # We need to protect this code against instances where a script doesn't
+                    # have a latest version.
+                    if script.latest_version().content == json:
+                        # The content hasn't change from the latest version, so just update
+                        # that.
+                        update_script(
+                            script.latest_version(), form.cleaned_data, author
+                        )
+                        self.script_version = script.latest_version()
+                        return super().form_valid(form)
+                    if (
+                        Version(form.cleaned_data["version"])
+                        > script.latest_version().version
+                    ):
+                        # This is newer than the latest version, so set that
+                        # version to not be latest.
+                        latest_version = script.latest_version()
+                        latest_version.latest = False
+                        latest_version.save()
+                    else:
+                        # We're uploading an older version, so don't mark this version
+                        # as the latest, that's still the current latest.
+                        is_latest = False
 
         num_townsfolk = count_character(json, characters.CharacterType.TOWNSFOLK)
         num_outsiders = count_character(json, characters.CharacterType.OUTSIDER)
