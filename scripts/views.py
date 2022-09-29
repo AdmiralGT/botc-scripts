@@ -7,13 +7,12 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.db.models import Count
+from django.db.models import Case, When, Count
 from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
-from django_tables2.config import RequestConfig
 from django.shortcuts import render
 from versionfield import Version
 
@@ -819,9 +818,9 @@ class AdvancedSearchResultsView(SingleTableView):
 
     def get_queryset(self):
         if self.request.session.get("queryset"):
-            queryset = models.ScriptVersion.objects.filter(
-                pk__in=self.request.session.get("queryset")
-            )
+            ids = self.request.session.get("queryset")
+            order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
+            queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
             return queryset
         elif self.request.session.get("num_results") == 0:
             return models.ScriptVersion.objects.none()
