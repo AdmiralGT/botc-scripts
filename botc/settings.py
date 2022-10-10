@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "scripts.apps.ScriptsConfig",
     "versionfield",
     "django_tables2",
+    "django_filters",
     "bootstrap4",
     "django_bootstrap_icons",
     "rest_framework",

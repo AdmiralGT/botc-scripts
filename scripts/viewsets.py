@@ -5,12 +5,15 @@ from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework.schemas.openapi import AutoSchema
 from scripts import models, serializers
+from scripts import filters as filtersets
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.ScriptVersion.objects.all()
     serializer_class = serializers.ScriptSerializer
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
+    filterset_class = filtersets.ScriptVersionFilter
     ordering_fields = ["pk", "score"]
     ordering = ["-pk"]
 

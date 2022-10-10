@@ -1,6 +1,7 @@
 import re
 
 import django_filters
+from django_filters import rest_framework as filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
 
@@ -40,7 +41,7 @@ def exclude_characters(queryset, value):
     return queryset
 
 
-class ScriptVersionFilter(django_filters.FilterSet):
+class ScriptVersionFilter(filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
         method="display_all_scripts",
         widget=forms.CheckboxInput,
@@ -59,7 +60,7 @@ class ScriptVersionFilter(django_filters.FilterSet):
         widget=forms.CheckboxSelectMultiple,
     )
     edition = django_filters.filters.ChoiceFilter(
-        field_name=None,
+        label="Edition",
         method="filter_edition",
         choices=edition_choices,
     )
