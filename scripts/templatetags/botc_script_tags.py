@@ -1,5 +1,6 @@
 from django import template
 from scripts import models
+from babel.core import Locale, UnknownLocaleError
 
 register = template.Library()
 
@@ -109,3 +110,11 @@ def active_aria_status(aria: str, active_tab: str):
     if aria == active_tab:
         return "active"
     return ""
+
+
+@register.simple_tag()
+def get_language_name(locale: str):
+    try:
+        return Locale.parse(locale).display_name
+    except UnknownLocaleError:
+        return locale
