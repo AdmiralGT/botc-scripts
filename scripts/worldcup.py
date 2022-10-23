@@ -53,12 +53,8 @@ class WorldCupStatisticsView(generic.TemplateView):
             for character in models.Character.objects.all():
                 if character.character_type != type:
                     continue
-                character_count["additions"][character.character_type.value][
-                    character
-                ] = 0
-                character_count["deletions"][character.character_type.value][
-                    character
-                ] = 0
+                character_count["additions"][character.character_type][character] = 0
+                character_count["deletions"][character.character_type][character] = 0
 
         for round_of_32 in queryset:
             round_of_64 = round_of_32.script.versions.get(tags=5)
@@ -75,12 +71,8 @@ class WorldCupStatisticsView(generic.TemplateView):
                 except models.Character.DoesNotExist:
                     continue
 
-                character_count["additions"][character.character_type.value][
-                    character
-                ] = (
-                    character_count["additions"][character.character_type.value][
-                        character
-                    ]
+                character_count["additions"][character.character_type][character] = (
+                    character_count["additions"][character.character_type][character]
                     + 1
                 )
             deletions = views.get_json_additions(
@@ -96,12 +88,8 @@ class WorldCupStatisticsView(generic.TemplateView):
                 except models.Character.DoesNotExist:
                     continue
 
-                character_count["deletions"][character.character_type.value][
-                    character
-                ] = (
-                    character_count["deletions"][character.character_type.value][
-                        character
-                    ]
+                character_count["deletions"][character.character_type][character] = (
+                    character_count["deletions"][character.character_type][character]
                     + 1
                 )
 
