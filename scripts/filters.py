@@ -19,7 +19,7 @@ def get_characters_by_type(type: models.CharacterType):
 
 
 def get_characters_not_in_edition(edition: models.Edition):
-    return models.Character.objects.filter(edition__gte=edition)
+    return models.Character.objects.filter(edition__gt=edition)
 
 
 def filter_by_edition(queryset, value):

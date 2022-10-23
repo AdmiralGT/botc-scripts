@@ -294,7 +294,9 @@ class Translation(BaseCharacterInfo):
         character_json["otherNightReminder"] = (
             self.other_night_reminder if self.other_night_reminder else ""
         )
-        character_json["reminders"] = self.reminders.split(",")
+        character_json["reminders"] = (
+            self.reminders.split(",") if self.reminders else []
+        )
         character_json["ability"] = self.ability
         return character_json
 
