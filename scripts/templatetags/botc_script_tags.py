@@ -60,8 +60,16 @@ def character_type_change(content, counter):
     if counter > 0:
         prev_character_id = content[counter - 1]["id"]
         curr_character_id = content[counter]["id"]
-        prev_character = models.Character.objects.get(character_id=prev_character_id)
-        curr_character = models.Character.objects.get(character_id=curr_character_id)
+        try:
+            prev_character = models.Character.objects.get(
+                character_id=prev_character_id
+            )
+            curr_character = models.Character.objects.get(
+                character_id=curr_character_id
+            )
+        except models.Character.DoesNotExist:
+            return False
+
         if prev_character and curr_character:
             if prev_character.character_type != curr_character.character_type:
                 return True
