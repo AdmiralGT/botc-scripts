@@ -358,7 +358,7 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "markdown"
-version = "3.4.1"
+version = "3.4"
 description = "Python implementation of Markdown."
 category = "main"
 optional = false
@@ -368,7 +368,7 @@ python-versions = ">=3.7"
 importlib-metadata = {version = ">=4.4", markers = "python_version < \"3.10\""}
 
 [package.extras]
-testing = ["pyyaml", "coverage"]
+testing = ["coverage", "pyyaml"]
 
 [[package]]
 name = "mypy"
@@ -658,7 +658,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "flake8 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f381e579faec924a162ded979458ab265e1a63f29edcba6af265feb2b0688e5c"
+content-hash = "aa63e3c0374465f17b13de5a459acedb3390f0d4372d4514f5342246eeafe18d"
 
 [metadata.files]
 asgiref = [
@@ -877,7 +877,10 @@ isort = [
     {file = "isort-5.10.1-py3-none-any.whl", hash = "sha256:6f62d78e2f89b4500b080fe3a81690850cd254227f27f75c3a0c491a1f351ba7"},
     {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
 ]
-markdown = []
+markdown = [
+    {file = "Markdown-3.4-py3-none-any.whl", hash = "sha256:e90f851d4b0f788ee2e9c352205d8a592fd0c713ca6b934f87b81bc14d24dab7"},
+    {file = "Markdown-3.4.tar.gz", hash = "sha256:03078d25ed76dd9d2a803e5708ddb1c4ec3a5ed7654bc882e032364f09c184d5"},
+]
 mypy = [
     {file = "mypy-0.982-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:5085e6f442003fa915aeb0a46d4da58128da69325d8213b4b35cc7054090aed5"},
     {file = "mypy-0.982-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:41fd1cf9bc0e1c19b9af13a6580ccb66c381a5ee2cf63ee5ebab747a4badeba3"},
