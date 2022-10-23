@@ -139,12 +139,13 @@ def get_comments(script: models.Script) -> Dict:
     return comments
 
 
-def count_character(
-    script_content: Dict, character_type: characters.CharacterType
-) -> int:
+def count_character(script_content: Dict, character_type: models.CharacterType) -> int:
     count = 0
     for json_entry in script_content:
-        character = characters.Character.get(json_entry.get("id"))
+        try:
+            character = models.Character.objects.get(character_id=json_entry.get("id"))
+        except models.Character.DoesNotExist:
+            character = None
         if character and character.character_type == character_type:
             count += 1
     return count
@@ -376,12 +377,12 @@ class ScriptUploadView(generic.FormView):
                         # as the latest, that's still the current latest.
                         is_latest = False
 
-        num_townsfolk = count_character(json, characters.CharacterType.TOWNSFOLK)
-        num_outsiders = count_character(json, characters.CharacterType.OUTSIDER)
-        num_minions = count_character(json, characters.CharacterType.MINION)
-        num_demons = count_character(json, characters.CharacterType.DEMON)
-        num_fabled = count_character(json, characters.CharacterType.FABLED)
-        num_travellers = count_character(json, characters.CharacterType.TRAVELLER)
+        num_townsfolk = count_character(json, models.CharacterType.TOWNSFOLK)
+        num_outsiders = count_character(json, models.CharacterType.OUTSIDER)
+        num_minions = count_character(json, models.CharacterType.MINION)
+        num_demons = count_character(json, models.CharacterType.DEMON)
+        num_fabled = count_character(json, models.CharacterType.FABLED)
+        num_travellers = count_character(json, models.CharacterType.TRAVELLER)
 
         # Create the Script Version object from the form.
         if form.cleaned_data.get("notes", None):
