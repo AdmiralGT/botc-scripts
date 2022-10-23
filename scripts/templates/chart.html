@@ -1,0 +1,31 @@
+$(document).ready(function() {
+    var ctx = document.getElementById('{{ChartName}}').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [{% for number in ChartDictionary %}'{{number}}',{% endfor %}],
+            datasets: [{
+                label: '{{ChartLabel}}',
+                data: [{% for count in ChartDictionary.values %}{{count}},{% endfor %}],
+                backgroundColor: [{% for number in ChartDictionary %}
+                    '{{ChartColor}}', 
+                    {% endfor %}
+                ],
+                borderColor: [{% for number in ChartDictionary %}
+                    '{{ChartBorder}}', 
+                    {% endfor %}
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+});

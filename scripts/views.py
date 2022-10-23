@@ -7,11 +7,13 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect
+from django.db.models import Case, When, Count
+from django.http import FileResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
+from django.shortcuts import render
 from versionfield import Version
 
 from scripts import (
@@ -22,6 +24,7 @@ from scripts import (
     tables,
 )
 from collections import Counter
+from django.contrib.postgres.search import TrigramSimilarity
 
 from typing import Dict, Any, List, Optional
 
@@ -134,6 +137,17 @@ def get_comments(script: models.Script) -> Dict:
     for comment in script.comments.filter(parent__isnull=True).order_by("created"):
         comments.extend(get_comment_data(comment, 0))
     return comments
+
+
+def count_character(
+    script_content: Dict, character_type: characters.CharacterType
+) -> int:
+    count = 0
+    for json_entry in script_content:
+        character = characters.Character.get(json_entry.get("id"))
+        if character and character.character_type == character_type:
+            count += 1
+    return count
 
 
 class ScriptView(generic.DetailView):
@@ -337,25 +351,37 @@ class ScriptUploadView(generic.FormView):
                 return super().form_valid(form)
             except models.ScriptVersion.DoesNotExist:
                 # This is not an existing version.
-                if script.latest_version().content == json:
-                    # The content hasn't change from the latest version, so just update
-                    # that.
-                    update_script(script.latest_version(), form.cleaned_data, author)
-                    self.script_version = script.latest_version()
-                    return super().form_valid(form)
-                if (
-                    Version(form.cleaned_data["version"])
-                    > script.latest_version().version
-                ):
-                    # This is newer than the latest version, so set that
-                    # version to not be latest.
-                    latest_version = script.latest_version()
-                    latest_version.latest = False
-                    latest_version.save()
-                else:
-                    # We're uploading an older version, so don't mark this version
-                    # as the latest, that's still the current latest.
-                    is_latest = False
+                if script.latest_version():
+                    # We need to protect this code against instances where a script doesn't
+                    # have a latest version.
+                    if script.latest_version().content == json:
+                        # The content hasn't change from the latest version, so just update
+                        # that.
+                        update_script(
+                            script.latest_version(), form.cleaned_data, author
+                        )
+                        self.script_version = script.latest_version()
+                        return super().form_valid(form)
+                    if (
+                        Version(form.cleaned_data["version"])
+                        > script.latest_version().version
+                    ):
+                        # This is newer than the latest version, so set that
+                        # version to not be latest.
+                        latest_version = script.latest_version()
+                        latest_version.latest = False
+                        latest_version.save()
+                    else:
+                        # We're uploading an older version, so don't mark this version
+                        # as the latest, that's still the current latest.
+                        is_latest = False
+
+        num_townsfolk = count_character(json, characters.CharacterType.TOWNSFOLK)
+        num_outsiders = count_character(json, characters.CharacterType.OUTSIDER)
+        num_minions = count_character(json, characters.CharacterType.MINION)
+        num_demons = count_character(json, characters.CharacterType.DEMON)
+        num_fabled = count_character(json, characters.CharacterType.FABLED)
+        num_travellers = count_character(json, characters.CharacterType.TRAVELLER)
 
         # Create the Script Version object from the form.
         if form.cleaned_data.get("notes", None):
@@ -368,6 +394,12 @@ class ScriptUploadView(generic.FormView):
                 author=author,
                 notes=form.cleaned_data["notes"],
                 latest=is_latest,
+                num_townsfolk=num_townsfolk,
+                num_outsiders=num_outsiders,
+                num_minions=num_minions,
+                num_demons=num_demons,
+                num_fabled=num_fabled,
+                num_travellers=num_travellers,
             )
         else:
             self.script_version = models.ScriptVersion.objects.create(
@@ -378,16 +410,25 @@ class ScriptUploadView(generic.FormView):
                 pdf=form.cleaned_data["pdf"],
                 author=author,
                 latest=is_latest,
+                num_townsfolk=num_townsfolk,
+                num_outsiders=num_outsiders,
+                num_minions=num_minions,
+                num_demons=num_demons,
+                num_fabled=num_fabled,
+                num_travellers=num_travellers,
             )
         self.script_version.tags.set(form.cleaned_data["tags"])
 
         return super().form_valid(form)
 
 
-class StatisticsView(generic.TemplateView):
+class StatisticsView(generic.ListView, FilterView):
+    model = models.ScriptVersion
     template_name = "statistics.html"
+    filterset_class = filters.StatisticsFilter
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        self.object_list = super().get_queryset()
         context = super().get_context_data(**kwargs)
         stats_character = None
         characters_to_display = 5
@@ -397,24 +438,25 @@ class StatisticsView(generic.TemplateView):
         else:
             queryset = models.ScriptVersion.objects.filter(latest=True)
 
-        if "character" in kwargs:
+        if self.request.user.is_authenticated:
+            context["filter"] = self.get_filterset(self.get_filterset_class())
+            if "is_owner" in self.request.GET:
+                queryset = queryset.filter(script__owner=self.request.user)
+
+        if "character" in self.kwargs:
             try:
                 stats_character = models.Character.objects.get(
                     character_id=kwargs.get("character")
                 )
-                queryset = queryset.filter(
-                    content__contains=[{"id": stats_character.character_id}]
-                )
             except models.Character.DoesNotExist:
                 raise Http404()
-        elif "tags" in kwargs:
-            tags = models.ScriptTag.objects.get(pk=kwargs.get("tags"))
+        elif "tags" in self.kwargs:
+            tags = models.ScriptTag.objects.get(pk=self.kwargs.get("tags"))
             if tags:
                 queryset = models.ScriptVersion.objects.filter(tags__in=[tags])
 
         if "tags" in self.request.GET:
             try:
-                int(self.request.GET.get("tags"))
                 tags = models.ScriptTag.objects.get(pk=self.request.GET.get("tags"))
                 if tags:
                     queryset = queryset.filter(tags__in=[tags])
@@ -423,7 +465,6 @@ class StatisticsView(generic.TemplateView):
 
         if "num" in self.request.GET:
             try:
-                int(self.request.GET.get("num"))
                 if int(self.request.GET.get("num")):
                     characters_to_display = int(self.request.GET.get("num"))
                     if characters_to_display < 1:
@@ -441,8 +482,11 @@ class StatisticsView(generic.TemplateView):
         context["total"] = queryset.count()
 
         character_count = {}
+        num_count = {}
         for type in models.CharacterType:
             character_count[type.value] = Counter()
+            num_count[type.value] = Counter()
+
         for character in models.Character.objects.all():
             # If we're on a Character Statistics page, don't include this character in the count.
             if character == stats_character:
@@ -459,6 +503,46 @@ class StatisticsView(generic.TemplateView):
             context[type.value + "least"] = character_count[type.value].most_common()[
                 : ((characters_to_display + 1) * -1) : -1
             ]
+
+        townsfolk = queryset.order_by("num_townsfolk")
+        for i in range(
+            townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1
+        ):
+            num_count[models.CharacterType.TOWNSFOLK.value][str(i)] = queryset.filter(
+                num_townsfolk=i
+            ).count()
+        outsider = queryset.order_by("num_outsiders")
+        for i in range(
+            outsider.first().num_outsiders, outsider.last().num_outsiders + 1
+        ):
+            num_count[models.CharacterType.OUTSIDER.value][str(i)] = queryset.filter(
+                num_outsiders=i
+            ).count()
+        minion = queryset.order_by("num_minions")
+        for i in range(minion.first().num_minions, minion.last().num_minions + 1):
+            num_count[models.CharacterType.MINION.value][str(i)] = queryset.filter(
+                num_minions=i
+            ).count()
+        demon = queryset.order_by("num_demons")
+        for i in range(demon.first().num_demons, demon.last().num_demons + 1):
+            num_count[models.CharacterType.DEMON.value][str(i)] = queryset.filter(
+                num_demons=i
+            ).count()
+        traveller = queryset.order_by("num_travellers")
+        for i in range(
+            traveller.first().num_travellers, traveller.last().num_travellers + 1
+        ):
+            num_count[models.CharacterType.TRAVELLER.value][str(i)] = queryset.filter(
+                num_travellers=i
+            ).count()
+        fabled = queryset.order_by("num_fabled")
+        for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1):
+            num_count[models.CharacterType.FABLED.value][str(i)] = queryset.filter(
+                num_fabled=i
+            ).count()
+        for type in models.CharacterType:
+            num_count[type.value] = dict(num_count[type.value])
+        context["num_count"] = num_count
 
         return context
 
@@ -769,3 +853,178 @@ class CommentDeleteView(LoginRequiredMixin, generic.View):
         comment.delete()
         messages.success(request, "comments-tab")
         return HttpResponseRedirect(success_url)
+
+
+class AdvancedSearchResultsView(SingleTableView):
+    model = models.ScriptVersion
+    template_name = "scriptlist.html"
+    table_pagination = {"per_page": 20}
+    ordering = ["-pk"]
+    script_view = None
+
+    def get_queryset(self):
+        if self.request.session.get("queryset"):
+            ids = self.request.session.get("queryset")
+            order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
+            queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
+            return queryset
+        elif self.request.session.get("num_results") == 0:
+            return models.ScriptVersion.objects.none()
+        else:
+            return models.ScriptVersion.objects.all()
+
+    def get_table_class(self):
+        if self.request.user.is_authenticated:
+            return tables.UserScriptTable
+        return tables.ScriptTable
+
+
+class AdvancedSearchView(generic.FormView, SingleTableMixin):
+    template_name = "advanced_search.html"
+    form_class = forms.AdvancedSearchForm
+    script_version = None
+
+    def get_form(self):
+        townsfolk = models.ScriptVersion.objects.all().order_by("num_townsfolk")
+        townsfolk_choices = [
+            (i, i)
+            for i in range(
+                townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1
+            )
+        ]
+        outsider = models.ScriptVersion.objects.all().order_by("num_outsiders")
+        outsider_choices = [
+            (i, i)
+            for i in range(
+                outsider.first().num_outsiders, outsider.last().num_outsiders + 1
+            )
+        ]
+        minion = models.ScriptVersion.objects.all().order_by("num_minions")
+        minion_choices = [
+            (i, i)
+            for i in range(minion.first().num_minions, minion.last().num_minions + 1)
+        ]
+        demon = models.ScriptVersion.objects.all().order_by("num_demons")
+        demon_choices = [
+            (i, i) for i in range(demon.first().num_demons, demon.last().num_demons + 1)
+        ]
+        fabled = models.ScriptVersion.objects.all().order_by("num_fabled")
+        fabled_choices = [
+            (i, i)
+            for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1)
+        ]
+        travellers = models.ScriptVersion.objects.all().order_by("num_travellers")
+        traveller_choices = [
+            (i, i)
+            for i in range(
+                travellers.first().num_travellers, travellers.last().num_travellers + 1
+            )
+        ]
+        travellers = travellers.last()
+
+        return forms.AdvancedSearchForm(
+            townsfolk_choices=townsfolk_choices,
+            outsider_choices=outsider_choices,
+            minion_choices=minion_choices,
+            demon_choices=demon_choices,
+            fabled_choices=fabled_choices,
+            traveller_choices=traveller_choices,
+            **self.get_form_kwargs(),
+        )
+
+    def form_valid(self, form):
+        all_scripts = form.cleaned_data.get("all_scripts", False)
+        if all_scripts:
+            queryset = models.ScriptVersion.objects.all()
+        else:
+            queryset = models.ScriptVersion.objects.filter(latest=True)
+
+        if form.cleaned_data.get("name"):
+            queryset = queryset.annotate(
+                name_similarity=TrigramSimilarity(
+                    "script__name", form.cleaned_data.get("name")
+                )
+            )
+            queryset = queryset.filter(name_similarity__gt=0).order_by(
+                "-name_similarity"
+            )
+        if form.cleaned_data.get("author"):
+            queryset = queryset.annotate(
+                author_similarity=TrigramSimilarity(
+                    "author", form.cleaned_data.get("author")
+                )
+            )
+            queryset = queryset.filter(author_similarity__gt=0).order_by(
+                "-author_similarity"
+            )
+
+        if form.cleaned_data.get("includes_characters"):
+            queryset = filters.include_characters(
+                queryset, form.cleaned_data.get("includes_characters")
+            )
+        if form.cleaned_data.get("excludes_characters"):
+            queryset = filters.exclude_characters(
+                queryset, form.cleaned_data.get("excludes_characters")
+            )
+
+        queryset = filters.filter_by_edition(queryset, form.cleaned_data.get("edition"))
+        tag_combination = form.cleaned_data.get("tag_combinations")
+        if tag_combination == "AND":
+            for tag in form.cleaned_data.get("tags"):
+                queryset = queryset.filter(tags=tag)
+        else:
+            if form.cleaned_data.get("tags"):
+                queryset = queryset.filter(tags__in=form.cleaned_data.get("tags"))
+
+        if form.cleaned_data.get("number_of_townsfolk"):
+            queryset = queryset.filter(
+                num_townsfolk__in=form.cleaned_data.get("number_of_townsfolk")
+            )
+
+        if form.cleaned_data.get("number_of_outsiders"):
+            queryset = queryset.filter(
+                num_outsiders__in=form.cleaned_data.get("number_of_outsiders")
+            )
+
+        if form.cleaned_data.get("number_of_minions"):
+            queryset = queryset.filter(
+                num_minions__in=form.cleaned_data.get("number_of_minions")
+            )
+
+        if form.cleaned_data.get("number_of_demons"):
+            queryset = queryset.filter(
+                num_demons__in=form.cleaned_data.get("number_of_demons")
+            )
+
+        if form.cleaned_data.get("number_of_fabled"):
+            queryset = queryset.filter(
+                num_fabled__in=form.cleaned_data.get("number_of_fabled")
+            )
+
+        if form.cleaned_data.get("number_of_travellers"):
+            queryset = queryset.filter(
+                num_travellers__in=form.cleaned_data.get("number_of_travellers")
+            )
+
+        if form.cleaned_data.get("minimum_number_of_likes"):
+            queryset = queryset.annotate(score=Count("votes"))
+            queryset = queryset.filter(
+                score__gte=form.cleaned_data.get("minimum_number_of_likes")
+            )
+
+        if form.cleaned_data.get("minimum_number_of_favourites"):
+            queryset = queryset.annotate(num_favs=Count("favourites"))
+            queryset = queryset.filter(
+                num_favs__gte=form.cleaned_data.get("minimum_number_of_favourites")
+            )
+
+        if form.cleaned_data.get("minimum_number_of_comments"):
+            queryset = queryset.annotate(num_comments=Count("script__comments"))
+            queryset = queryset.filter(
+                num_comments__gte=form.cleaned_data.get("minimum_number_of_comments")
+            )
+
+        self.request.session["queryset"] = list(queryset.values_list("pk", flat=True))
+        if len(self.request.session["queryset"]) == 0:
+            self.request.session["num_results"] = 0
+        return redirect("/script/search/results")

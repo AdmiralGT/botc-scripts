@@ -1,6 +1,7 @@
 import re
 
 import django_filters
+from django_filters import rest_framework as filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
 
@@ -32,7 +33,23 @@ def annotate_queryset(queryset, field, value):
     return queryset.annotate(similarity=TrigramSimilarity(field, value))
 
 
-class ScriptVersionFilter(django_filters.FilterSet):
+def include_characters(queryset, value):
+    for character in re.split(",|;|:|/| ", value):
+        if character in ",;:/ ":
+            continue
+        queryset = queryset.filter(content__contains=[{"id": character.lower()}])
+    return queryset
+
+
+def exclude_characters(queryset, value):
+    for character in re.split(",|;|:|/| ", value):
+        if character in ",;:/ ":
+            continue
+        queryset = queryset.exclude(content__contains=[{"id": character.lower()}])
+    return queryset
+
+
+class ScriptVersionFilter(filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
         method="display_all_scripts",
         widget=forms.CheckboxInput,
@@ -51,7 +68,7 @@ class ScriptVersionFilter(django_filters.FilterSet):
         widget=forms.CheckboxSelectMultiple,
     )
     edition = django_filters.filters.ChoiceFilter(
-        field_name=None,
+        label="Edition",
         method="filter_edition",
         choices=edition_choices,
     )
@@ -62,18 +79,10 @@ class ScriptVersionFilter(django_filters.FilterSet):
         return queryset
 
     def include_characters(self, queryset, name, value):
-        for character in re.split(",|;|:|/| ", value):
-            if character in ",;:/ ":
-                continue
-            queryset = queryset.filter(content__contains=[{"id": character.lower()}])
-        return queryset
+        return include_characters(queryset, value)
 
     def exclude_characters(self, queryset, name, value):
-        for character in re.split(",|;|:|/| ", value):
-            if character in ",;:/ ":
-                continue
-            queryset = queryset.exclude(content__contains=[{"id": character.lower()}])
-        return queryset
+        return exclude_characters(queryset, value)
 
     def search_scripts(self, queryset, name, value):
         queryset = annotate_queryset(queryset, "script__name", value)
@@ -142,6 +151,34 @@ class CollectionFilter(
         super(django_filters.FilterSet, self).__init__(*args, **kwargs)
         if kwargs.get("data") and kwargs.get("data").get("is_owner") == "on":
             self.queryset = models.Collection.objects.filter(owner=self.request.user)
+
+    def is_owner_function(self, queryset, name, value):
+        """
+        This function exists so that we can use a non-model field. The queryset was already
+        altered in the __init__ function.
+        """
+        return queryset
+
+
+class StatisticsFilter(
+    django_filters.FilterSet, django_filters.filters.QuerySetRequestMixin
+):
+    is_owner = django_filters.filters.BooleanFilter(
+        widget=forms.CheckboxInput, label="My Scripts only", method="is_owner_function"
+    )
+
+    class Meta:
+        model = models.ScriptVersion
+        fields = [
+            "is_owner",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super(django_filters.FilterSet, self).__init__(*args, **kwargs)
+        if kwargs.get("data") and kwargs.get("data").get("is_owner") == "on":
+            self.queryset = models.ScriptVersion.objects.filter(
+                script__owner=self.request.user
+            )
 
     def is_owner_function(self, queryset, name, value):
         """

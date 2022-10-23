@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% load bootstrap4 %}
+{% load botc_script_tags %}
+
+{% block content %}
+
+<h1>Round 2</h1>
+{% include "worldcup/fixturetable.html" with round=round2 %}
+
+<h1>Round 1</h1>
+{% include "worldcup/fixturetable.html" with round=round1 %}
+
+{% endblock %}

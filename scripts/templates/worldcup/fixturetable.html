@@ -1,0 +1,31 @@
+<div class="container w-100 p-0">
+    <div class="row p-0">
+        <div class="table-striped w-100 p-0">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="text-center col-sm-5">
+                            Script 1
+                        </th>
+                        <th class="col-sm-1">
+                        </th>
+                        <th class="text-center col-sm-5">
+                            Script 2
+                        </th>
+                        <th class="text-center col-sm-2">
+                            VoD
+                        </th>
+                        <th class="text-center col-sm-1">
+                            Voting Link
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in round %}
+                        {% include "worldcup/fixturerow.html" %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div> 
+    </div>
+</div>  

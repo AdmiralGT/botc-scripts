@@ -92,6 +92,12 @@ class ScriptVersion(models.Model):
     tags = models.ManyToManyField(ScriptTag, blank=True)
     created = models.DateTimeField(auto_now=True)
     notes = models.TextField(blank=True)
+    num_townsfolk = models.IntegerField()
+    num_outsiders = models.IntegerField()
+    num_minions = models.IntegerField()
+    num_demons = models.IntegerField()
+    num_fabled = models.IntegerField()
+    num_travellers = models.IntegerField()
 
     objects = ScriptViewManager()
 

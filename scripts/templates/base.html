@@ -8,6 +8,10 @@
 <!doctype html>
 <html class="h-100">
 
+<head>
+    <meta name="google-site-verification" content="e7R5G0n4MYvX8KBMqBcy6QS-0sLf-10F6Fp3CULDhVI" />
+</head>
+
 <body class="d-flex flex-column h-100">
     <nav class="navbar sticky-top navbar-expand-sm navbar-dark bg-dark">
         <a class="navbar-brand">BotC Scripts</a>
@@ -15,6 +19,9 @@
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/script/search">Search</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/script/upload">Upload</a>
@@ -37,8 +44,14 @@
                     <a class="nav-link" href="/collections">Collections</a>
                 </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="/worldcup">🏆 World Cup</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="worldcupDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        🏆 World Cup
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="worldcupDropdown">
+                        <a class="dropdown-item" href="/worldcup">Fixtures</a>
+                        <a class="dropdown-item" href="/worldcup/statistics">Statistics</a>
+                    </div>
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
