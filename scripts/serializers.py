@@ -10,7 +10,7 @@ class ScriptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.ScriptVersion
-        fields = ["pk", "name", "version", "content", "score"]
+        fields = ["pk", "name", "version", "author", "content", "score"]
 
 
 class TranslationSerializer(serializers.ModelSerializer):
