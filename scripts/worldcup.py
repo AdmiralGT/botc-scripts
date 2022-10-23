@@ -1,5 +1,5 @@
 from django.views import generic
-from scripts import models, views, characters
+from scripts import models, views
 from typing import Dict, Any
 from collections import Counter
 
@@ -47,18 +47,14 @@ class WorldCupStatisticsView(generic.TemplateView):
         character_count = {}
         character_count["additions"] = {}
         character_count["deletions"] = {}
-        for type in characters.CharacterType:
+        for type in models.CharacterType:
             character_count["additions"][type.value] = Counter()
             character_count["deletions"][type.value] = Counter()
-            for character in characters.Character:
+            for character in models.Character.objects.all():
                 if character.character_type != type:
                     continue
-                character_count["additions"][character.character_type.value][
-                    character
-                ] = 0
-                character_count["deletions"][character.character_type.value][
-                    character
-                ] = 0
+                character_count["additions"][character.character_type][character] = 0
+                character_count["deletions"][character.character_type][character] = 0
 
         for round_of_32 in queryset:
             round_of_64 = round_of_32.script.versions.get(tags=5)
@@ -68,13 +64,15 @@ class WorldCupStatisticsView(generic.TemplateView):
             for addition in additions:
                 if addition.get("id", "_meta") == "_meta":
                     pass
-                character = characters.Character.get(addition.get("id"))
-                character_count["additions"][character.character_type.value][
-                    character
-                ] = (
-                    character_count["additions"][character.character_type.value][
-                        character
-                    ]
+                try:
+                    character = models.Character.objects.get(
+                        character_id=addition.get("id")
+                    )
+                except models.Character.DoesNotExist:
+                    continue
+
+                character_count["additions"][character.character_type][character] = (
+                    character_count["additions"][character.character_type][character]
                     + 1
                 )
             deletions = views.get_json_additions(
@@ -83,17 +81,19 @@ class WorldCupStatisticsView(generic.TemplateView):
             for deletion in deletions:
                 if deletion.get("id", "_meta") == "_meta":
                     pass
-                character = characters.Character.get(deletion.get("id"))
-                character_count["deletions"][character.character_type.value][
-                    character
-                ] = (
-                    character_count["deletions"][character.character_type.value][
-                        character
-                    ]
+                try:
+                    character = models.Character.objects.get(
+                        character_id=deletion.get("id")
+                    )
+                except models.Character.DoesNotExist:
+                    continue
+
+                character_count["deletions"][character.character_type][character] = (
+                    character_count["deletions"][character.character_type][character]
                     + 1
                 )
 
-        for type in characters.CharacterType:
+        for type in models.CharacterType:
             context[type.value + "addition"] = character_count["additions"][
                 type.value
             ].most_common(characters_to_display)

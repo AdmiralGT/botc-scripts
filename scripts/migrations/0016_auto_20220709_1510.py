@@ -3,7 +3,7 @@
 from django.db import migrations, models
 
 from scripts.views import count_character
-from scripts.characters import CharacterType
+from scripts.models import CharacterType
 
 
 def update_existing_script_number_fields(apps, schema_editor):

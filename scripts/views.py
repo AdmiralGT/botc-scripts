@@ -16,11 +16,17 @@ from django_tables2.views import SingleTableMixin, SingleTableView
 from django.shortcuts import render
 from versionfield import Version
 
-from scripts import filters, forms, models, script_json, tables, characters
+from scripts import (
+    filters,
+    forms,
+    models,
+    script_json,
+    tables,
+)
 from collections import Counter
 from django.contrib.postgres.search import TrigramSimilarity
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -133,12 +139,13 @@ def get_comments(script: models.Script) -> Dict:
     return comments
 
 
-def count_character(
-    script_content: Dict, character_type: characters.CharacterType
-) -> int:
+def count_character(script_content: Dict, character_type: models.CharacterType) -> int:
     count = 0
     for json_entry in script_content:
-        character = characters.Character.get(json_entry.get("id"))
+        try:
+            character = models.Character.objects.get(character_id=json_entry.get("id"))
+        except models.Character.DoesNotExist:
+            character = None
         if character and character.character_type == character_type:
             count += 1
     return count
@@ -220,6 +227,11 @@ class ScriptView(generic.DetailView):
         )[:10]
         context["script_version"] = current_script
         context["comments"] = get_comments(current_script.script)
+        context["languages"] = (
+            models.Translation.objects.values_list("language", flat=True)
+            .distinct("language")
+            .order_by("language")
+        )
 
         return context
 
@@ -365,12 +377,12 @@ class ScriptUploadView(generic.FormView):
                         # as the latest, that's still the current latest.
                         is_latest = False
 
-        num_townsfolk = count_character(json, characters.CharacterType.TOWNSFOLK)
-        num_outsiders = count_character(json, characters.CharacterType.OUTSIDER)
-        num_minions = count_character(json, characters.CharacterType.MINION)
-        num_demons = count_character(json, characters.CharacterType.DEMON)
-        num_fabled = count_character(json, characters.CharacterType.FABLED)
-        num_travellers = count_character(json, characters.CharacterType.TRAVELLER)
+        num_townsfolk = count_character(json, models.CharacterType.TOWNSFOLK)
+        num_outsiders = count_character(json, models.CharacterType.OUTSIDER)
+        num_minions = count_character(json, models.CharacterType.MINION)
+        num_demons = count_character(json, models.CharacterType.DEMON)
+        num_fabled = count_character(json, models.CharacterType.FABLED)
+        num_travellers = count_character(json, models.CharacterType.TRAVELLER)
 
         # Create the Script Version object from the form.
         if form.cleaned_data.get("notes", None):
@@ -433,12 +445,14 @@ class StatisticsView(generic.ListView, FilterView):
                 queryset = queryset.filter(script__owner=self.request.user)
 
         if "character" in self.kwargs:
-            if characters.Character.get(self.kwargs.get("character")):
-                stats_character = characters.Character.get(self.kwargs.get("character"))
-                queryset = queryset.filter(
-                    content__contains=[{"id": stats_character.json_id}]
+            try:
+                stats_character = models.Character.objects.get(
+                    character_id=self.kwargs.get("character")
                 )
-            else:
+                queryset = queryset.filter(
+                    content__contains=[{"id": stats_character.character_id}]
+                )
+            except models.Character.DoesNotExist:
                 raise Http404()
         elif "tags" in self.kwargs:
             tags = models.ScriptTag.objects.get(pk=self.kwargs.get("tags"))
@@ -473,19 +487,20 @@ class StatisticsView(generic.ListView, FilterView):
 
         character_count = {}
         num_count = {}
-        for type in characters.CharacterType:
+        for type in models.CharacterType:
             character_count[type.value] = Counter()
             num_count[type.value] = Counter()
-        for character in characters.Character:
+
+        for character in models.Character.objects.all():
             # If we're on a Character Statistics page, don't include this character in the count.
             if character == stats_character:
                 continue
 
-            character_count[character.character_type.value][
-                character
-            ] = queryset.filter(content__contains=[{"id": character.json_id}]).count()
+            character_count[character.character_type][character] = queryset.filter(
+                content__contains=[{"id": character.character_id}]
+            ).count()
 
-        for type in characters.CharacterType:
+        for type in models.CharacterType:
             context[type.value] = character_count[type.value].most_common(
                 characters_to_display
             )
@@ -497,39 +512,39 @@ class StatisticsView(generic.ListView, FilterView):
         for i in range(
             townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1
         ):
-            num_count[characters.CharacterType.TOWNSFOLK.value][
-                str(i)
-            ] = queryset.filter(num_townsfolk=i).count()
+            num_count[models.CharacterType.TOWNSFOLK.value][str(i)] = queryset.filter(
+                num_townsfolk=i
+            ).count()
         outsider = queryset.order_by("num_outsiders")
         for i in range(
             outsider.first().num_outsiders, outsider.last().num_outsiders + 1
         ):
-            num_count[characters.CharacterType.OUTSIDER.value][
-                str(i)
-            ] = queryset.filter(num_outsiders=i).count()
+            num_count[models.CharacterType.OUTSIDER.value][str(i)] = queryset.filter(
+                num_outsiders=i
+            ).count()
         minion = queryset.order_by("num_minions")
         for i in range(minion.first().num_minions, minion.last().num_minions + 1):
-            num_count[characters.CharacterType.MINION.value][str(i)] = queryset.filter(
+            num_count[models.CharacterType.MINION.value][str(i)] = queryset.filter(
                 num_minions=i
             ).count()
         demon = queryset.order_by("num_demons")
         for i in range(demon.first().num_demons, demon.last().num_demons + 1):
-            num_count[characters.CharacterType.DEMON.value][str(i)] = queryset.filter(
+            num_count[models.CharacterType.DEMON.value][str(i)] = queryset.filter(
                 num_demons=i
             ).count()
         traveller = queryset.order_by("num_travellers")
         for i in range(
             traveller.first().num_travellers, traveller.last().num_travellers + 1
         ):
-            num_count[characters.CharacterType.TRAVELLER.value][
-                str(i)
-            ] = queryset.filter(num_travellers=i).count()
+            num_count[models.CharacterType.TRAVELLER.value][str(i)] = queryset.filter(
+                num_travellers=i
+            ).count()
         fabled = queryset.order_by("num_fabled")
         for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1):
-            num_count[characters.CharacterType.FABLED.value][str(i)] = queryset.filter(
+            num_count[models.CharacterType.FABLED.value][str(i)] = queryset.filter(
                 num_fabled=i
             ).count()
-        for type in characters.CharacterType:
+        for type in models.CharacterType:
             num_count[type.value] = dict(num_count[type.value])
         context["num_count"] = num_count
 
@@ -584,10 +599,45 @@ def favourite_script(request, pk: int, version: str) -> None:
     return redirect(request.POST["next"])
 
 
-def download_json(request, pk: int, version: str) -> FileResponse:
+def translate_character(character_id: str, language: str) -> Dict:
+    try:
+        character = models.Character.objects.get(character_id=character_id)
+    except models.Character.DoesNotExist:
+        return {}
+
+    original_character = character.full_character_json()
+    try:
+        translation = models.Translation.objects.get(
+            character_id=character_id, language=language
+        )
+        translated_character = translation.full_character_json()
+    except models.Translation.DoesNotExist:
+        return original_character
+
+    return_object = {**original_character, **translated_character}
+    return return_object
+
+
+def translate_json_content(json_content: List, language: str):
+    translated_content = []
+    for character_id in json_content:
+        translated_content.append(
+            translate_character(character_id.get("id").replace("_", ""), language)
+        )
+    return translated_content
+
+
+def download_json(
+    request, pk: int, version: str, language: Optional[str] = None
+) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     json_content = js.JSONEncoder().encode(script_version.content)
+    if language or request.GET.get("language_select"):
+        language = language if language else request.GET.get("language_select")
+        if language != "en_GB":
+            json_content = translate_json_content(script_version.content, language)
+            json_content = js.JSONEncoder(ensure_ascii=False).encode(json_content)
     temp_file = TemporaryFile()
     temp_file.write(json_content.encode("utf-8"))
     temp_file.flush()
