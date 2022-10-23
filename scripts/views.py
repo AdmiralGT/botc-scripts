@@ -447,7 +447,10 @@ class StatisticsView(generic.ListView, FilterView):
         if "character" in self.kwargs:
             try:
                 stats_character = models.Character.objects.get(
-                    character_id=kwargs.get("character")
+                    character_id=self.kwargs.get("character")
+                )
+                queryset = queryset.filter(
+                    content__contains=[{"id": stats_character.character_id}]
                 )
             except models.Character.DoesNotExist:
                 raise Http404()
