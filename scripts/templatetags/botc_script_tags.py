@@ -117,4 +117,9 @@ def get_language_name(locale: str):
     try:
         return Locale.parse(locale).display_name
     except UnknownLocaleError:
+        if locale == "ja_JA":
+            return get_language_name("ja_JP")
+        elif locale == "kw_KW":
+            return get_language_name("ar_KW")
+
         return locale

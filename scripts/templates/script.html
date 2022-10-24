@@ -62,15 +62,17 @@
     <div class="col-md-auto h-100 p-0">
         <form class="form-inline mt-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
             <div class="col-md-auto h-100 p-1 pt-0">
-                <select class="custom-select" name="language_select">
-                    <option value="en_GB" selected>English</option>
-                    {% for language in languages %}
-                        <option value={{ language }}>{% get_language_name language %}</option>
-                    {% endfor %}
-                </select>
-            </div>  
-            <div class="col-md-auto h-100 p-1 pt-0">
-                <button type="submit" class="btn btn-primary">Download JSON</button>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Download JSON</button>
+                    <button type="submit" class="btn btn-primary dropdown-toggle dropdown-toggle-split" id="downloadJsonButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="downloadJsonButton">
+                        {% for language in languages %}
+                            <button type="submit" class="dropdown-item" name="language_select" value={{ language }}>{% get_language_name language %}</a>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
         </form>
     </div>  

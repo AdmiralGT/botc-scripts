@@ -635,9 +635,8 @@ def download_json(
     json_content = js.JSONEncoder().encode(script_version.content)
     if language or request.GET.get("language_select"):
         language = language if language else request.GET.get("language_select")
-        if language != "en_GB":
-            json_content = translate_json_content(script_version.content, language)
-            json_content = js.JSONEncoder(ensure_ascii=False).encode(json_content)
+        json_content = translate_json_content(script_version.content, language)
+        json_content = js.JSONEncoder(ensure_ascii=False).encode(json_content)
     temp_file = TemporaryFile()
     temp_file.write(json_content.encode("utf-8"))
     temp_file.flush()
