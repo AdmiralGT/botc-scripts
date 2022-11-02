@@ -59,8 +59,8 @@ def character_colourisation(character_id):
 @register.simple_tag()
 def character_type_change(content, counter):
     if counter > 0:
-        prev_character_id = content[counter - 1]["id"]
-        curr_character_id = content[counter]["id"]
+        prev_character_id = content[counter - 1].get("id", None)
+        curr_character_id = content[counter].get("id", None)
         try:
             prev_character = models.Character.objects.get(
                 character_id=prev_character_id

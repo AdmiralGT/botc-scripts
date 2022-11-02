@@ -96,23 +96,23 @@ def get_json_additions(old_json, new_json):
     return new_json
 
 
-def get_similarity(json1: Dict, json2: Dict, same_type: bool) -> int:
+def get_similarity(json1: List, json2: List, same_type: bool) -> int:
     similarity = 0
     similarity_max = max(len(json1), len(json2))
     similarity_min = min(len(json1), len(json2))
     id2_meta = 0
     for id in json1:
-        if id["id"] == "_meta":
+        if id.get("id", "") == "_meta":
             similarity_max = min(similarity_max, len(json1) - 1)
             similarity_min = min(similarity_min, len(json1) - 1)
             continue
         for id2 in json2:
-            if id2["id"] == "_meta":
+            if id2.get("id", "") == "_meta":
                 similarity_max = min(similarity_max, len(json2) - 1)
                 similarity_min = min(similarity_min, len(json2) - 1)
                 id2_meta = 1
                 continue
-            if id["id"] == id2["id"]:
+            if id.get("id", "id1") == id2.get("id", "id2"):
                 similarity += 1
                 break
 
