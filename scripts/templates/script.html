@@ -51,7 +51,6 @@
 <div class="row p-1">
     <div class="col-md-auto p-1">
         <form class="mb-0">
-            {% csrf_token %}
             <select class="custom-select" name="selected_version" onchange="this.form.submit();">
                 {% for versions in script.versions.all|dictsortreversed:"version" %}
                     <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
