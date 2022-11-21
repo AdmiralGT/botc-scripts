@@ -17,7 +17,7 @@ def tagOptions():
 
 
 class ScriptForm(forms.Form):
-    name = forms.CharField(max_length=100, required=False)
+    name = forms.CharField(max_length=100, required=False, label="Script name")
     author = forms.CharField(max_length=30, required=False)
     script_type = forms.ChoiceField(
         choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
