@@ -363,6 +363,7 @@ class ScriptUploadView(generic.FormView):
                         )
                         self.script_version = script.latest_version()
                         return super().form_valid(form)
+
                     if (
                         Version(form.cleaned_data["version"])
                         > script.latest_version().version
