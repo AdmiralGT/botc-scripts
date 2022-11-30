@@ -63,7 +63,7 @@ class Script(models.Model):
     )
 
     def latest_version(self):
-        return self.versions.last()
+        return self.versions.order_by("-version").first()
 
     def __str__(self):
         return f"{self.pk}. {self.name}"
