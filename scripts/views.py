@@ -252,6 +252,8 @@ class ScriptView(generic.DetailView):
             .order_by("language")
         )
 
+        context["can_delete"] = self.request.user == current_script.script.owner
+
         return context
 
 
@@ -441,6 +443,32 @@ class ScriptUploadView(generic.FormView):
             self.script_version.notes = form.cleaned_data["notes"]
             self.script_version.save()
         self.script_version.tags.set(form.cleaned_data["tags"])
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
+    """
+    Deletes a script version.
+    """
+
+    model = models.ScriptVersion
+
+    def delete(self, request, *args, **kwargs):
+        self.object: models.ScriptVersion = self.get_object()
+        script: models.Script = self.object.script
+        if script.owner != request.user:
+            raise Http404("Cannot delete a script you don't own.")
+        self.object.delete()
+
+        if script.versions.count() > 0:
+            latest_version = script.latest_version()
+            latest_version.latest = True
+            latest_version.save()
+            self.success_url = f"/script/{script.pk}"
+        else:
+            script.delete()
+            self.success_url = "/"
 
         return HttpResponseRedirect(self.get_success_url())
 

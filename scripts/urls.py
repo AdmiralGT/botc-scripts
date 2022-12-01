@@ -62,6 +62,11 @@ urlpatterns = [
         name="favourite",
     ),
     path(
+        "script/<int:pk>/<str:version>/delete",
+        views.delete_script,
+        name="delete_script",
+    ),
+    path(
         "script/<int:pk>/<str:version>/download",
         views.download_json,
         name="download_json",

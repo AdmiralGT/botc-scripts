@@ -98,6 +98,11 @@
                 {% endif %}    
             </div>
         {% endif %}
+        {% if can_delete %}
+            <div class="col-md-auto h-100 p-1">
+                <button class="btn btn-danger" data-toggle="modal" data-target="#deletionModal">Delete</button>
+            </div>
+        {% endif %}
         <div class="col-md-auto h-100 p-1">
             {% include "favourite.html" with record=script_version %}
         </div>
@@ -301,5 +306,30 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="deletionModal" tabindex="-1" role="dialog" aria-labelledby="deletionModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletionModalLabel">Delete</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this script?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                <form action="/" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 {% endblock %}
