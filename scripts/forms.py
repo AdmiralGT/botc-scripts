@@ -58,28 +58,39 @@ class ScriptForm(forms.Form):
             # Author is optional so may not be entered or in JSON
             entered_author = cleaned_data.get("author", None)
             json_author = script_json.get_author_from_json(json)
-            if entered_author and json_author:
-                if entered_author != json_author:
-                    raise ValidationError(
-                        f"Entered Author {entered_author} does not match script JSON author {json_author}"
-                    )
 
             entered_name = cleaned_data.get("name", None)
-            json_name = script_json.get_name_from_json(json)
-            if not entered_name and not json_name:
+            if not entered_name:
                 raise ValidationError(
-                    f"No script name provided. A name must be entered or provided in the script JSON"
+                    f"No script name provided. A name must be entered."
                 )
 
-            if json_name and entered_name:
-                if json_name != entered_name:
-                    raise ValidationError(
-                        f"Entered Name {entered_name} does not match script JSON name {json_name}"
-                    )
+            # The script tool currently removes spaces from name and author fields. As such people either
+            # need to manually update the JSON manually or upload with weird names. Temporarily remove
+            # said validation.
+            # if entered_author and json_author:
+            #    if entered_author != json_author:
+            #        raise ValidationError(
+            #            f"Entered Author {entered_author} does not match script JSON author {json_author}."
+            #        )
+
+            # entered_name = cleaned_data.get("name", None)
+            # json_name = script_json.get_name_from_json(json)
+            # if not entered_name and not json_name:
+            #     raise ValidationError(
+            #         f"No script name provided. A name must be entered or provided in the script JSON"
+            #     )
+
+            # if json_name and entered_name:
+            #     if json_name != entered_name:
+            #         raise ValidationError(
+            #             f"Entered Name {entered_name} does not match script JSON name {json_name}"
+            #         )
 
             validators.validate_json(json)
 
-            script_name = json_name if json_name else entered_name
+            # script_name = json_name if json_name else entered_name
+            script_name = entered_name
 
             script = models.Script.objects.get(name=script_name)
 
