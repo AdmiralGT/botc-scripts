@@ -310,10 +310,15 @@ class ScriptUploadView(generic.FormView):
         json = forms.get_json_content(form.cleaned_data)
         is_latest = True
 
+        # Temporarily remove getting information from the _meta fields due to them
+        # not including spaces.
+        # https://github.com/AdmiralGT/botc-scripts/issues/220
+
         # Use the script name from the JSON in preference of the text field.
-        script_name = script_json.get_name_from_json(json)
-        if not script_name:
-            script_name = form.cleaned_data["name"]
+        # script_name = script_json.get_name_from_json(json)
+        # if not script_name:
+        #     script_name = form.cleaned_data["name"]
+        script_name = form.cleaned_data["name"]
 
         # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=script_name)
@@ -332,10 +337,15 @@ class ScriptUploadView(generic.FormView):
             script.owner = user
             script.save()
 
+        # Temporarily remove getting information from the _meta fields due to them
+        # not including spaces.
+        # https://github.com/AdmiralGT/botc-scripts/issues/220
+
         # Use the author in the JSON in preference of the text field.
-        author = script_json.get_author_from_json(json)
-        if not author:
-            author = form.cleaned_data["author"]
+        # author = script_json.get_author_from_json(json)
+        # if not author:
+        #     author = form.cleaned_data["author"]
+        author = form.cleaned_data["author"]
 
         # The user may just be updating some info about an existing script, so let them
         # do that. The form validation should catch that the JSON content is the same.
