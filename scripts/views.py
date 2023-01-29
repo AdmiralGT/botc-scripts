@@ -264,6 +264,8 @@ class ScriptUploadView(generic.FormView):
                 initial["version"] = script_version.version
                 if script_version.notes:
                     initial["notes"] = script_version.notes
+                if script_version.tags:
+                    initial["tags"] = script_version.tags
         return initial
 
     def get_form_kwargs(self):
@@ -359,7 +361,7 @@ class ScriptUploadView(generic.FormView):
                 # JSON content for this script.
                 update_script(script_version, form.cleaned_data, author)
                 self.script_version = script_version
-                return super().form_valid(form)
+                return HttpResponseRedirect(self.get_success_url())
             except models.ScriptVersion.DoesNotExist:
                 # This is not an existing version.
                 if script.latest_version():
@@ -372,7 +374,7 @@ class ScriptUploadView(generic.FormView):
                             script.latest_version(), form.cleaned_data, author
                         )
                         self.script_version = script.latest_version()
-                        return super().form_valid(form)
+                        return HttpResponseRedirect(self.get_success_url())
 
                     if (
                         Version(form.cleaned_data["version"])
@@ -431,7 +433,7 @@ class ScriptUploadView(generic.FormView):
             )
         self.script_version.tags.set(form.cleaned_data["tags"])
 
-        return super().form_valid(form)
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class StatisticsView(generic.ListView, FilterView):

@@ -21,6 +21,14 @@ def user_favourite(context, script_version):
     return "star"
 
 
+@register.simple_tag(takes_context=True)
+def script_has_tag(context, tag, initial):
+    tags = initial.get("tags", None)
+    if tags and tag in tags.all():
+        return True
+    return False
+
+
 @register.simple_tag()
 def script_in_collection(collection, script_version):
     if script_version in collection.scripts.all():

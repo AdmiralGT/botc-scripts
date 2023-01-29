@@ -26,6 +26,7 @@ class TagStyles(models.TextChoices):
     CYAN = "badge-info"
     WHITE = "badge-light"
     BLACK = "badge-dark"
+    PURPLE = "badge-purple"
 
 
 class CharacterType(models.TextChoices):
