@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load bootstrap4 %}
+{% load botc_script_tags %}
 
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
@@ -12,8 +13,25 @@
     <div class="d-flex flex-row">
         <div class="m-1 flex-shrink-0">
             {% bootstrap_form form exclude="notes,tags" form_group_class="form-group m-1" %}
-            {% if form.tags|length > 0 %}
-                {% bootstrap_field form.tags %}
+            {% if form.fields.tags.widget.choices.queryset|length > 0 %}
+            <div class="form-group">
+                    <label>Tags</label>
+                    <div class="checkbox" id="id_tags">
+                        {% for tag in form.fields.tags.widget.choices.queryset %}
+                            <div class="form-check">
+                                <label class="form-check-label pt-1" for="id_tags_{{ forloop.counter0 }}">
+                                    <input class="form-check-input" id="id_tags_{{ forloop.counter0 }}" name="tags" title type="checkbox" value="{{tag.name}}"
+                                    {% script_has_tag tag form.initial as does_script_have_tag %}
+                                    {% if does_script_have_tag %}
+                                        checked="checked"
+                                    {% endif %}
+                                    >
+                                    <span class="badge badge-pill {{ tag.style }} pt-1">{{ tag }}</span>   
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
             {% endif %}
         </div>
         {% if form.notes %}
