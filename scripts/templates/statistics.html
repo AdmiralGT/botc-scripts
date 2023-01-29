@@ -67,6 +67,7 @@
     </div>
 </div>
 
+{% if total > 0 %}
 <div class="container">
     <div class="row">
         <div class="col w-50 pl-0">
@@ -249,5 +250,7 @@
 <canvas id="DemonChart" width="400" height="100"></canvas>  
 <canvas id="TravellerChart" width="400" height="100"></canvas>  
 <canvas id="FabledChart" width="400" height="100"></canvas>  
+
+{% endif %}
 
 {% endblock %}
