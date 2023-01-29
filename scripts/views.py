@@ -266,6 +266,9 @@ class ScriptUploadView(generic.FormView):
                     initial["notes"] = script_version.notes
                 if script_version.tags:
                     initial["tags"] = script_version.tags
+        elif "clocktowercon" in self.request.GET:
+            initial["tags"] = models.ScriptTag.objects.filter(pk="11")
+
         return initial
 
     def get_form_kwargs(self):
