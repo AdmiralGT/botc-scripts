@@ -15,10 +15,10 @@ class WorldCupView(generic.TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
-        round1 = []
         context["round1"] = models.WorldCup.objects.filter(round=1).order_by("pk")
         context["round2"] = models.WorldCup.objects.filter(round=2).order_by("pk")
         context["round3"] = models.WorldCup.objects.filter(round=3).order_by("pk")
+        context["round4"] = models.WorldCup.objects.filter(round=4).order_by("pk")
 
         return context
 
