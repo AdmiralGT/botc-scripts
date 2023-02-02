@@ -72,10 +72,25 @@ class ScriptVersionFilter(filters.FilterSet):
         method="filter_edition",
         choices=edition_choices,
     )
+    mono_demon = django_filters.filters.BooleanFilter(
+        method="filter_mono_demon_scripts",
+        widget=forms.CheckboxInput,
+        label="Mono-Demon Scripts Only",
+    )
 
     def display_all_scripts(self, queryset, name, value):
         if not value:
             return queryset.filter(latest=(not value))
+        return queryset
+
+    def filter_mono_demon_scripts(self, queryset, name, value):
+        if value:
+            return queryset.filter(num_demons=1)
+        return queryset
+
+    def filter_my_scripts(self, queryset, name, value):
+        if value:
+            return queryset.filter(script__owner=self.request.user)
         return queryset
 
     def include_characters(self, queryset, name, value):
@@ -105,6 +120,7 @@ class ScriptVersionFilter(filters.FilterSet):
             "edition",
             "author",
             "tags",
+            "mono_demon",
             "all_scripts",
         ]
 
@@ -112,6 +128,11 @@ class ScriptVersionFilter(filters.FilterSet):
 class FavouriteScriptVersionFilter(ScriptVersionFilter):
     favourites = django_filters.filters.BooleanFilter(
         method="display_favourites", widget=forms.CheckboxInput, label="Favourites"
+    )
+    my_scripts = django_filters.filters.BooleanFilter(
+        method="filter_my_scripts",
+        widget=forms.CheckboxInput,
+        label="My Scripts",
     )
 
     def display_favourites(self, queryset, name, value):
@@ -129,8 +150,10 @@ class FavouriteScriptVersionFilter(ScriptVersionFilter):
             "edition",
             "author",
             "tags",
-            "all_scripts",
+            "mono_demon",
             "favourites",
+            "my_scripts",
+            "all_scripts",
         ]
 
 

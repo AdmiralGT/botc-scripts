@@ -32,10 +32,14 @@ from typing import Dict, Any, List, Optional
 class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
     template_name = "scriptlist.html"
-    filterset_class = filters.ScriptVersionFilter
     table_pagination = {"per_page": 20}
     ordering = ["-pk"]
     script_view = None
+
+    def get_filterset_class(self):
+        if self.request.user.is_authenticated:
+            return filters.FavouriteScriptVersionFilter
+        return filters.ScriptVersionFilter
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
@@ -58,9 +62,7 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     ordering = ["-pk"]
 
     def get_filterset_class(self):
-        if self.script_view == "favourite":
-            return filters.ScriptVersionFilter
-        return filters.FavouriteScriptVersionFilter
+        return filters.ScriptVersionFilter
 
     def get_queryset(self):
         queryset = super(UserScriptsListView, self).get_queryset()
