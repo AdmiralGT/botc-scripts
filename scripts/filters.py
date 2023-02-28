@@ -101,10 +101,22 @@ class ScriptVersionFilter(filters.FilterSet):
 
     def search_scripts(self, queryset, name, value):
         queryset = annotate_queryset(queryset, "script__name", value)
+        try:
+            if "ordering" in self.request.query_params.keys():
+                return queryset.filter(similarity__gt=0.3)
+        except AttributeError:
+            pass
+
         return queryset.filter(similarity__gt=0).order_by("-similarity")
 
     def search_authors(self, queryset, name, value):
         queryset = annotate_queryset(queryset, "author", value)
+        try:
+            if "ordering" in self.request.query_params.keys():
+                return queryset.filter(similarity__gt=0.3)
+        except AttributeError:
+            pass
+
         return queryset.filter(similarity__gt=0.3).order_by("-similarity")
 
     def filter_edition(self, queryset, name, value):
