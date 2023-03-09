@@ -21,6 +21,7 @@ class WorldCupView(generic.TemplateView):
         context["round4"] = models.WorldCup.objects.filter(round=4).order_by("pk")
         context["round5"] = models.WorldCup.objects.filter(round=5).order_by("pk")
         context["round6"] = models.WorldCup.objects.filter(round=6).order_by("pk")
+        context["round7"] = models.WorldCup.objects.filter(round=7).order_by("pk")
 
         return context
 
