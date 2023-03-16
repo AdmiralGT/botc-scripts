@@ -20,6 +20,7 @@ django-allauth = "^0.50.0"
 django-bootstrap-icons = "^0.7.8"
 Babel = "^2.10.3"
 django-markdownify = "^0.9.2"
+fontawesomefree = "^6.3.0"
 
 [tool.poetry.dev-dependencies]
 black = "*"

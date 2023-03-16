@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.discord",
     "markdownify.apps.MarkdownifyConfig",
+    "fontawesomefree",
 ]
 
 MIDDLEWARE = [

@@ -147,10 +147,27 @@ def count_character(script_content: Dict, character_type: models.CharacterType) 
         try:
             character = models.Character.objects.get(character_id=json_entry.get("id"))
         except models.Character.DoesNotExist:
-            character = None
+            continue
         if character and character.character_type == character_type:
             count += 1
     return count
+
+
+def calculate_edition(script_content: Dict) -> int:
+    edition = models.Edition.BASE
+    for json_entry in script_content:
+        try:
+            character = models.Character.objects.get(character_id=json_entry.get("id"))
+        except models.Character.DoesNotExist:
+            continue
+
+        if character and character.edition > edition:
+            edition = character.edition
+
+        if edition == models.Edition.UNRELEASED:
+            return edition
+
+    return edition
 
 
 class ScriptView(generic.DetailView):
@@ -401,41 +418,28 @@ class ScriptUploadView(generic.FormView):
         num_demons = count_character(json, models.CharacterType.DEMON)
         num_fabled = count_character(json, models.CharacterType.FABLED)
         num_travellers = count_character(json, models.CharacterType.TRAVELLER)
+        edition = calculate_edition(json)
 
         # Create the Script Version object from the form.
+        self.script_version = models.ScriptVersion.objects.create(
+            version=form.cleaned_data["version"],
+            script_type=form.cleaned_data["script_type"],
+            content=json,
+            script=script,
+            pdf=form.cleaned_data["pdf"],
+            author=author,
+            latest=is_latest,
+            num_townsfolk=num_townsfolk,
+            num_outsiders=num_outsiders,
+            num_minions=num_minions,
+            num_demons=num_demons,
+            num_fabled=num_fabled,
+            num_travellers=num_travellers,
+            edition=edition,
+        )
         if form.cleaned_data.get("notes", None):
-            self.script_version = models.ScriptVersion.objects.create(
-                version=form.cleaned_data["version"],
-                script_type=form.cleaned_data["script_type"],
-                content=json,
-                script=script,
-                pdf=form.cleaned_data["pdf"],
-                author=author,
-                notes=form.cleaned_data["notes"],
-                latest=is_latest,
-                num_townsfolk=num_townsfolk,
-                num_outsiders=num_outsiders,
-                num_minions=num_minions,
-                num_demons=num_demons,
-                num_fabled=num_fabled,
-                num_travellers=num_travellers,
-            )
-        else:
-            self.script_version = models.ScriptVersion.objects.create(
-                version=form.cleaned_data["version"],
-                script_type=form.cleaned_data["script_type"],
-                content=json,
-                script=script,
-                pdf=form.cleaned_data["pdf"],
-                author=author,
-                latest=is_latest,
-                num_townsfolk=num_townsfolk,
-                num_outsiders=num_outsiders,
-                num_minions=num_minions,
-                num_demons=num_demons,
-                num_fabled=num_fabled,
-                num_travellers=num_travellers,
-            )
+            self.script_version.script.notes = form.cleaned_data["notes"]
+            self.script_version.script.save()
         self.script_version.tags.set(form.cleaned_data["tags"])
 
         return HttpResponseRedirect(self.get_success_url())
@@ -496,8 +500,8 @@ class StatisticsView(generic.ListView, FilterView):
 
         if "edition" in self.request.GET:
             try:
-                edition = models.Edition(self.request.GET.get("edition"))
-                queryset = filters.filter_by_edition(queryset, edition)
+                edition = models.Edition(int(self.request.GET.get("edition")))
+                queryset = queryset.filter(edition=edition)
             except ValueError:
                 pass
 
@@ -990,7 +994,7 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
                 queryset, form.cleaned_data.get("excludes_characters")
             )
 
-        queryset = filters.filter_by_edition(queryset, form.cleaned_data.get("edition"))
+        queryset = queryset.filter(edition=form.cleaned_data.get("edition"))
         tag_combination = form.cleaned_data.get("tag_combinations")
         if tag_combination == "AND":
             for tag in form.cleaned_data.get("tags"):

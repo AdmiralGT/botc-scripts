@@ -22,13 +22,6 @@ def get_characters_not_in_edition(edition: models.Edition):
     return models.Character.objects.filter(edition__gt=edition)
 
 
-def filter_by_edition(queryset, value):
-    edition = models.Edition(int(value))
-    for character in get_characters_not_in_edition(edition):
-        queryset = queryset.exclude(content__contains=[{"id": character.character_id}])
-    return queryset
-
-
 def annotate_queryset(queryset, field, value):
     return queryset.annotate(similarity=TrigramSimilarity(field, value))
 
@@ -69,7 +62,6 @@ class ScriptVersionFilter(filters.FilterSet):
     )
     edition = django_filters.filters.ChoiceFilter(
         label="Edition",
-        method="filter_edition",
         choices=edition_choices,
     )
     mono_demon = django_filters.filters.BooleanFilter(
@@ -118,9 +110,6 @@ class ScriptVersionFilter(filters.FilterSet):
             pass
 
         return queryset.filter(similarity__gt=0.3).order_by("-similarity")
-
-    def filter_edition(self, queryset, name, value):
-        return filter_by_edition(queryset, value)
 
     class Meta:
         model = models.ScriptVersion

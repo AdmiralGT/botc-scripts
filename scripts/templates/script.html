@@ -3,6 +3,7 @@
 {% block content %}
 {% load markdownify %}
 {% load botc_script_tags %}
+{% load bootstrap_icons %}
 
 <script>
     function CopyLink() {
@@ -48,8 +49,8 @@
     </div>
 {% endif %}
 
-<div class="row p-1">
-    <div class="col-md-auto p-1">
+<div class="row">
+    <div class="col-md-auto pt-1 pr-0 h-75">
         <form class="mb-0">
             <select class="custom-select" name="selected_version" onchange="this.form.submit();">
                 {% for versions in script.versions.all|dictsortreversed:"version" %}
@@ -58,9 +59,9 @@
             </select>    
         </form>
     </div>
-    <div class="col-md-auto h-100 p-0">
-        <form class="form-inline mt-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
-            <div class="col-md-auto h-100 p-1 pt-0">
+    <div class="col-md-auto p-0">
+        <form class="form-inline mb-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
+            <div class="col-md-auto p-1 pt-0">
                 <div class="btn-group">
                     <button type="submit" class="btn btn-primary">Download JSON</button>
                     <button type="submit" class="btn btn-primary dropdown-toggle dropdown-toggle-split" id="downloadJsonButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -76,32 +77,59 @@
         </form>
     </div>  
     {% if script_version.pdf %}
-        <div class="col-md-auto h-100 p-1">
+        <div class="col-md-auto p-1">
             <a class="btn btn-primary" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
         </div>
     {% endif %}
     {% if not script.owner or user == script_version.script.owner %}
-        <div class="col-md-auto h-100 p-1">
+        <div class="col-md-auto p-1">
             <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
         </div>
     {% endif %}
-    <div class="col-md-auto h-100 p-1">
+    <div class="col-md-auto p-1">
         <button class="btn btn-primary" onclick="CopyLink()">JSON</button>
     </div>
     {% if user.is_authenticated %}
-        <div class="col-md-auto h-100 p-1">
         {% if user.collections.count > 0 %}
-            {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}
-            {% if script_can_be_added_to_collection %}
-                {% include "add_to_collection.html" %}
-            {% endif %}    
+            <div class="col-md-auto p-1">
+                {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}
+                {% if script_can_be_added_to_collection %}
+                    {% include "add_to_collection.html" %}
+                {% endif %}    
+            </div>
         {% endif %}
-        </div>
         <div class="col-md-auto h-100 p-1">
             {% include "favourite.html" with record=script_version %}
         </div>
     {% endif %}
 </div>
+<div class="row">
+    <div class="col-md-auto pl-3 pr-0 pt-0 pb-0">
+        Base 3: 
+            {% if script_version.edition == 0 %}
+                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+            {% else %}
+                <i class="fa-sharp fa-ban fa-lg" style="color: red" ></i>
+            {% endif %}
+    </div>
+    <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
+        Kickstarter:
+            {% if script_version.edition == 1 %}
+                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+            {% else %}
+                <i class="fa-sharp fa-ban fa-lg" style="color: red" ></i>
+            {% endif %}
+    </div>
+    <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
+        Experimental:
+            {% if script_version.edition == 2 %}
+                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+            {% else %}
+                <i class="fa-sharp fa-ban fa-lg" style="color: red" ></i>
+            {% endif %}
+    </div>
+</div>
+
 
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     {% if script_version.notes %}

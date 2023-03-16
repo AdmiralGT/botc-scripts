@@ -32,6 +32,7 @@ excluded_script_version_fields = (
     "num_demons",
     "num_travellers",
     "num_fabled",
+    "edition",
 )
 
 
