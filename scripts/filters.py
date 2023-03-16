@@ -62,6 +62,7 @@ class ScriptVersionFilter(filters.FilterSet):
     )
     edition = django_filters.filters.ChoiceFilter(
         label="Edition",
+        method="filter_edition",
         choices=edition_choices,
     )
     mono_demon = django_filters.filters.BooleanFilter(
@@ -110,6 +111,9 @@ class ScriptVersionFilter(filters.FilterSet):
             pass
 
         return queryset.filter(similarity__gt=0.3).order_by("-similarity")
+
+    def filter_edition(self, queryset, _, value):
+        return queryset.filter(edition__lte=value)
 
     class Meta:
         model = models.ScriptVersion

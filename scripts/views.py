@@ -501,7 +501,7 @@ class StatisticsView(generic.ListView, FilterView):
         if "edition" in self.request.GET:
             try:
                 edition = models.Edition(int(self.request.GET.get("edition")))
-                queryset = queryset.filter(edition=edition)
+                queryset = queryset.filter(edition__lte=edition)
             except ValueError:
                 pass
 
@@ -994,7 +994,7 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
                 queryset, form.cleaned_data.get("excludes_characters")
             )
 
-        queryset = queryset.filter(edition=form.cleaned_data.get("edition"))
+        queryset = queryset.filter(edition__lte=form.cleaned_data.get("edition"))
         tag_combination = form.cleaned_data.get("tag_combinations")
         if tag_combination == "AND":
             for tag in form.cleaned_data.get("tags"):
