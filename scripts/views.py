@@ -438,8 +438,8 @@ class ScriptUploadView(generic.FormView):
             edition=edition,
         )
         if form.cleaned_data.get("notes", None):
-            self.script_version.script.notes = form.cleaned_data["notes"]
-            self.script_version.script.save()
+            self.script_version.notes = form.cleaned_data["notes"]
+            self.script_version.save()
         self.script_version.tags.set(form.cleaned_data["tags"])
 
         return HttpResponseRedirect(self.get_success_url())
