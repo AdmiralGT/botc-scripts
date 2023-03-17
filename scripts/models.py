@@ -99,6 +99,7 @@ class ScriptVersion(models.Model):
     num_demons = models.IntegerField()
     num_fabled = models.IntegerField()
     num_travellers = models.IntegerField()
+    edition = models.IntegerField(choices=Edition.choices, default=Edition.BASE)
 
     objects = ScriptViewManager()
 
