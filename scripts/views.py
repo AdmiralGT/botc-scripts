@@ -459,7 +459,7 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
 
     model = models.Script
 
-    def delete(self, request, _, **kwargs):
+    def delete(self, request, *args, **kwargs):
         self.object: models.Script = self.get_object()
         script: models.Script = self.object
         try:
