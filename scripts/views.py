@@ -8,7 +8,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.db.models import Case, When, Count
-from django.http import FileResponse, Http404, HttpResponseRedirect
+from django.http import (
+    FileResponse,
+    Http404,
+    HttpResponseRedirect,
+    HttpResponseForbidden,
+)
 from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
@@ -452,14 +457,21 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
     Deletes a script version.
     """
 
-    model = models.ScriptVersion
+    model = models.Script
 
-    def delete(self, request, *args, **kwargs):
-        self.object: models.ScriptVersion = self.get_object()
-        script: models.Script = self.object.script
+    def delete(self, request, _, **kwargs):
+        self.object: models.Script = self.get_object()
+        script: models.Script = self.object
+        try:
+            script_version: models.ScriptVersion = script.versions.all().get(
+                version=kwargs.get("version")
+            )
+        except models.ScriptVersion.DoesNotExist:
+            raise Http404("Cannot delete a script version that does not exist.")
+
         if script.owner != request.user:
-            raise Http404("Cannot delete a script you don't own.")
-        self.object.delete()
+            return HttpResponseForbidden()
+        script_version.delete()
 
         if script.versions.count() > 0:
             latest_version = script.latest_version()

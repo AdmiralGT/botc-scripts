@@ -59,7 +59,7 @@
             </select>    
         </form>
     </div>
-    <div class="col-md-auto p-0">
+    <div class="col-md-auto pl-1 p-0">
         <form class="form-inline mb-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
             <div class="col-md-auto p-1 pt-0">
                 <div class="btn-group">
@@ -91,19 +91,19 @@
     </div>
     {% if user.is_authenticated %}
         {% if user.collections.count > 0 %}
-            <div class="col-md-auto p-1">
-                {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}
-                {% if script_can_be_added_to_collection %}
+            {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}
+            {% if script_can_be_added_to_collection %}
+                <div class="col-md-auto p-1">
                     {% include "add_to_collection.html" %}
-                {% endif %}    
-            </div>
+                </div>
+            {% endif %}    
         {% endif %}
         {% if can_delete %}
-            <div class="col-md-auto h-100 p-1">
-                <button class="btn btn-danger" data-toggle="modal" data-target="#deletionModal">Delete</button>
+            <div class="col-md-auto p-1">
+                {% include "delete_script.html" %}
             </div>
         {% endif %}
-        <div class="col-md-auto h-100 p-1">
+        <div class="col-md-auto p-1">
             {% include "favourite.html" with record=script_version %}
         </div>
     {% endif %}
@@ -306,30 +306,5 @@
     </div>
     {% endif %}
 </div>
-
-<!-- Modal -->
-<div class="modal fade" id="deletionModal" tabindex="-1" role="dialog" aria-labelledby="deletionModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deletionModalLabel">Delete</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this script?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-                <form action="/" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 
 {% endblock %}

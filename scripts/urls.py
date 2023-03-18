@@ -63,7 +63,7 @@ urlpatterns = [
     ),
     path(
         "script/<int:pk>/<str:version>/delete",
-        views.delete_script,
+        views.ScriptDeleteView.as_view(),
         name="delete_script",
     ),
     path(
