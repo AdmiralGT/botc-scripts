@@ -59,7 +59,7 @@
             </select>    
         </form>
     </div>
-    <div class="col-md-auto p-0">
+    <div class="col-md-auto pl-1 p-0">
         <form class="form-inline mb-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
             <div class="col-md-auto p-1 pt-0">
                 <div class="btn-group">
@@ -91,14 +91,19 @@
     </div>
     {% if user.is_authenticated %}
         {% if user.collections.count > 0 %}
-            <div class="col-md-auto p-1">
-                {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}
-                {% if script_can_be_added_to_collection %}
+            {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}
+            {% if script_can_be_added_to_collection %}
+                <div class="col-md-auto p-1">
                     {% include "add_to_collection.html" %}
-                {% endif %}    
+                </div>
+            {% endif %}    
+        {% endif %}
+        {% if can_delete %}
+            <div class="col-md-auto p-1">
+                {% include "delete_script.html" %}
             </div>
         {% endif %}
-        <div class="col-md-auto h-100 p-1">
+        <div class="col-md-auto p-1">
             {% include "favourite.html" with record=script_version %}
         </div>
     {% endif %}
