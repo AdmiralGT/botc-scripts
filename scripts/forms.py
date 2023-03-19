@@ -157,7 +157,7 @@ class AdvancedSearchForm(forms.Form):
         choices=[("AND", "AND"), ("OR", "OR")], initial="AND", widget=forms.RadioSelect
     )
     tags = forms.ModelMultipleChoiceField(
-        queryset=models.ScriptTag.objects.all(),
+        queryset=models.ScriptTag.objects.all().order_by("order"),
         to_field_name="name",
         widget=widgets.BadgePillCheckboxSelectMultiple(),
         required=False,

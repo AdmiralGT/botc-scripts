@@ -1,0 +1,15 @@
+    {% if widget.wrap_label %}
+    <label {% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}>
+    {% endif %}
+        <input type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}
+
+        {% for name, value in widget.attrs.items %}
+            {% if value is not False %} {{ name }}
+                {% if value is not True %}="{{ value|stringformat:'s' }}"
+                {% endif %}
+            {% endif %}
+        {% endfor %}>
+        <span class="badge badge-pill {{ widget.value.instance.style }}" style="margin-top: 2px; margin-bottom: 2px">{{ widget.label }}</span>
+    {% if widget.wrap_label %} 
+    </label>
+    {% endif %}

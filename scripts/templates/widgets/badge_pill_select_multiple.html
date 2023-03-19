@@ -1,0 +1,4 @@
+<option class="px-3 badge badge-pill {{ widget.value.instance.style }}" value="{{ widget.value|stringformat:'s' }}"
+    {% include "django/forms/widgets/attrs.html" %}>
+        {{ widget.label }}
+</option>
