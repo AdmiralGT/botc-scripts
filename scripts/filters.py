@@ -5,7 +5,7 @@ from django_filters import rest_framework as filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
 
-from scripts import models
+from scripts import models, widgets
 
 edition_choices = (
     (models.Edition.BASE, models.Edition.BASE.label),
@@ -57,8 +57,8 @@ class ScriptVersionFilter(filters.FilterSet):
     author = django_filters.filters.CharFilter(method="search_authors", label="Author")
     search = django_filters.filters.CharFilter(method="search_scripts", label="Search")
     tags = django_filters.filters.ModelMultipleChoiceFilter(
-        queryset=models.ScriptTag.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        queryset=models.ScriptTag.objects.all().order_by("order"),
+        widget=widgets.BadgePillSelectMultiple,
     )
     edition = django_filters.filters.ChoiceFilter(
         label="Edition",

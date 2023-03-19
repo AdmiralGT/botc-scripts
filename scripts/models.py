@@ -8,8 +8,9 @@ from typing import Dict
 
 class Edition(models.IntegerChoices):
     BASE = 0, "Base"
-    KICKSTARTER = 1, "+ Kickstarter"
-    UNRELEASED = 2, "+ Unreleased"
+    KICKSTARTER = 1, "Kickstarter"
+    UNRELEASED = 2, "clocktower.online"
+    CLOCKTOWER_APP = 3, "All"
 
 
 class ScriptTypes(models.TextChoices):
@@ -48,6 +49,7 @@ class ScriptTag(models.Model):
     style = models.CharField(
         max_length=20, choices=TagStyles.choices, default=TagStyles.BLUE
     )
+    order = models.IntegerField(unique=True)
 
     def __str__(self):
         return f"{self.name}"
