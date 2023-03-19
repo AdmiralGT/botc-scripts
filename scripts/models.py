@@ -8,8 +8,9 @@ from typing import Dict
 
 class Edition(models.IntegerChoices):
     BASE = 0, "Base"
-    KICKSTARTER = 1, "+ Kickstarter"
-    UNRELEASED = 2, "+ Unreleased"
+    KICKSTARTER = 1, "Kickstarter"
+    UNRELEASED = 2, "clocktower.online"
+    CLOCKTOWER_APP = 3, "All"
 
 
 class ScriptTypes(models.TextChoices):
