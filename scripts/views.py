@@ -262,6 +262,35 @@ class ScriptView(generic.DetailView):
         return context
 
 
+def get_all_roles_json_content(edition: models.Edition):
+    json = []
+    for character in (
+        models.Character.objects.all()
+        .order_by("-character_type")
+        .filter(edition__lte=edition)
+    ):
+        json.append({"id": character.character_id})
+    return json
+
+
+class AllRolesScriptView(generic.TemplateView):
+    template_name = "all_roles.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["content"] = get_all_roles_json_content(models.Edition.BASE)
+        context["edition"] = models.Edition.BASE
+        return context
+
+
+def download_all_roles_json(
+    request, edition: int, language: Optional[str] = None
+) -> FileResponse:
+    content = get_all_roles_json_content(edition)
+    json_content = js.JSONEncoder().encode(content)
+    return json_file_response("all_roles", json_content, request, language)
+
+
 def update_script(script_version, cleaned_data, author):
     script_version.script_type = cleaned_data["script_type"]
     script_version.author = author
@@ -691,24 +720,26 @@ def translate_json_content(json_content: List, language: str):
     return translated_content
 
 
+def json_file_response(name, content, request, language):
+    if language or request.GET.get("language_select"):
+        language = language if language else request.GET.get("language_select")
+        json_content = translate_json_content(content, language)
+        json_content = js.JSONEncoder(ensure_ascii=False).encode(json_content)
+    temp_file = TemporaryFile()
+    temp_file.write(json_content.encode("utf-8"))
+    temp_file.flush()
+    temp_file.seek(0)
+    response = FileResponse(temp_file, as_attachment=True, filename=(name + ".json"))
+    return response
+
+
 def download_json(
     request, pk: int, version: str, language: Optional[str] = None
 ) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     json_content = js.JSONEncoder().encode(script_version.content)
-    if language or request.GET.get("language_select"):
-        language = language if language else request.GET.get("language_select")
-        json_content = translate_json_content(script_version.content, language)
-        json_content = js.JSONEncoder(ensure_ascii=False).encode(json_content)
-    temp_file = TemporaryFile()
-    temp_file.write(json_content.encode("utf-8"))
-    temp_file.flush()
-    temp_file.seek(0)
-    response = FileResponse(
-        temp_file, as_attachment=True, filename=(script.name + ".json")
-    )
-    return response
+    return json_file_response(script.name, json_content, request, language)
 
 
 def download_pdf(request, pk: int, version: str) -> FileResponse:
