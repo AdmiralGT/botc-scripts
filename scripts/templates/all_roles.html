@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% load markdownify %}
 {% load botc_script_tags %}
 {% load bootstrap_icons %}
 
 <script>
     function CopyLink() {
-        navigator.clipboard.writeText("{{request.scheme}}://{{request.META.HTTP_HOST}}/api/scripts/{{script_version.pk}}/json/")
+        navigator.clipboard.writeText('{{ content }}')
     }
 </script>
 
