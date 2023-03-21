@@ -30,8 +30,10 @@ from scripts import (
 )
 from collections import Counter
 from django.contrib.postgres.search import TrigramSimilarity
-
+from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
+import requests
+import time
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -262,15 +264,29 @@ class ScriptView(generic.DetailView):
         return context
 
 
-def get_all_roles_json_content(edition: models.Edition):
-    json = []
-    for character in (
-        models.Character.objects.all()
-        .order_by("-character_type")
-        .filter(edition__lte=edition)
-    ):
-        json.append({"id": character.character_id})
-    return json
+def get_all_roles(edition: models.Edition):
+    roles = []
+    ordering = {}
+    try:
+        r = requests.get("https://botc-tools.vercel.app/sao-sorter/order.json")
+        ordering = r.json()
+    except:
+        pass
+    for character in models.Character.objects.all().filter(edition__lte=edition):
+        roles.append(
+            Role(character.character_id, ordering.get(character.character_id, "7"))
+        )
+    roles.sort()
+    return [{"id": x.character_id} for x in roles]
+
+
+@dataclass
+class Role:
+    character_id: str
+    sao_order: str
+
+    def __lt__(self, other):
+        return self.sao_order < other.sao_order
 
 
 class AllRolesScriptView(generic.TemplateView):
@@ -278,15 +294,22 @@ class AllRolesScriptView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["content"] = get_all_roles_json_content(models.Edition.BASE)
-        context["edition"] = models.Edition.BASE
+        edition = models.Edition.CLOCKTOWER_APP
+        if "selected_edition" in self.request.GET:
+            for possible_edition in models.Edition:
+                if possible_edition.label == self.request.GET.get("selected_edition"):
+                    edition = possible_edition
+                    break
+        context["content"] = get_all_roles(edition)
+        context["edition"] = edition
+        context["editions"] = models.Edition.choices
         return context
 
 
 def download_all_roles_json(
     request, edition: int, language: Optional[str] = None
 ) -> FileResponse:
-    content = get_all_roles_json_content(edition)
+    content = get_all_roles(edition)
     json_content = js.JSONEncoder().encode(content)
     return json_file_response("all_roles", json_content, request, language)
 
