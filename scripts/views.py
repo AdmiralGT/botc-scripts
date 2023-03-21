@@ -269,7 +269,7 @@ def get_all_roles(edition: models.Edition):
     try:
         r = requests.get("https://botc-tools.vercel.app/sao-sorter/order.json")
         ordering = r.json()
-    except:
+    except requests.RequestException:
         pass
     for character in models.Character.objects.all().filter(edition__lte=edition):
         roles.append(
