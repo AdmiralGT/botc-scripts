@@ -289,29 +289,35 @@ class Role:
         return self.sao_order < other.sao_order
 
 
+def get_edition_from_request(request):
+    if "selected_edition" in request.GET:
+        for possible_edition in models.Edition:
+            if possible_edition.label == request.GET.get("selected_edition"):
+                return possible_edition
+    return models.Edition.CLOCKTOWER_APP
+
+
 class AllRolesScriptView(generic.TemplateView):
     template_name = "all_roles.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        edition = models.Edition.CLOCKTOWER_APP
-        if "selected_edition" in self.request.GET:
-            for possible_edition in models.Edition:
-                if possible_edition.label == self.request.GET.get("selected_edition"):
-                    edition = possible_edition
-                    break
+        edition = get_edition_from_request(self.request)
         context["content"] = get_all_roles(edition)
         context["edition"] = edition
         context["editions"] = models.Edition.choices
+        context["languages"] = (
+            models.Translation.objects.values_list("language", flat=True)
+            .distinct("language")
+            .order_by("language")
+        )
         return context
 
 
-def download_all_roles_json(
-    request, edition: int, language: Optional[str] = None
-) -> FileResponse:
+def download_all_roles_json(request, language: Optional[str] = None) -> FileResponse:
+    edition = get_edition_from_request(request)
     content = get_all_roles(edition)
-    json_content = js.JSONEncoder().encode(content)
-    return json_file_response("all_roles", json_content, request, language)
+    return json_file_response("all_roles", content, request, language)
 
 
 def update_script(script_version, cleaned_data, author):
@@ -737,6 +743,9 @@ def translate_character(character_id: str, language: str) -> Dict:
 def translate_json_content(json_content: List, language: str):
     translated_content = []
     for character_id in json_content:
+        if character_id.get("id") == "_meta":
+            translated_content.append(character_id)
+            continue
         translated_content.append(
             translate_character(character_id.get("id").replace("_", ""), language)
         )
@@ -746,10 +755,10 @@ def translate_json_content(json_content: List, language: str):
 def json_file_response(name, content, request, language):
     if language or request.GET.get("language_select"):
         language = language if language else request.GET.get("language_select")
-        json_content = translate_json_content(content, language)
-        json_content = js.JSONEncoder(ensure_ascii=False).encode(json_content)
+        content = translate_json_content(content, language)
+    content = js.JSONEncoder(ensure_ascii=False).encode(content)
     temp_file = TemporaryFile()
-    temp_file.write(json_content.encode("utf-8"))
+    temp_file.write(content.encode("utf-8"))
     temp_file.flush()
     temp_file.seek(0)
     response = FileResponse(temp_file, as_attachment=True, filename=(name + ".json"))
@@ -761,8 +770,7 @@ def download_json(
 ) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
-    json_content = js.JSONEncoder().encode(script_version.content)
-    return json_file_response(script.name, json_content, request, language)
+    return json_file_response(script.name, script_version.content, request, language)
 
 
 def download_pdf(request, pk: int, version: str) -> FileResponse:
