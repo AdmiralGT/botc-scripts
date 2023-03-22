@@ -3,7 +3,7 @@ from rest_framework import routers
 from allauth.account.views import login, logout
 from allauth.socialaccount import providers
 from importlib import import_module
-from scripts import views, viewsets, worldcup
+from scripts import api_views, views, viewsets, worldcup
 from django.views.generic.base import TemplateView
 
 # Routers provide an easy way of automatically determining the URL conf.
@@ -18,6 +18,7 @@ translation_detail = viewsets.TranslationViewSet.as_view(
 urlpatterns = [
     path("", views.ScriptsListView.as_view()),
     path("api/", include(router.urls)),
+    path("api/statistics", api_views.StatisticsAPI.as_view()),
     path("api/translations/<str:language>/<str:character_id>/", translation_detail),
     path("collections", views.CollectionListView.as_view()),
     path(
