@@ -53,6 +53,12 @@ urlpatterns = [
         "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
     ),
+    path("script/all_roles", views.AllRolesScriptView.as_view()),
+    path(
+        "script/all_roles/download",
+        views.download_all_roles_json,
+        name="download_all_roles_json",
+    ),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>/vote", views.vote_for_script, name="vote"),

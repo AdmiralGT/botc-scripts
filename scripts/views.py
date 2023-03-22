@@ -30,8 +30,9 @@ from scripts import (
 )
 from collections import Counter
 from django.contrib.postgres.search import TrigramSimilarity
-
+from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
+import requests
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -260,6 +261,62 @@ class ScriptView(generic.DetailView):
         context["can_delete"] = self.request.user == current_script.script.owner
 
         return context
+
+
+def get_all_roles(edition: models.Edition):
+    roles = []
+    ordering = {}
+    try:
+        r = requests.get("https://botc-tools.vercel.app/sao-sorter/order.json")
+        ordering = r.json()
+    except requests.RequestException:
+        pass
+    for character in models.Character.objects.all().filter(edition__lte=edition):
+        roles.append(
+            Role(character.character_id, ordering.get(character.character_id, "7"))
+        )
+    roles.sort()
+    return [{"id": x.character_id} for x in roles]
+
+
+@dataclass
+class Role:
+    character_id: str
+    sao_order: str
+
+    def __lt__(self, other):
+        return self.sao_order < other.sao_order
+
+
+def get_edition_from_request(request):
+    if "selected_edition" in request.GET:
+        for possible_edition in models.Edition:
+            if possible_edition.label == request.GET.get("selected_edition"):
+                return possible_edition
+    return models.Edition.CLOCKTOWER_APP
+
+
+class AllRolesScriptView(generic.TemplateView):
+    template_name = "all_roles.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        edition = get_edition_from_request(self.request)
+        context["content"] = get_all_roles(edition)
+        context["edition"] = edition
+        context["editions"] = models.Edition.choices
+        context["languages"] = (
+            models.Translation.objects.values_list("language", flat=True)
+            .distinct("language")
+            .order_by("language")
+        )
+        return context
+
+
+def download_all_roles_json(request, language: Optional[str] = None) -> FileResponse:
+    edition = get_edition_from_request(request)
+    content = get_all_roles(edition)
+    return json_file_response("all_roles", content, request, language)
 
 
 def update_script(script_version, cleaned_data, author):
@@ -685,10 +742,26 @@ def translate_character(character_id: str, language: str) -> Dict:
 def translate_json_content(json_content: List, language: str):
     translated_content = []
     for character_id in json_content:
+        if character_id.get("id") == "_meta":
+            translated_content.append(character_id)
+            continue
         translated_content.append(
             translate_character(character_id.get("id").replace("_", ""), language)
         )
     return translated_content
+
+
+def json_file_response(name, content, request, language):
+    if language or request.GET.get("language_select"):
+        language = language if language else request.GET.get("language_select")
+        content = translate_json_content(content, language)
+    content = js.JSONEncoder(ensure_ascii=False).encode(content)
+    temp_file = TemporaryFile()
+    temp_file.write(content.encode("utf-8"))
+    temp_file.flush()
+    temp_file.seek(0)
+    response = FileResponse(temp_file, as_attachment=True, filename=(name + ".json"))
+    return response
 
 
 def download_json(
@@ -696,19 +769,7 @@ def download_json(
 ) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
-    json_content = js.JSONEncoder().encode(script_version.content)
-    if language or request.GET.get("language_select"):
-        language = language if language else request.GET.get("language_select")
-        json_content = translate_json_content(script_version.content, language)
-        json_content = js.JSONEncoder(ensure_ascii=False).encode(json_content)
-    temp_file = TemporaryFile()
-    temp_file.write(json_content.encode("utf-8"))
-    temp_file.flush()
-    temp_file.seek(0)
-    response = FileResponse(
-        temp_file, as_attachment=True, filename=(script.name + ".json")
-    )
-    return response
+    return json_file_response(script.name, script_version.content, request, language)
 
 
 def download_pdf(request, pk: int, version: str) -> FileResponse:
