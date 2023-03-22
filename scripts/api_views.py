@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from scripts import models, serializers
+from scripts import models
 from collections import Counter
 
 
