@@ -337,6 +337,7 @@ class ScriptUploadView(generic.FormView):
 
     def get_initial(self):
         initial = super().get_initial()
+        initial["tags"] = []
         script_pk = self.request.GET.get("script", None)
         if script_pk:
             script = models.Script.objects.get(pk=script_pk)
@@ -349,8 +350,13 @@ class ScriptUploadView(generic.FormView):
                     initial["notes"] = script_version.notes
                 if script_version.tags:
                     initial["tags"] = script_version.tags
-        elif "clocktowercon" in self.request.GET:
-            initial["tags"] = models.ScriptTag.objects.filter(pk="11")
+
+        tags = self.request.GET.getlist("tags", [])
+        for tag in tags:
+            try:
+                initial["tags"].append(models.ScriptTag.objects.get(pk=tag))
+            except models.ScriptTag.DoesNotExist:
+                continue
 
         return initial
 
