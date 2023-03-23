@@ -245,7 +245,7 @@ class Character(BaseCharacterInfo):
     edition = models.IntegerField(choices=Edition.choices)
     first_night_position = models.IntegerField(blank=True, null=True)
     other_night_position = models.IntegerField(blank=True, null=True)
-    image_url = models.CharField(max_length=100)
+    image_url = models.CharField(blank=True, null=True, max_length=100)
     modifies_setup = models.BooleanField(default=False)
 
     class Meta:
