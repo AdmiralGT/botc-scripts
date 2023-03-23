@@ -24,7 +24,7 @@ def user_favourite(context, script_version):
 @register.simple_tag(takes_context=True)
 def script_has_tag(context, tag, initial):
     tags = initial.get("tags", None)
-    if tags and tag in tags.all():
+    if tags and tag in tags:
         return True
     return False
 
