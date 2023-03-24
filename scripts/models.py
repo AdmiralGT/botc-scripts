@@ -6,6 +6,8 @@ from scripts.managers import ScriptViewManager, CollectionManager
 from typing import Dict
 
 
+# Note, if more Editions are added, the Script Upload view
+# needs updating to bail out on the latest edition.
 class Edition(models.IntegerChoices):
     BASE = 0, "Base"
     KICKSTARTER = 1, "Kickstarter"
