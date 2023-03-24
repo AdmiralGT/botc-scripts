@@ -170,7 +170,7 @@ def calculate_edition(script_content: Dict) -> int:
         if character and character.edition > edition:
             edition = character.edition
 
-        if edition == models.Edition.UNRELEASED:
+        if edition == models.Edition.CLOCKTOWER_APP:
             return edition
 
     return edition
