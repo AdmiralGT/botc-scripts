@@ -350,7 +350,7 @@ class ScriptUploadView(generic.FormView):
                 if script_version.notes:
                     initial["notes"] = script_version.notes
                 if script_version.tags:
-                    initial["tags"] = script_version.tags
+                    initial["tags"] = script_version.tags.all()
 
         tags = self.request.GET.getlist("tags", [])
         for tag in tags:
