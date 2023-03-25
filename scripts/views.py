@@ -766,9 +766,9 @@ def translate_content(content, request, language):
 
 
 def json_file_response(name, content):
-    content = js.JSONEncoder(ensure_ascii=False).encode(content)
+    json = js.JSONEncoder(ensure_ascii=False).encode(content)
     temp_file = TemporaryFile()
-    temp_file.write(content.encode("utf-8"))
+    temp_file.write(json.encode("utf-8"))
     temp_file.flush()
     temp_file.seek(0)
     response = FileResponse(temp_file, as_attachment=True, filename=(name + ".json"))
@@ -802,7 +802,7 @@ def download_unsupported_json(request, pk: int, version: str) -> FileResponse:
             if character.edition == models.Edition.CLOCKTOWER_APP:
                 content.append(character.full_character_json())
             else:
-                content.append(content)
+                content.append(character_json)
         except models.Character.DoesNotExist:
             content.append(character_json)
 
