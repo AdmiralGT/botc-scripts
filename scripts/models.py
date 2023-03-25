@@ -110,6 +110,14 @@ class ScriptVersion(models.Model):
     def __str__(self):
         return f"{self.pk}. {self.script.name} - v{self.version}"
 
+    class Meta:
+        permissions = [
+            (
+                "download_unsupported_json",
+                "Can the request the download of a JSON that replaces unsupported characters",
+            )
+        ]
+
 
 class Comment(models.Model):
     """
