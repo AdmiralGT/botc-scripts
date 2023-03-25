@@ -89,6 +89,11 @@
     <div class="col-md-auto p-1">
         <button class="btn btn-primary" onclick="CopyLink()">JSON</button>
     </div>
+    {% if perms.scripts.download_unsupported_json %}
+        <div class="col-md-auto p-1">
+            <a class="btn btn-warning" href="{% url 'download_unsupported' script.pk script_version.version %}">Autogen JSON</a>
+        </div>
+    {% endif %}
     {% if user.is_authenticated %}
         {% if user.collections.count > 0 %}
             {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}

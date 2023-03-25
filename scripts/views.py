@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
+from django.contrib.auth.decorators import permission_required
 from django.db.models import Case, When, Count
 from django.http import (
     FileResponse,
@@ -18,7 +19,6 @@ from django.shortcuts import redirect
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
-from django.shortcuts import render
 from versionfield import Version
 
 from scripts import (
@@ -316,7 +316,8 @@ class AllRolesScriptView(generic.TemplateView):
 def download_all_roles_json(request, language: Optional[str] = None) -> FileResponse:
     edition = get_edition_from_request(request)
     content = get_all_roles(edition)
-    return json_file_response("all_roles", content, request, language)
+    content = translate_content(content, request, language)
+    return json_file_response("all_roles", content)
 
 
 def update_script(script_version, cleaned_data, author):
@@ -757,10 +758,14 @@ def translate_json_content(json_content: List, language: str):
     return translated_content
 
 
-def json_file_response(name, content, request, language):
+def translate_content(content, request, language):
     if language or request.GET.get("language_select"):
         language = language if language else request.GET.get("language_select")
-        content = translate_json_content(content, language)
+        return translate_json_content(content, language)
+    return content
+
+
+def json_file_response(name, content):
     content = js.JSONEncoder(ensure_ascii=False).encode(content)
     temp_file = TemporaryFile()
     temp_file.write(content.encode("utf-8"))
@@ -775,7 +780,33 @@ def download_json(
 ) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
-    return json_file_response(script.name, script_version.content, request, language)
+    content = translate_content(script_version.content, request, language)
+
+    return json_file_response(script.name, content)
+
+
+@permission_required("scripts.download_unsupported_json")
+def download_unsupported_json(request, pk: int, version: str) -> FileResponse:
+    script = models.Script.objects.get(pk=pk)
+    script_version = script.versions.get(version=version)
+    content = []
+    for character_json in script_version.content:
+        if character_json.get("id") == "__meta":
+            content.append(character_json)
+            continue
+
+        try:
+            character = models.Character.objects.get(
+                character_id=character_json.get("id")
+            )
+            if character.edition == models.Edition.CLOCKTOWER_APP:
+                content.append(character.full_character_json())
+            else:
+                content.append(content)
+        except models.Character.DoesNotExist:
+            content.append(character_json)
+
+    return json_file_response(script.name, content)
 
 
 def download_pdf(request, pk: int, version: str) -> FileResponse:
