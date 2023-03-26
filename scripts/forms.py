@@ -151,7 +151,7 @@ class AdvancedSearchForm(forms.Form):
     minimum_number_of_favourites = forms.IntegerField(required=False)
     minimum_number_of_comments = forms.IntegerField(required=False)
     all_scripts = forms.BooleanField(
-        initial=False, label="Display All Scripts", required=False
+        initial=False, label="Display All Versions", required=False
     )
     tag_combinations = forms.ChoiceField(
         choices=[("AND", "AND"), ("OR", "OR")], initial="AND", widget=forms.RadioSelect
