@@ -475,6 +475,7 @@ class ScriptUploadView(generic.FormView):
                     ):
                         # This is newer than the latest version, so set that
                         # version to not be latest.
+                        current_tags = script.latest_version().tags
                         latest_version = script.latest_version()
                         latest_version.latest = False
                         latest_version.save()
@@ -512,6 +513,15 @@ class ScriptUploadView(generic.FormView):
             self.script_version.notes = form.cleaned_data["notes"]
             self.script_version.save()
         self.script_version.tags.set(form.cleaned_data["tags"])
+        if current_tags:
+            for tag in current_tags.all():
+                if (
+                    tag.public
+                    and tag not in form.cleaned_data["tags"]
+                    or not tag.inheritable
+                ):
+                    current_tags.remove(tag)
+            self.script_version.tags.add(*current_tags.all())
 
         return HttpResponseRedirect(self.get_success_url())
 

@@ -52,6 +52,7 @@ class ScriptTag(models.Model):
         max_length=20, choices=TagStyles.choices, default=TagStyles.BLUE
     )
     order = models.IntegerField(unique=True)
+    inheritable = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name}"
