@@ -1,7 +1,7 @@
     {% if widget.wrap_label %}
     <label {% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}>
     {% endif %}
-        <input type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}
+        <input type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value.instance.pk|stringformat:'s' }}"{% endif %}
 
         {% for name, value in widget.attrs.items %}
             {% if value is not False %} {{ name }}
