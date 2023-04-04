@@ -31,10 +31,10 @@ class WorldCupStatisticsView(generic.TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        stats_character = None
         characters_to_display = 5
 
-        queryset = models.ScriptVersion.objects.filter(tags=6)
+        queryset = models.ScriptVersion.objects.filter(tags=3)
+        queryset = queryset.filter(latest=True)
 
         if "num" in self.request.GET:
             try:
@@ -60,42 +60,54 @@ class WorldCupStatisticsView(generic.TemplateView):
                 character_count["additions"][character.character_type][character] = 0
                 character_count["deletions"][character.character_type][character] = 0
 
-        for round_of_32 in queryset:
-            round_of_64 = round_of_32.script.versions.get(tags=5)
-            additions = views.get_json_additions(
-                round_of_32.content.copy(), round_of_64.content.copy()
-            )
-            for addition in additions:
-                if addition.get("id", "_meta") == "_meta":
-                    pass
-                try:
-                    character = models.Character.objects.get(
-                        character_id=addition.get("id")
+        for script_version in queryset:
+            versions = script_version.script.versions.order_by("version")
+            previous_version = None
+            for version in versions:
+                if previous_version:
+                    additions = views.get_json_additions(
+                        version.content.copy(), previous_version.content.copy()
                     )
-                except models.Character.DoesNotExist:
-                    continue
+                    for addition in additions:
+                        if addition.get("id", "_meta") == "_meta":
+                            pass
+                        try:
+                            character = models.Character.objects.get(
+                                character_id=addition.get("id")
+                            )
+                        except models.Character.DoesNotExist:
+                            continue
 
-                character_count["additions"][character.character_type][character] = (
-                    character_count["additions"][character.character_type][character]
-                    + 1
-                )
-            deletions = views.get_json_additions(
-                round_of_64.content.copy(), round_of_32.content.copy()
-            )
-            for deletion in deletions:
-                if deletion.get("id", "_meta") == "_meta":
-                    pass
-                try:
-                    character = models.Character.objects.get(
-                        character_id=deletion.get("id")
+                        character_count["additions"][character.character_type][
+                            character
+                        ] = (
+                            character_count["additions"][character.character_type][
+                                character
+                            ]
+                            + 1
+                        )
+                    deletions = views.get_json_additions(
+                        previous_version.content.copy(), version.content.copy()
                     )
-                except models.Character.DoesNotExist:
-                    continue
+                    for deletion in deletions:
+                        if deletion.get("id", "_meta") == "_meta":
+                            pass
+                        try:
+                            character = models.Character.objects.get(
+                                character_id=deletion.get("id")
+                            )
+                        except models.Character.DoesNotExist:
+                            continue
 
-                character_count["deletions"][character.character_type][character] = (
-                    character_count["deletions"][character.character_type][character]
-                    + 1
-                )
+                        character_count["deletions"][character.character_type][
+                            character
+                        ] = (
+                            character_count["deletions"][character.character_type][
+                                character
+                            ]
+                            + 1
+                        )
+                previous_version = version
 
         for type in models.CharacterType:
             context[type.value + "addition"] = character_count["additions"][
