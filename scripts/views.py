@@ -404,6 +404,7 @@ class ScriptUploadView(generic.FormView):
         user = self.request.user
         json = forms.get_json_content(form.cleaned_data)
         is_latest = True
+        current_tags = None
 
         # Temporarily remove getting information from the _meta fields due to them
         # not including spaces.
