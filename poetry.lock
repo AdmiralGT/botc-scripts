@@ -467,14 +467,14 @@ requests = "*"
 
 [[package]]
 name = "django-bootstrap4"
-version = "22.3"
+version = "23.1"
 description = "Bootstrap 4 for Django"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "django-bootstrap4-22.3.tar.gz", hash = "sha256:751a7b4196e778286cc5eaa946d1e04741ea10d0b62d2762500f941ef9075dbf"},
-    {file = "django_bootstrap4-22.3-py3-none-any.whl", hash = "sha256:c2c09d0ad93c96e85e15e5541089aa567fd51257cf80f142ea5b84bbd34dc18e"},
+    {file = "django-bootstrap4-23.1.tar.gz", hash = "sha256:2c1ad756b44b17093d9b49d8840f5ad8537ec30cb4412834d9bf3c59e0d976ad"},
+    {file = "django_bootstrap4-23.1-py3-none-any.whl", hash = "sha256:e324f40e2dda69725982cf6b5ac6004f29c55ac492aabd880ed57693d3c4c93c"},
 ]
 
 [package.dependencies]
@@ -1141,4 +1141,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "275d9b70867a2ce47fc9217ad292a1d69fe3120d011cda88fbeb9ddc10769dbf"
+content-hash = "f2e0e3d674ba43caeda76cd2f6ea4f8a3d46c63460e781a2ae37bbfc803b992e"
