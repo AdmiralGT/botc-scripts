@@ -55,6 +55,11 @@ class ScriptForm(forms.Form):
         cleaned_data = super().clean()
         try:
             json = get_json_content(cleaned_data)
+
+            if not isinstance(json, list):
+                raise ValidationError(
+                    f"This is not a valid script JSON. Script JSONs are lists of character objects."
+                )
             # Author is optional so may not be entered or in JSON
             entered_author = cleaned_data.get("author", None)
             json_author = script_json.get_author_from_json(json)
