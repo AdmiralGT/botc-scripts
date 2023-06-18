@@ -150,7 +150,7 @@ class AdvancedSearchForm(forms.Form):
     includes_characters = forms.CharField(max_length=30, required=False)
     excludes_characters = forms.CharField(max_length=30, required=False)
     edition = forms.ChoiceField(
-        choices=models.Edition.choices, initial=models.Edition.UNRELEASED
+        choices=models.Edition.choices, initial=models.Edition.CLOCKTOWER_APP
     )
     minimum_number_of_likes = forms.IntegerField(required=False)
     minimum_number_of_favourites = forms.IntegerField(required=False)
