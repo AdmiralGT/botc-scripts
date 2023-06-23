@@ -140,6 +140,11 @@
                 <i class="fa-sharp fa-ban fa-lg" style="color: red" ></i>
             {% endif %}
     </div>
+    {% if user.is_staff %}
+    <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
+        Script ID: {{ script_version.pk }}        
+    </div>
+    {% endif %}
 </div>
 
 
