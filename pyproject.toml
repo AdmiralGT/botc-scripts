@@ -29,6 +29,11 @@ isort = "*"
 mypy = "*"
 uritemplate = "*"
 
+[tool.poetry.group.dev.dependencies]
+django-debug-toolbar = "^4.1.0"
+django-debug-toolbar-template-profiler = "^2.1.0"
+django-debug-toolbar-template-timings = "^0.9"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

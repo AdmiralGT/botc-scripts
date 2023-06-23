@@ -198,7 +198,7 @@
                 {% if newline %}
                     <br>
                 {% endif %}
-                {% character_colourisation role.id as character_colour %}
+                {% character_colourisation role.id characters as character_colour %}
                 <li><span {{ character_colour }}>{% convert_id_to_friendly_text role.id %}</span></li>
             {% endif %}
         {% endfor %}

@@ -52,6 +52,9 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.discord",
     "markdownify.apps.MarkdownifyConfig",
     "fontawesomefree",
+    "debug_toolbar",
+    "template_profiler_panel",
+    "template_timings_panel",
 ]
 
 MIDDLEWARE = [
@@ -62,6 +65,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "botc.urls"

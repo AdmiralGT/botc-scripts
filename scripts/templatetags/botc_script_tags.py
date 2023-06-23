@@ -1,6 +1,7 @@
 from django import template
 from scripts import models
 from babel.core import Locale, UnknownLocaleError
+import time
 
 register = template.Library()
 
@@ -45,22 +46,30 @@ def script_not_in_user_collection(user, script_version):
 
 
 @register.simple_tag()
-def character_colourisation(character_id):
+def character_colourisation(character_id, characters):
+    t = time.process_time()
     try:
-        character = models.Character.objects.get(character_id=character_id)
+        character = characters.get(character_id=character_id)
         if character.character_type == models.CharacterType.TOWNSFOLK:
+            print(time.process_time() - t)
             return "style=color:#0000ff"
         if character.character_type == models.CharacterType.OUTSIDER:
+            print(time.process_time() - t)
             return "style=color:#00ccff"
         if character.character_type == models.CharacterType.MINION:
+            print(time.process_time() - t)
             return "style=color:#ff8000"
         if character.character_type == models.CharacterType.DEMON:
+            print(time.process_time() - t)
             return "style=color:#ff0000"
         if character.character_type == models.CharacterType.TRAVELLER:
+            print(time.process_time() - t)
             return "style=color:#cc0099"
         if character.character_type == models.CharacterType.FABLED:
+            print(time.process_time() - t)
             return "style=color:#996600"
     except models.Character.DoesNotExist:
+        print(time.process_time() - t)
         return "style=color:#000000"
 
 

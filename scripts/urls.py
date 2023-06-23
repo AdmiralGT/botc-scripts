@@ -107,6 +107,7 @@ urlpatterns = [
     re_path(r"^login/$", login, name="account_login"),
     re_path(r"^logout/$", logout, name="account_logout"),
     re_path(r"^signup/$", login, name="account_signup"),
+    path("__debug__/", include("debug_toolbar.urls")),
 ]
 
 provider_urlpatterns = []

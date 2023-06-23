@@ -204,7 +204,7 @@ class ScriptView(generic.DetailView):
 
         changes = {}
         diff_script_version = None
-        for script_version in self.object.versions.all().order_by("-version"):
+        for script_version in self.object.versions.order_by("-version"):
             # If we're looking at an older script, don't show changes future to that.
             if script_version.version > current_script.version:
                 continue
@@ -227,28 +227,28 @@ class ScriptView(generic.DetailView):
         similarity = {}
         similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
         similarity[models.ScriptTypes.FULL.value] = {}
-        for script_version in models.ScriptVersion.objects.filter(latest=True).order_by(
-            "pk"
-        ):
-            if current_script == script_version:
-                continue
+        # for script_version in models.ScriptVersion.objects.filter(latest=True).order_by(
+        #     "pk"
+        # ):
+        #     if current_script == script_version:
+        #         continue
 
-            similarity[script_version.script_type][script_version] = get_similarity(
-                current_script.content,
-                script_version.content,
-                current_script.script_type == script_version.script_type,
-            )
-        context["similarity"] = {}
-        context["similarity"][models.ScriptTypes.TEENSYVILLE.value] = sorted(
-            similarity[models.ScriptTypes.TEENSYVILLE].items(),
-            key=lambda x: x[1],
-            reverse=True,
-        )[:10]
-        context["similarity"][models.ScriptTypes.FULL.value] = sorted(
-            similarity[models.ScriptTypes.FULL].items(),
-            key=lambda x: x[1],
-            reverse=True,
-        )[:10]
+        #     similarity[script_version.script_type][script_version] = get_similarity(
+        #         current_script.content,
+        #         script_version.content,
+        #         current_script.script_type == script_version.script_type,
+        #     )
+        # context["similarity"] = {}
+        # context["similarity"][models.ScriptTypes.TEENSYVILLE.value] = sorted(
+        #     similarity[models.ScriptTypes.TEENSYVILLE].items(),
+        #     key=lambda x: x[1],
+        #     reverse=True,
+        # )[:10]
+        # context["similarity"][models.ScriptTypes.FULL.value] = sorted(
+        #     similarity[models.ScriptTypes.FULL].items(),
+        #     key=lambda x: x[1],
+        #     reverse=True,
+        # )[:10]
         context["script_version"] = current_script
         context["comments"] = get_comments(current_script.script)
         context["languages"] = (
@@ -258,6 +258,7 @@ class ScriptView(generic.DetailView):
         )
 
         context["can_delete"] = self.request.user == current_script.script.owner
+        context["characters"] = models.Character.objects.all()
 
         return context
 
