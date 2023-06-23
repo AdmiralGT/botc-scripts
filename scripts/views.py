@@ -205,7 +205,6 @@ class ScriptView(generic.DetailView):
         changes = {}
         diff_script_version = None
         for script_version in self.object.versions.all().order_by("-version"):
-
             # If we're looking at an older script, don't show changes future to that.
             if script_version.version > current_script.version:
                 continue
@@ -376,7 +375,7 @@ class ScriptUploadView(generic.FormView):
         """
         form = super().get_form(self.form_class)
 
-        # If this user isn't authenticated, do allow them to add notes or upload anonymously
+        # If this user isn't authenticated, don't allow them to add notes or upload anonymously
         # (since it will be anonymous anyway).
         if not self.request.user.is_authenticated:
             form.fields.pop("notes")
@@ -394,6 +393,10 @@ class ScriptUploadView(generic.FormView):
                 # If this is an update to an existing script, we can't make it anonymous.
                 if script:
                     form.fields.pop("anonymous")
+
+        if self.request.user.is_staff:
+            if form.fields.get("tags"):
+                form.fields.get("tags").queryset = models.ScriptTag.objects.all()
 
         return form
 
