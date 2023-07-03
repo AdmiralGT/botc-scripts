@@ -530,13 +530,13 @@ sftp = ["paramiko"]
 
 [[package]]
 name = "django-tables2"
-version = "2.5.3"
+version = "2.6.0"
 description = "Table/data-grid framework for Django"
 optional = false
 python-versions = "*"
 files = [
-    {file = "django-tables2-2.5.3.tar.gz", hash = "sha256:f6c1623aac188d29aae9cf6b4de3211c96c525e49890654bec3359c181600eb9"},
-    {file = "django_tables2-2.5.3-py2.py3-none-any.whl", hash = "sha256:e336fdf8899a8fab110550a40cad956064bd4054818e0b972c1893b3e2542168"},
+    {file = "django-tables2-2.6.0.tar.gz", hash = "sha256:479eed04007cc04bcf764a6fb7a5e3955d94b878ba7f3a4bd4edbd2f7769e08d"},
+    {file = "django_tables2-2.6.0-py2.py3-none-any.whl", hash = "sha256:04f23c1181d93716c67085a3c324b449180fd0c5162ef4619acb0b2d9a166133"},
 ]
 
 [package.dependencies]
@@ -1074,4 +1074,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "6f8c913b063aa07db157982847393dfc25c58fe921108856de24cdf838fba8da"
+content-hash = "7aa48c5a43c58a19e79c06747739481e347a3bb76e4929c43d1d09aab55c4d57"
