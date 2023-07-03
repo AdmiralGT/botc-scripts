@@ -462,18 +462,18 @@ requests = "*"
 
 [[package]]
 name = "django-bootstrap4"
-version = "23.1"
+version = "23.2"
 description = "Bootstrap 4 for Django"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "django-bootstrap4-23.1.tar.gz", hash = "sha256:2c1ad756b44b17093d9b49d8840f5ad8537ec30cb4412834d9bf3c59e0d976ad"},
-    {file = "django_bootstrap4-23.1-py3-none-any.whl", hash = "sha256:e324f40e2dda69725982cf6b5ac6004f29c55ac492aabd880ed57693d3c4c93c"},
+    {file = "django_bootstrap4-23.2-py3-none-any.whl", hash = "sha256:6c895cdda58de1360bf82cc9e31014ad158dad680198ac8366ca33c19efa972f"},
+    {file = "django_bootstrap4-23.2.tar.gz", hash = "sha256:6b5080a4bce80fa666ac5ce5d4c77ad6fc3c0984d4257a0060d4077f515f62e5"},
 ]
 
 [package.dependencies]
 beautifulsoup4 = ">=4.8.0"
-Django = ">=3.2"
+django = ">=3.2"
 
 [[package]]
 name = "django-filter"
@@ -1074,4 +1074,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "6f8c913b063aa07db157982847393dfc25c58fe921108856de24cdf838fba8da"
+content-hash = "68d6e05276222d6b1948b4e9ef9403de39a7cd11c9db63cf407fe97e1fc7ec6b"
