@@ -125,6 +125,8 @@ def get_similarity(json1: List, json2: List, same_type: bool) -> int:
                 break
 
     similarity_comp = similarity_max if same_type else similarity_min
+    if similarity_comp == 0:
+        return 0
 
     return round((similarity / similarity_comp) * 100)
 
