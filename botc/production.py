@@ -18,7 +18,7 @@ MIDDLEWARE = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://botcscripts.com",
-    "https://botc-scripts.azurewebsites.net/",
+    "https://botc-scripts.azurewebsites.net",
 ]
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
