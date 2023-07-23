@@ -29,7 +29,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("DBNAME"),
         "HOST": hostname + ".postgres.database.azure.com",
-        "USER": os.environ.get("DBUSER") + "@" + hostname,
+        "USER": os.environ.get("DBUSER"),
         "PASSWORD": os.environ.get("DBPASS"),
     }
 }
