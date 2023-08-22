@@ -52,12 +52,12 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.discord",
     "markdownify.apps.MarkdownifyConfig",
     "fontawesomefree",
-    # "corsheaders",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
-    # "corsheaders.middleware.CorsMiddleware",
-    # "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -167,3 +167,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
+
+CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", False)
+CORS_URLS_REGEX = r"^.*/api/.*$"
+CORS_ALLOW_METHODS = "GET"
