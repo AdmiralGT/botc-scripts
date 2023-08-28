@@ -26,21 +26,22 @@ def prevent_fishbucket(json):
 
 
 def validate_json(json):
-    contains_character = False
+    MIN_KNOWN_CHARACTERS = len(json) / 2
+    contains_character = 0
     prevent_fishbucket(json)
     for item in json:
         check_for_homebrew(item)
-        if not contains_character:
+        if contains_character < MIN_KNOWN_CHARACTERS:
             try:
                 models.Character.objects.get(
                     character_id=item.get("id", "DoesNotExist")
                 )
-                contains_character = True
+                contains_character += 1
             except models.Character.DoesNotExist:
                 continue
-    if not contains_character:
+    if contains_character < MIN_KNOWN_CHARACTERS:
         raise ValidationError(
-            f"Scripts must contain at least 1 official Blood on the Clocktower character"
+            f"Script must contain at least {MIN_KNOWN_CHARACTERS} official Blood on the Clocktower character"
         )
     return
 
