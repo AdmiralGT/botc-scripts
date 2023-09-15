@@ -65,6 +65,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "botc.urls"
@@ -172,3 +173,5 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", False) == "True"
 CORS_URLS_REGEX = r"^.*/api/.*$"
 CORS_ALLOW_METHODS = "GET"
+
+DISABLE_VALIDATORS = os.getenv("DISABLE_VALIDATORS", False) == "True"

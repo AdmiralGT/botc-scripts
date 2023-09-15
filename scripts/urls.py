@@ -110,9 +110,11 @@ urlpatterns = [
 ]
 
 provider_urlpatterns = []
-for provider in providers.registry.get_list():
+provider_classes = providers.registry.get_class_list()
+
+for provider_class in provider_classes:
     try:
-        prov_mod = import_module(provider.get_package() + ".urls")
+        prov_mod = import_module(provider_class.get_package() + ".urls")
     except ImportError:
         continue
     prov_urlpatterns = getattr(prov_mod, "urlpatterns", None)
