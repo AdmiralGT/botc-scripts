@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from versionfield.forms import VersionField
 from scripts import models
 
@@ -26,7 +27,10 @@ def prevent_fishbucket(json):
 
 
 def validate_json(json):
-    MIN_KNOWN_CHARACTERS = len(json) / 2
+    if settings.DISABLE_VALIDATORS:
+        return
+
+    MIN_KNOWN_CHARACTERS = round(len(json) / 2)
     contains_character = 0
     prevent_fishbucket(json)
     for item in json:

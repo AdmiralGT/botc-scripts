@@ -539,17 +539,17 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
 
     model = models.Script
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form):
         self.object: models.Script = self.get_object()
         script: models.Script = self.object
         try:
             script_version: models.ScriptVersion = script.versions.all().get(
-                version=kwargs.get("version")
+                version=self.kwargs.get("version")
             )
         except models.ScriptVersion.DoesNotExist:
             raise Http404("Cannot delete a script version that does not exist.")
 
-        if script.owner != request.user:
+        if script.owner != self.request.user:
             return HttpResponseForbidden()
         script_version.delete()
 
@@ -912,9 +912,9 @@ class CollectionDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
     def get_success_url(self) -> str:
         return "/"
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form):
         self.object = self.get_object()
-        if self.object.owner != request.user:
+        if self.object.owner != self.request.user:
             raise Http404("Cannot delete a collection you don't own.")
         success_url = self.get_success_url()
         self.object.delete()
