@@ -6,16 +6,6 @@ from .settings import *
 # that Azure automatically creates for us.
 ALLOWED_HOSTS = os.environ.get("DJANGO_HOST", None).split(" ")
 
-MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-]
-
 CSRF_TRUSTED_ORIGINS = [
     "https://botcscripts.com",
     "https://botc-scripts.azurewebsites.net",
