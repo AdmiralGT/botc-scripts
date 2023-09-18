@@ -15,7 +15,7 @@ django-bootstrap4 = "^23.1"
 django-filter = "^23.3"
 djangorestframework = "^3.12.2"
 psycopg2-binary = "^2.9.6"
-django-storages = {version = "1.11.1", extras = ["azure"]}
+django-storages = {version = "1.14", extras = ["azure"]}
 django-allauth = "^0.56.0"
 django-bootstrap-icons = "^0.8.5"
 Babel = "^2.10.3"
