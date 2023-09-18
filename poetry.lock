@@ -481,13 +481,13 @@ saml = ["python3-saml (>=1.15.0,<2.0.0)"]
 
 [[package]]
 name = "django-bootstrap-icons"
-version = "0.8.4"
+version = "0.8.5"
 description = "A quick way to add Bootstrap Icons with Django template tags."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "django-bootstrap-icons-0.8.4.tar.gz", hash = "sha256:4494f56302a933ada4ffc2f5ada4211ac60c51e5bfa574899821deecc64cdfde"},
-    {file = "django_bootstrap_icons-0.8.4-py3-none-any.whl", hash = "sha256:3ea9e1d37615526bfa9adb6208e80cac80e7a4ee1991751997d4dd76045c1020"},
+    {file = "django-bootstrap-icons-0.8.5.tar.gz", hash = "sha256:4727bb42eef4334da929c1c8b022aa139e11c14b004686bc35897beaada15493"},
+    {file = "django_bootstrap_icons-0.8.5-py3-none-any.whl", hash = "sha256:7be2dad71f4bef1911b5b1d5ab95dfee56cd0ce18f4295be26593c323fe48ae0"},
 ]
 
 [package.dependencies]
@@ -1132,4 +1132,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "3d996f5125f9dc218f6c876d16a0f33a225c5ef99f0679ff04b1874475ee053d"
+content-hash = "56e3a3be48e8d0a695528412bec86fa013221215139fb9f5fe31757e14c1a943"
