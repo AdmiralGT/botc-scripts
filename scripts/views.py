@@ -398,7 +398,9 @@ class ScriptUploadView(generic.FormView):
 
         if self.request.user.is_staff:
             if form.fields.get("tags"):
-                form.fields.get("tags").queryset = models.ScriptTag.objects.all()
+                form.fields.get(
+                    "tags"
+                ).queryset = models.ScriptTag.objects.all().order_by("order")
 
         return form
 
