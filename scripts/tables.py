@@ -75,7 +75,8 @@ class ScriptTable(tables.Table):
     num_favs = tables.TemplateColumn(
         attrs = table_class, 
         template_name = "script_table/favourites.html", 
-        verbose_name = "Favourites"
+        verbose_name = "Favourites",
+        order_by = ("-num_favs")
     )
     
     tags = tables.TemplateColumn(
