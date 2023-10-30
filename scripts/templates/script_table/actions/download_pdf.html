@@ -1,0 +1,7 @@
+{% load bootstrap_icons %}
+
+{% if record.pdf %}
+	<div class="d-inline-block mb-1">
+		<a class="btn btn-primary btn-sm align-middle" href="{% url 'download_pdf' record.script.pk record.version %}">{% bs_icon 'file-earmark-arrow-down' %}</a>
+	</div>
+{% endif %}
