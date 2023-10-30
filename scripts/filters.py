@@ -4,7 +4,6 @@ import django_filters
 from django_filters import rest_framework as filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
-from string import punctuation
 
 from scripts import models, widgets
 
