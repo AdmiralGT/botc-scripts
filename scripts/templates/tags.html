@@ -2,9 +2,9 @@
 {% load botc_script_tags %}
 
 {% for tag in record.tags.all %}
-	{% if '?' in request.get_full_path %}
-		<a class="text-decoration-none" href="{{ request.get_full_path}}&tags={{tag.pk}}"><span class="badge badge-pill mb-2 {{ tag.style }}">{{ tag }}</span></a>
-	{% else %}
-		<a class="text-decoration-none" href="{{ request.path}}?tags={{tag.pk}}"><span class="badge badge-pill mb-2 {{ tag.style }}">{{ tag }}</span></a>
-	{% endif %}
+{% if '?' in request.get_full_path %}
+<a class="text-decoration-none" href="{{ request.get_full_path}}&tags={{tag.pk}}"><span class="badge badge-pill mb-2 {{ tag.style }}">{{ tag }}</span></a>
+{% else %}
+<a class="text-decoration-none" href="{{ request.path}}?tags={{tag.pk}}"><span class="badge badge-pill mb-2 {{ tag.style }}">{{ tag }}</span></a>
+{% endif %}
 {% endfor %}
