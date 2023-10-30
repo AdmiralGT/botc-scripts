@@ -6,6 +6,9 @@
 {% load bootstrap_icons %}
 
 <script>
+
+    document.title = "{{ script.name }} - v{{ script_version.version }}"
+
     function CopyLink() {
         navigator.clipboard.writeText("{{request.scheme}}://{{request.META.HTTP_HOST}}/api/scripts/{{script_version.pk}}/json/")
     }
