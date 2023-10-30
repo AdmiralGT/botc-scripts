@@ -1,4 +1,4 @@
-<div class="d-flex">
+<div>
 
     {% include 'script_table/actions/download_json.html' %}
     {% include 'script_table/actions/download_pdf.html' %}
@@ -8,7 +8,7 @@
     {% load bootstrap_icons %}
 
     <!-- Button trigger modal -->
-    <div class="m-1">
+    <div class="d-inline-block m-0 mb-1">
         <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#removeFromCollectionModal{{record.pk}}">
             {% bs_icon 'trash-fill' %}
         </button>
