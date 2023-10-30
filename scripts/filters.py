@@ -4,6 +4,7 @@ import django_filters
 from django_filters import rest_framework as filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
+from string import punctuation
 
 from scripts import models, widgets
 
@@ -27,20 +28,22 @@ def annotate_queryset(queryset, field, value):
 
 
 def include_characters(queryset, value):
-    for character in re.split(",|;|:|/| ", value):
-        if character in ",;:/ ":
+    for character in re.split(",|;|:|/", value):
+        if character in ",;:/":
             continue
-        queryset = queryset.filter(content__contains=[{"id": character.lower()}])
+        queryset = queryset.filter(content__contains=[{"id": name_to_id(character)}])
     return queryset
 
 
 def exclude_characters(queryset, value):
-    for character in re.split(",|;|:|/| ", value):
-        if character in ",;:/ ":
+    for character in re.split(",|;|:|/", value):
+        if character in ",;:/":
             continue
-        queryset = queryset.exclude(content__contains=[{"id": character.lower()}])
+        queryset = queryset.exclude(content__contains=[{"id": name_to_id(character)}])
     return queryset
 
+def name_to_id(name:str):
+    return name.replace(" ", "_").replace("'", "").lower()
 
 class ScriptVersionFilter(filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
