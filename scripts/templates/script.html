@@ -4,13 +4,34 @@
 {% load markdownify %}
 {% load botc_script_tags %}
 {% load bootstrap_icons %}
+<style>
+    div.alert-messages {
+        position: fixed;
+        top: 80px;
+        left: 44%;
+        right: 44%;
+        z-index: 7000;
+    }
+</style>
 
 <script>
-
+    // Set the name of the page to the name & version of the script.    
     document.title = "{{ script.name }} - v{{ script_version.version }}"
+  
+    function showAndDismissAlert(message) {
+        var htmlAlert = '<div class="alert alert-primary' + '">' + message + '</div>';
 
+        // Prepend so that alert is on top, could also append if we want new alerts to show below instead of on top.
+        $(".alert-messages").prepend(htmlAlert);
+
+        // Since we are prepending, take the first alert and tell it to fade in and then fade out.
+        // Note: if we were appending, then should use last() instead of first()
+        $(".alert-messages .alert").first().hide().fadeIn(200).delay(2000).fadeOut(1000, function () { $(this).remove(); });
+    }    
+  
     function CopyLink() {
         navigator.clipboard.writeText("{{request.scheme}}://{{request.META.HTTP_HOST}}/api/scripts/{{script_version.pk}}/json/")
+        showAndDismissAlert("Link Copied to Clipboard")
     }
 </script>
 
@@ -117,6 +138,7 @@
             {% include "favourite.html" with record=script_version %}
         </div>
     {% endif %}
+    <div class="p-1 alert-messages text-center"></div>
 </div>
 <div class="row">
     <div class="col-md-auto pl-3 pr-0 pt-0 pb-0">
