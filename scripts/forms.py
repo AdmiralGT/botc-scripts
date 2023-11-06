@@ -129,11 +129,13 @@ def get_json_content(data):
 
 def revert_to_old_format(json):
     old_format_json = []
+
     for item in json:
-    if isinstance(item, str):
-        old_format_json.append({ "id": item })
-    else:
-        old_format_json.append(item)
+        if isinstance(item, str):
+            old_format_json.append({ "id": item })
+        else:
+            old_format_json.append(item)
+
     return old_format_json
 
 class CollectionForm(forms.ModelForm):
