@@ -55,7 +55,6 @@ class ScriptForm(forms.Form):
         cleaned_data = super().clean()
         try:
             json = get_json_content(cleaned_data)
-            json = revert_to_old_format(json)
 
             if not isinstance(json, list):
                 raise ValidationError(
@@ -125,6 +124,7 @@ def get_json_content(data):
         raise JSONError("Could not read file type")
     json = js.loads(json_content.read().decode("utf-8"))
     json_content.seek(0)
+    json = revert_to_old_format(json)
     return json
 
 def revert_to_old_format(json):
