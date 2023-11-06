@@ -55,6 +55,7 @@ class ScriptForm(forms.Form):
         cleaned_data = super().clean()
         try:
             json = get_json_content(cleaned_data)
+            json = revert_to_old_format(json)
 
             if not isinstance(json, list):
                 raise ValidationError(
@@ -126,6 +127,16 @@ def get_json_content(data):
     json_content.seek(0)
     return json
 
+def revert_to_old_format(json):
+    old_format_json = []
+
+    for item in json:
+        if isinstance(item, str):
+            old_format_json.append({ "id": item })
+        else:
+            old_format_json.append(item)
+
+    return old_format_json
 
 class CollectionForm(forms.ModelForm):
     class Meta:
