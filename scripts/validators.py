@@ -30,11 +30,6 @@ def validate_json(json):
     if settings.DISABLE_VALIDATORS:
         return
 
-    for item in json:
-        # If it's just a string, this is the new TPI format.
-        if isinstance(item, str):
-            # In which case, we want to turn it into a JSON object.
-
     MIN_KNOWN_CHARACTERS = round(len(json) / 2)
     contains_character = 0
     prevent_fishbucket(json)
