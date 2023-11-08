@@ -771,7 +771,7 @@ def translate_json_content(json_content: List, language: str):
             translated_content.append(character_id)
             continue
         translated_content.append(
-            translate_character(character_id.get("id").replace("_", ""), language)
+            translate_character(character_id.get("id"), language)
         )
     return translated_content
 
