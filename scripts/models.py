@@ -30,6 +30,7 @@ class TagStyles(models.TextChoices):
     WHITE = "badge-light"
     BLACK = "badge-dark"
     PURPLE = "badge-purple"
+    NOCTURNE = "badge-nocturne"
 
 
 class CharacterType(models.TextChoices):
@@ -46,7 +47,7 @@ class ScriptTag(models.Model):
     Tags that can be applied to a script.
     """
 
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=100)
     public = models.BooleanField(default=False)
     style = models.CharField(
         max_length=20, choices=TagStyles.choices, default=TagStyles.BLUE
