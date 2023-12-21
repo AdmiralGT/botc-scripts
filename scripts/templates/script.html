@@ -13,7 +13,11 @@
         z-index: 7000;
     }
 </style>
+
 <script>
+    // Set the name of the page to the name & version of the script.    
+    document.title = "{{ script.name }} - v{{ script_version.version }}"
+  
     function showAndDismissAlert(message) {
         var htmlAlert = '<div class="alert alert-primary' + '">' + message + '</div>';
 
@@ -24,7 +28,7 @@
         // Note: if we were appending, then should use last() instead of first()
         $(".alert-messages .alert").first().hide().fadeIn(200).delay(2000).fadeOut(1000, function () { $(this).remove(); });
     }    
-
+  
     function CopyLink() {
         navigator.clipboard.writeText("{{request.scheme}}://{{request.META.HTTP_HOST}}/api/scripts/{{script_version.pk}}/json/")
         showAndDismissAlert("Link Copied to Clipboard")
@@ -142,7 +146,7 @@
             {% if script_version.edition == 0 %}
                 {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
             {% else %}
-                <i class="fa-sharp fa-ban fa-lg" style="color: red" ></i>
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
@@ -150,7 +154,7 @@
             {% if script_version.edition <= 1 %}
                 {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
             {% else %}
-                <i class="fa-sharp fa-ban fa-lg" style="color: red" ></i>
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
@@ -158,7 +162,7 @@
             {% if script_version.edition <= 2 %}
                 {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
             {% else %}
-                <i class="fa-sharp fa-ban fa-lg" style="color: red" ></i>
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
             {% endif %}
     </div>
     {% if user.is_staff %}
