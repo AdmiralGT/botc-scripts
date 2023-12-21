@@ -10,7 +10,14 @@ def user_voted(context, script_version):
     user = context["user"]
     if user.votes.filter(script=script_version).exists():
         return "btn-danger"
-    return "btn-primary"
+    return "btn-success"
+
+@register.simple_tag(takes_context=True)
+def user_voted_icon(context, script_version):
+    user = context["user"]
+    if user.votes.filter(script=script_version).exists():
+        return "hand-thumbs-down-fill"
+    return "hand-thumbs-up-fill"
 
 
 @register.simple_tag(takes_context=True)

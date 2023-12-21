@@ -4,9 +4,8 @@
 
 {% user_favourite record as starstyle %}
 
-<form class="mb-0" action="{% url 'favourite' record.script.pk record.version %}" method="post">
+<form action="{% url 'favourite' record.script.pk record.version %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-
-    <button type="submit" class="btn btn-outline-secondary">{% bs_icon starstyle %}</button>
+    <button type="submit" class="btn btn-warning">{% bs_icon starstyle %}</button>
 </form>
