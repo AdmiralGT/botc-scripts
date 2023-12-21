@@ -3,13 +3,14 @@ import django_tables2 as tables
 from scripts.models import ScriptVersion, Collection
 
 table_class = {
-    "td": {"class": "p-2 align-middle text-center"},
+    "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
     "th": {"class": "align-middle text-center"},
 }
 
+# Ensure that the buttons only ever take up one line
 script_table_actions_class = {
-    "td": {"class": "p-2 align-middle text-center" },
-    "th": {"class": "align-middle text-center"},
+    "td": {"class": "pl-2 pr-2 p-0 align-middle text-center", "style": "width:15%"},
+    "th": {"class": "align-middle text-center", "style": "width:15%"},
 }
 
 script_table_class = {
@@ -58,7 +59,7 @@ class ScriptTable(tables.Table):
             "script",
             {"pk": tables.A("script.pk"), "version": tables.A("version")},
         ),
-        attrs={"td": {"class": "p-2 align-middle"}},
+        attrs={"td": {"class": "pl-2 pr-2 p-0 align-middle"}},
     )
     
     author = tables.Column(attrs=table_class)
@@ -66,25 +67,31 @@ class ScriptTable(tables.Table):
     script_type = tables.Column(attrs=table_class, verbose_name="Type")
     
     score = tables.TemplateColumn(
-        attrs = table_class, 
         template_name = "script_table/likes.html", 
         verbose_name = "Likes",
-        order_by = ("-score")
+        order_by = ("-score"),
+        attrs = {
+            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
+            "th": {"class": "align-middle text-center"},
+        }
     )
     
     num_favs = tables.TemplateColumn(
-        attrs = table_class, 
         template_name = "script_table/favourites.html", 
-        verbose_name = "Favourites",
-        order_by = ("-num_favs")
+        verbose_name = "Favs",
+        order_by = ("-num_favs"),
+        attrs = {
+            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
+            "th": {"class": "align-middle text-center"},
+        }
     )
     
     tags = tables.TemplateColumn(
         orderable = False, 
         template_name = "tags.html", 
         attrs = { 
-            "td": {"class": "p-2 align-middle text-center" },
-            "th": {"class": "p-2 align-middle text-center w-25"}
+            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center" },
+            "th": {"class": "pl-2 pr-2 p-0 align-middle text-center"}
         },
     )
     
