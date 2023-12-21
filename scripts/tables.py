@@ -3,16 +3,17 @@ import django_tables2 as tables
 from scripts.models import ScriptVersion, Collection
 
 table_class = {
-    "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
+    "td": {"class": "pl-2 p-0 pr-2 align-middle text-center"},
     "th": {"class": "align-middle text-center"},
 }
-
-# Ensure that the buttons only ever take up one line
-script_table_actions_class = {
-    "td": {"class": "pl-2 pr-2 p-0 align-middle text-center", "style": "width:15%"},
-    "th": {"class": "align-middle text-center", "style": "width:15%"},
+button_table_class = {
+    "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
+    "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
 }
-
+favourite_table_class = {
+    "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
+    "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:1%"},
+}
 script_table_class = {
     "td": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:10%"},
     "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:10%"},
@@ -32,8 +33,6 @@ excluded_script_version_fields = (
     "num_travellers",
     "num_fabled",
     "edition",
-    "version",
-    "pdf"
 )
 
 
@@ -43,67 +42,48 @@ class ScriptTable(tables.Table):
         exclude = excluded_script_version_fields
         sequence = (
             "name",
+            "version",
             "author",
             "script_type",
-            "score",
-            "num_favs",
+            "info",
             "tags",
-            "actions",
+            "json",
+            "pdf",
         )
         orderable = True
 
     name = tables.Column(
         empty_values=(),
-        order_by= ( "script.name", "-version" ),
+        order_by="script.name",
         linkify=(
             "script",
             {"pk": tables.A("script.pk"), "version": tables.A("version")},
         ),
-        attrs={"td": {"class": "pl-2 pr-2 p-0 align-middle"}},
+        attrs={"td": {"class": "pl-1 p-0 pr-2 align-middle"}},
     )
-    
-    author = tables.Column(attrs=table_class)
-    
     script_type = tables.Column(attrs=table_class, verbose_name="Type")
-    
-    score = tables.TemplateColumn(
-        template_name = "script_table/likes.html", 
-        verbose_name = "Likes",
-        order_by = ("-score"),
-        attrs = {
-            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
-            "th": {"class": "align-middle text-center"},
-        }
+    author = tables.Column(attrs=table_class)
+    version = tables.Column(attrs=table_class)
+    json = tables.TemplateColumn(
+        orderable=False, template_name="download_json.html", attrs=button_table_class
     )
-    
-    num_favs = tables.TemplateColumn(
-        template_name = "script_table/favourites.html", 
-        verbose_name = "Favs",
-        order_by = ("-num_favs"),
-        attrs = {
-            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
-            "th": {"class": "align-middle text-center"},
-        }
+    pdf = tables.TemplateColumn(
+        orderable=False, template_name="download_pdf.html", attrs=button_table_class
     )
-    
+    info = tables.TemplateColumn(
+        template_name="info.html",
+        attrs=script_table_class,
+        order_by=("-score", "-num_favs", "-num_comments"),
+    )
     tags = tables.TemplateColumn(
-        orderable = False, 
-        template_name = "tags.html", 
-        attrs = { 
-            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center" },
-            "th": {"class": "pl-2 pr-2 p-0 align-middle text-center"}
-        },
-    )
-    
-    actions = tables.TemplateColumn(
-        template_name = "script_table/actions/default.html",
-        orderable = False,
-        verbose_name = "",
-        attrs = script_table_actions_class,
+        orderable=False, template_name="tags.html", attrs=table_class
     )
 
     def render_name(self, value, record):
-        return "{name} ({version})".format(name=record.script.name, version=record.version)
+        return record.script.name
+
+    def render_type(self, value, record):
+        return record.type
 
 
 class UserScriptTable(ScriptTable):
@@ -112,20 +92,23 @@ class UserScriptTable(ScriptTable):
         exclude = excluded_script_version_fields
         sequence = (
             "name",
+            "version",
             "author",
             "script_type",
-            "score",
-            "num_favs",
+            "info",
             "tags",
-            "actions",
+            "json",
+            "pdf",
+            "vote",
+            "favourite",
         )
         orderable = True
-        
-    actions = tables.TemplateColumn(
-        template_name = "script_table/actions/authenticated.html",
-        orderable = False,
-        verbose_name = "",
-        attrs = script_table_actions_class,
+
+    vote = tables.TemplateColumn(
+        orderable=False, template_name="vote.html", attrs=button_table_class
+    )
+    favourite = tables.TemplateColumn(
+        orderable=False, template_name="favourite.html", attrs=favourite_table_class
     )
 
 
@@ -135,19 +118,23 @@ class CollectionScriptTable(UserScriptTable):
         exclude = excluded_script_version_fields
         sequence = (
             "name",
+            "version",
             "author",
             "script_type",
-            "score",
-            "num_favs",
+            "info",
             "tags",
-            "actions",
+            "json",
+            "pdf",
+            "vote",
+            "favourite",
+            "remove_from_collection",
         )
 
-    actions = tables.TemplateColumn(
-        template_name = "script_table/actions/collection.html",
+    remove_from_collection = tables.TemplateColumn(
         orderable=False,
-        verbose_name="",
-        attrs = script_table_actions_class,
+        template_name="remove_collection.html",
+        attrs=button_table_class,
+        verbose_name="Remove",
     )
 
 
