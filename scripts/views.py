@@ -14,6 +14,7 @@ from django.http import (
     Http404,
     HttpResponseRedirect,
     HttpResponseForbidden,
+    HttpResponse,
 )
 from django.shortcuts import redirect
 from django.views import generic
@@ -1211,3 +1212,8 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
         if len(self.request.session["queryset"]) == 0:
             self.request.session["num_results"] = 0
         return redirect("/script/search/results")
+
+
+class HealthCheckView(generic.View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse()

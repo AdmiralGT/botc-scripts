@@ -50,6 +50,7 @@ urlpatterns = [
     ),
     path("comment/<int:pk>/edit", views.CommentEditView.as_view(), name="edit_comment"),
     path("comment/new", views.CommentCreateView.as_view(), name="create_comment"),
+    path("health-check", views.HealthCheckView.as_view()),
     path(
         "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
