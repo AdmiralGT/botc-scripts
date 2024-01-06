@@ -5,7 +5,6 @@ from allauth.socialaccount import providers
 from importlib import import_module
 from scripts import api_views, views, viewsets, worldcup
 from django.views.generic.base import TemplateView
-from django.views import View
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
