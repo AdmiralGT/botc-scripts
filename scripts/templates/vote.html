@@ -1,6 +1,4 @@
 {% load bootstrap4 %}
-{% load botc_script_tags %}
-
 <form class="mb-0" action="{% url 'vote' record.script.pk record.version %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
