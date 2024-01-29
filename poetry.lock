@@ -471,13 +471,13 @@ requests = "*"
 
 [[package]]
 name = "django-bootstrap4"
-version = "23.4"
+version = "24.1"
 description = "Django extensions by Zostera"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "django-bootstrap4-23.4.tar.gz", hash = "sha256:f7f40ad719c1b20399c804336e56a810abc1dec7ba56257756964c10005916f9"},
-    {file = "django_bootstrap4-23.4-py3-none-any.whl", hash = "sha256:577df4009adc21c8c65b7bfc3cd074c26072e245c43e6183ee0c6ae01181c263"},
+    {file = "django-bootstrap4-24.1.tar.gz", hash = "sha256:948a620a10efc3e091e55571341ae1749a3f6f521f1f031889242b65767b4c04"},
+    {file = "django_bootstrap4-24.1-py3-none-any.whl", hash = "sha256:accc64255af7bb45df6b518673facbbaf572418c26e3c3579a0cf4e9c4ef1183"},
 ]
 
 [package.dependencies]
@@ -1080,4 +1080,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "e8304fcc6b23cc95a91cd1817aa5d3871f8a7412360fe0ffbfc973c72f77fc6c"
+content-hash = "27118aded2c200bcffd2202455a637b173c3b1bc1811b9884f95054a88da0670"
