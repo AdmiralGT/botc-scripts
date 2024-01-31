@@ -18,6 +18,12 @@
     // Set the name of the page to the name & version of the script.    
     document.title = "{{ script.name }} - v{{ script_version.version }}"
   
+    function decodeHtml(html) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
+
     function showAndDismissAlert(message) {
         var htmlAlert = '<div class="alert alert-primary' + '">' + message + '</div>';
 
@@ -29,9 +35,9 @@
         $(".alert-messages .alert").first().hide().fadeIn(200).delay(2000).fadeOut(1000, function () { $(this).remove(); });
     }    
   
-    function CopyLink() {
-        navigator.clipboard.writeText("{{request.scheme}}://{{request.META.HTTP_HOST}}/api/scripts/{{script_version.pk}}/json/")
-        showAndDismissAlert("Link Copied to Clipboard")
+    function CopyLink(json) {
+        navigator.clipboard.writeText(decodeHtml(json))
+        showAndDismissAlert("JSON Copied to Clipboard")
     }
 </script>
 
@@ -111,7 +117,7 @@
         </div>
     {% endif %}
     <div class="col-md-auto p-1">
-        <button class="btn btn-primary" onclick="CopyLink()">JSON</button>
+        <button class="btn btn-primary" onclick="CopyLink('{{json}}')">JSON</button>
     </div>
     {% if script_version.edition > 2 %}
         {% if perms.scripts.download_unsupported_json %}
