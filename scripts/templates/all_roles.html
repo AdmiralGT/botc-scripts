@@ -59,7 +59,7 @@
             {% if edition == 0 %}
                 {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
             {% else %}
-                <i class="fa-sharp fa-ban fa-lg" style="color: red" ></i>
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
@@ -67,7 +67,7 @@
             {% if edition <= 1 %}
                 {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
             {% else %}
-                <i class="fa-sharp fa-ban fa-lg" style="color: red" ></i>
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
