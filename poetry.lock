@@ -605,16 +605,6 @@ django = ">=3.0"
 pytz = "*"
 
 [[package]]
-name = "fontawesomefree"
-version = "6.5.1"
-description = "Font Awesome Free"
-optional = false
-python-versions = "*"
-files = [
-    {file = "fontawesomefree-6.5.1-py3-none-any.whl", hash = "sha256:8dec4a2ee37bf8e53379ebbf0d38cefec4e06c7c9227f59af39dbb7b1632817b"},
-]
-
-[[package]]
 name = "idna"
 version = "3.6"
 description = "Internationalized Domain Names in Applications (IDNA)"
@@ -1089,4 +1079,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "27118aded2c200bcffd2202455a637b173c3b1bc1811b9884f95054a88da0670"
+content-hash = "4c3954aee35f31c2051edf6e7bb32f5b7357e5a51fcfad5c5320c74c87ccc614"
