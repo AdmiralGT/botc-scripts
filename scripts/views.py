@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import permission_required
 from django.db.models import Case, When, Count
 from django.http import (
     FileResponse,
+    JsonResponse,
     Http404,
     HttpResponseRedirect,
     HttpResponseForbidden,
@@ -226,32 +227,6 @@ class ScriptView(generic.DetailView):
             diff_script_version = script_version
 
         context["changes"] = changes
-
-        similarity = {}
-        similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
-        similarity[models.ScriptTypes.FULL.value] = {}
-        for script_version in models.ScriptVersion.objects.filter(latest=True).order_by(
-            "pk"
-        ):
-            if current_script == script_version:
-                continue
-
-            similarity[script_version.script_type][script_version] = get_similarity(
-                current_script.content,
-                script_version.content,
-                current_script.script_type == script_version.script_type,
-            )
-        context["similarity"] = {}
-        context["similarity"][models.ScriptTypes.TEENSYVILLE.value] = sorted(
-            similarity[models.ScriptTypes.TEENSYVILLE].items(),
-            key=lambda x: x[1],
-            reverse=True,
-        )[:10]
-        context["similarity"][models.ScriptTypes.FULL.value] = sorted(
-            similarity[models.ScriptTypes.FULL].items(),
-            key=lambda x: x[1],
-            reverse=True,
-        )[:10]
         context["script_version"] = current_script
         context["comments"] = get_comments(current_script.script)
         context["languages"] = (
@@ -736,6 +711,54 @@ def vote_for_script(request, pk: int, version: str) -> None:
     script_version = get_script_version(request, pk, version)
     update_user_related_script(models.Vote, request.user, script_version)
     return redirect(request.POST["next"])
+
+def map_similar_scripts(data):
+    return {
+        'value': data[1],
+        'name': data[0].script.name,
+        'scriptPK': data[0].script.pk,
+    }
+
+# Seperate call to calculate similar scripts so we can lazy load it
+def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
+    current_script = models.ScriptVersion.objects.filter(
+            script=pk, version=version
+    )[0]
+
+    context = {}
+    context["script_version"] = current_script
+    
+    similarity = {}
+    similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
+    similarity[models.ScriptTypes.FULL.value] = {}
+    for script_version in models.ScriptVersion.objects.filter(latest=True).order_by(
+        "pk"
+    ):
+        if current_script == script_version:
+            continue
+
+        similarity[script_version.script_type][script_version] = get_similarity(
+            current_script.content,
+            script_version.content,
+            current_script.script_type == script_version.script_type,
+        )
+    context["similarity"] = {}
+    teensville_scripts = map(map_similar_scripts, sorted(
+        similarity[models.ScriptTypes.TEENSYVILLE].items(),
+        key=lambda x: x[1],
+        reverse=True,
+    )[:10])
+
+    full_scripts = map(map_similar_scripts, sorted(
+        similarity[models.ScriptTypes.FULL].items(),
+        key=lambda x: x[1],
+        reverse=True,
+    )[:10])
+    
+    return JsonResponse({
+        'full': list(full_scripts),
+        'teensyville': list(teensville_scripts)
+    })
 
 
 def favourite_script(request, pk: int, version: str) -> None:
