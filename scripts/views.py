@@ -721,12 +721,12 @@ def map_similar_scripts(data):
 
 # Seperate call to calculate similar scripts so we can lazy load it
 def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
+    if request.method != "GET":
+        raise Http404()
+
     current_script = models.ScriptVersion.objects.filter(
             script=pk, version=version
     )[0]
-
-    context = {}
-    context["script_version"] = current_script
     
     similarity = {}
     similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
@@ -742,7 +742,6 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
             script_version.content,
             current_script.script_type == script_version.script_type,
         )
-    context["similarity"] = {}
     teensville_scripts = map(map_similar_scripts, sorted(
         similarity[models.ScriptTypes.TEENSYVILLE].items(),
         key=lambda x: x[1],
