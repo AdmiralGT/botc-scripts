@@ -28,6 +28,7 @@ def annotate_queryset(queryset, field, value):
 
 def include_characters(queryset, value):
     for character in re.split(",|;|:|/", value):
+        character = character.strip()
         if character in ",;:/":
             continue
         queryset = queryset.filter(content__contains=[{"id": name_to_id(character)}])
@@ -36,6 +37,7 @@ def include_characters(queryset, value):
 
 def exclude_characters(queryset, value):
     for character in re.split(",|;|:|/", value):
+        character = character.strip()
         if character in ",;:/":
             continue
         queryset = queryset.exclude(content__contains=[{"id": name_to_id(character)}])
