@@ -34,6 +34,35 @@
         showAndDismissAlert("Link Copied to Clipboard")
     }
 </script>
+<script async>
+
+    function createSimilarScriptEntry(script) {
+        const anchorElement = document.createElement('a');
+        anchorElement.href = `/script/${script.scriptPK}`
+        anchorElement.textContent = script.name;
+
+        const listElement = document.createElement('li');
+        listElement.className = 'list-group-item p-0 border-0'
+        listElement.append(`${script.value}% `, anchorElement)
+
+        return listElement
+    }
+
+    async function showSimilarScripts() {
+        const { full, teensyville } = await (await fetch('/script/{{script.pk}}/{{script_version.version}}/similar')).json()
+
+        const fullElements = full.map(createSimilarScriptEntry)
+        const fullList = document.getElementById('similar-full-list');
+        fullList.textContent = '';
+        fullList.append(...fullElements)
+
+        const teensyvilleElements = teensyville.map(createSimilarScriptEntry);
+        const teensyvilleList = document.getElementById('similar-teensyville-list');
+        teensyvilleList.textContent = '';
+        teensyvilleList.append(...teensyvilleElements)
+    }
+    showSimilarScripts()
+</script>
 
 <div class="row">
     <div class="col-auto">
@@ -253,16 +282,12 @@
     {% endif %}
     <div class="tab-pane fade col-sm-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
         <h3>Full Scripts</h3>
-        <ul class="p-0">
-            {% for script_version, similarness in similarity.Full %}
-                <li class="list-group-item p-0 border-0">{{ similarness }}% <a href="/script/{{script_version.script.pk}}">{{script_version.script.name}}</a></li>
-            {% endfor %}
+        <ul class="p-0" id="similar-full-list">
+        loading...
         </ul>
         <h3>Teensyville</h3>
-        <ul class="p-0">
-            {% for script_version, similarness in similarity.Teensyville %}
-                <li class="list-group-item p-0 border-0">{{ similarness }}% <a href="/script/{{script_version.script.pk}}">{{script_version.script.name}}</a></li>
-            {% endfor %}
+        <ul class="p-0" id="similar-teensyville-list">
+        loading...
         </ul>
     </div>
     <div class="tab-pane fade col-sm-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
@@ -343,5 +368,6 @@
     </div>
     {% endif %}
 </div>
+
 
 {% endblock %}

@@ -62,6 +62,7 @@ urlpatterns = [
         name="download_all_roles_json",
     ),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
+    path("script/<int:pk>/<str:version>/similar", views.get_similar_scripts, name="similar"),
     path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>/vote", views.vote_for_script, name="vote"),
     path(
