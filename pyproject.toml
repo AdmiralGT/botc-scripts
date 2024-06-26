@@ -13,7 +13,7 @@ packaging = "^23.2"
 django-tables2 = "^2.4.1"
 django-bootstrap4 = "^24.1"
 django-filter = "^23.3"
-djangorestframework = "^3.12.2"
+djangorestframework = "^3.15.2"
 psycopg2-binary = "^2.9.9"
 django-storages = {version = "1.11.1", extras = ["azure"]}
 django-allauth = "^0.59.0"
