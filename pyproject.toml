@@ -7,7 +7,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-Django = "^4.2"
+Django = "^5.0"
 django-versionfield = "^1.0.2"
 packaging = "^24.1"
 django-tables2 = "^2.4.1"
