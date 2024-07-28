@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from versionfield import Version
 
-from scripts import models, script_json, validators, widgets
+from scripts import constants, models, script_json, validators, widgets
 
 
 class JSONError(Exception):
@@ -17,8 +17,8 @@ def tagOptions():
 
 
 class ScriptForm(forms.Form):
-    name = forms.CharField(max_length=100, required=False, label="Script name")
-    author = forms.CharField(max_length=30, required=False)
+    name = forms.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False, label="Script name")
+    author = forms.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False)
     script_type = forms.ChoiceField(
         choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
     )
@@ -153,13 +153,13 @@ class CollectionForm(forms.ModelForm):
 
 
 class AdvancedSearchForm(forms.Form):
-    name = forms.CharField(max_length=100, required=False)
-    author = forms.CharField(max_length=30, required=False)
+    name = forms.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False)
+    author = forms.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False)
     script_type = forms.ChoiceField(
         choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
     )
-    includes_characters = forms.CharField(max_length=30, required=False)
-    excludes_characters = forms.CharField(max_length=30, required=False)
+    includes_characters = forms.CharField(required=False)
+    excludes_characters = forms.CharField(required=False)
     edition = forms.ChoiceField(
         choices=models.Edition.choices, initial=models.Edition.CLOCKTOWER_APP
     )

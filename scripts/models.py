@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from versionfield import VersionField
 
+from scripts import constants
 from scripts.managers import ScriptViewManager, CollectionManager
 from typing import Dict
 
@@ -64,7 +65,7 @@ class Script(models.Model):
     A named script that can have multiple ScriptVersions
     """
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH)
     owner = models.ForeignKey(
         User, blank=True, null=True, on_delete=models.SET_NULL, related_name="+"
     )
@@ -92,7 +93,7 @@ class ScriptVersion(models.Model):
     script_type = models.CharField(
         max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.FULL
     )
-    author = models.CharField(max_length=100, null=True, blank=True)
+    author = models.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, null=True, blank=True)
     version = VersionField()
     content = models.JSONField()
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
