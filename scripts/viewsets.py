@@ -26,7 +26,9 @@ class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(methods=["get"], detail=True)
     def json(self, request, pk=None):
-        return Response(models.ScriptVersion.objects.get(pk=pk).content)
+        response = Response(models.ScriptVersion.objects.get(pk=pk).content)
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
 
 
 class TranslationViewSet(viewsets.ModelViewSet):
