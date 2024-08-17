@@ -35,6 +35,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 import requests
+import json
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -236,6 +237,7 @@ class ScriptView(generic.DetailView):
         )
 
         context["can_delete"] = self.request.user == current_script.script.owner
+        context["json"] = json.dumps(current_script.content)
 
         return context
 
