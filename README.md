@@ -9,7 +9,7 @@ This is a database for hosting Blood on the Clocktower custom scripts. You can v
 - Filter scripts based on required characters or characters to exclude.
 - Option to vote for your favourite scripts
 
-# Local Setup
+## Local Setup
 
 ### Setting up Virtualenv
 
