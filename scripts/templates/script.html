@@ -30,7 +30,7 @@
     }    
   
     function CopyLink() {
-        navigator.clipboard.writeText("{{request.scheme}}://{{request.META.HTTP_HOST}}/api/scripts/{{script_version.pk}}/json/")
+        navigator.clipboard.writeText("https://{{request.META.HTTP_HOST}}/api/scripts/{{script_version.pk}}/json/")
         showAndDismissAlert("Link Copied to Clipboard")
     }
 </script>
