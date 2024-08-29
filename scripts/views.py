@@ -304,10 +304,14 @@ def update_script(script_version: models.ScriptVersion, cleaned_data, author, us
         script_version.notes = cleaned_data["notes"]
     if cleaned_data.get("pdf", None):
         script_version.pdf = cleaned_data["pdf"]
-    current_tags = script_version.tags.filter(public=False, inheritable=True)
+
     if user.is_staff:
+        # Staff members can see all the tags in the form, so any changes they make
+        # should actually me made.
         script_version.tags.set(cleaned_data["tags"])
     else:
+        # Non-staff members can't see non-public tags so add the current non-public tags back
+        current_tags = script_version.tags.filter(public=False)
         script_version.tags.set(cleaned_data["tags"] | current_tags)
     script_version.save()
 
@@ -430,27 +434,28 @@ class ScriptUploadView(generic.FormView):
         #     author = form.cleaned_data["author"]
         author = form.cleaned_data["author"]
 
-        # The user may just be updating some info about an existing script, so let them
-        # do that. The form validation should catch that the JSON content is the same.
+        # If the script object has not just been created, we're either updating an existing version of the script
+        # or we're uploading a new version of the script.
         if not created:
             try:
                 script_version = models.ScriptVersion.objects.get(
                     script=script, version=form.cleaned_data["version"]
                 )
-                # We're updating an existing entry.
+                # We're updating an existing version of a script.
                 # Our validation should have caught not being able to upload different
                 # JSON content for this script.
                 update_script(script_version, form.cleaned_data, author, user)
                 self.script_version = script_version
                 return HttpResponseRedirect(self.get_success_url())
             except models.ScriptVersion.DoesNotExist:
-                # This is not an existing version.
+                # We're uploading a new version of this script.
                 if script.latest_version():
                     # We need to protect this code against instances where a script doesn't
                     # have a latest version.
                     if script.latest_version().content == json:
                         # The content hasn't change from the latest version, so just update
-                        # that.
+                        # the script and exit, the user probably made an error in changing
+                        # the version string.
                         update_script(
                             script.latest_version(), form.cleaned_data, author, user
                         )
@@ -468,7 +473,7 @@ class ScriptUploadView(generic.FormView):
                         latest_version.latest = False
                         latest_version.save()
                     else:
-                        # We're uploading an older version, so don't mark this version
+                        # We're uploading an older version than the latest, so don't mark this version
                         # as the latest, that's still the current latest.
                         is_latest = False
 
@@ -500,9 +505,16 @@ class ScriptUploadView(generic.FormView):
         if form.cleaned_data.get("notes", None):
             self.script_version.notes = form.cleaned_data["notes"]
             self.script_version.save()
+
+        # Set the tags to be what the form indicates should be set
         self.script_version.tags.set(form.cleaned_data["tags"])
+
+        # Re-add public tags that are inheritable and haven't been included
         if current_tags:
             for tag in current_tags.all():
+                # If the tag is public, and wasn't included in the form
+                # or the tag is not inheritable, remove it from the tags to
+                # add.
                 if (
                     tag.public
                     and tag not in form.cleaned_data["tags"]
