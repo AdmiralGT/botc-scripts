@@ -297,14 +297,18 @@ def download_all_roles_json(request, language: Optional[str] = None) -> FileResp
     return json_file_response("all_roles", content)
 
 
-def update_script(script_version, cleaned_data, author):
+def update_script(script_version: models.ScriptVersion, cleaned_data, author, user):
     script_version.script_type = cleaned_data["script_type"]
     script_version.author = author
     if cleaned_data.get("notes", None):
         script_version.notes = cleaned_data["notes"]
     if cleaned_data.get("pdf", None):
         script_version.pdf = cleaned_data["pdf"]
-    script_version.tags.set(cleaned_data["tags"])
+    current_tags = script_version.tags.filter(public=False, inheritable=True)
+    if user.is_staff:
+        script_version.tags.set(cleaned_data["tags"])
+    else:
+        script_version.tags.set(cleaned_data["tags"] | current_tags)
     script_version.save()
 
 
@@ -436,7 +440,7 @@ class ScriptUploadView(generic.FormView):
                 # We're updating an existing entry.
                 # Our validation should have caught not being able to upload different
                 # JSON content for this script.
-                update_script(script_version, form.cleaned_data, author)
+                update_script(script_version, form.cleaned_data, author, user)
                 self.script_version = script_version
                 return HttpResponseRedirect(self.get_success_url())
             except models.ScriptVersion.DoesNotExist:
@@ -448,7 +452,7 @@ class ScriptUploadView(generic.FormView):
                         # The content hasn't change from the latest version, so just update
                         # that.
                         update_script(
-                            script.latest_version(), form.cleaned_data, author
+                            script.latest_version(), form.cleaned_data, author, user
                         )
                         self.script_version = script.latest_version()
                         return HttpResponseRedirect(self.get_success_url())
