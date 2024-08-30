@@ -35,11 +35,18 @@ AZURE_CUSTOM_DOMAIN = os.environ.get("AZURE_CDN_DOMAIN")
 AZURE_STORAGE_KEY = os.environ.get("AZURE_STORAGE_KEY", False)
 AZURE_SSL = True
 
-DEFAULT_FILE_STORAGE = "botc.storage.AzureMediaStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "botc.storage.AzureMediaStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "botc.storage.AzureStaticStorage",
+    },
+}
+
 AZURE_MEDIA_CONTAINER = os.environ.get("AZURE_MEDIA_CONTAINER", "media")
 MEDIA_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_MEDIA_CONTAINER}/"
 
-STATICFILES_STORAGE = "botc.storage.AzureStaticStorage"
 AZURE_STATIC_CONTAINER = os.environ.get("AZURE_STATIC_CONTAINER", "static")
 STATIC_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/"
 
