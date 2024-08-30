@@ -8,6 +8,10 @@
 
 {% block content %}
 
+<div class="alert alert-danger">
+    Script uploads are currently broken. Please do not attempt to upload scripts at this time.
+</div>
+
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="d-flex flex-row">
@@ -41,7 +45,12 @@
         {% endif %}
     </div>
     {% buttons %}
-        <button type="submit" class="btn btn-primary m-1">Submit</button>
+        {% if user.is_staff %}
+            <button type="submit" class="btn btn-primary m-1">Submit</button>
+        {% else %}
+            <button type="submit" class="btn btn-primary m-1" disabled>Submit</button>
+        {% endif %}
+          
     {% endbuttons %}
 </form>
 
