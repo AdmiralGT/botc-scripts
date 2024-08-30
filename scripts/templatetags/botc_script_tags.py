@@ -138,3 +138,8 @@ def get_language_name(locale: str):
             return get_language_name("ar_KW")
 
         return locale
+    
+@register.simple_tag()
+def get_character_percentage(count: int, total: int):
+    percentage = count * 100 / total
+    return f"{percentage:.2f}%"

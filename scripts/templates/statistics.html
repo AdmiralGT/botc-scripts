@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load bootstrap4 %}
+{% load botc_script_tags %}
 
 {% block content %}
 
@@ -73,8 +74,9 @@
                 <tbody>
                     {% for character, count in Townsfolk %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -86,8 +88,9 @@
                 <tbody>
                     {% for character, count in Townsfolkleast %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -102,8 +105,9 @@
                 <tbody>
                     {% for character, count in Outsider %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -115,8 +119,9 @@
                 <tbody>
                     {% for character, count in Outsiderleast %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -131,8 +136,9 @@
                 <tbody>
                     {% for character, count in Minion %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -144,8 +150,9 @@
                 <tbody>
                     {% for character, count in Minionleast %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -160,8 +167,9 @@
                 <tbody>
                     {% for character, count in Demon %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -173,8 +181,9 @@
                 <tbody>
                     {% for character, count in Demonleast %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -189,8 +198,9 @@
                 <tbody>
                     {% for character, count in Traveller %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -202,8 +212,9 @@
                 <tbody>
                     {% for character, count in Travellerleast %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -218,8 +229,9 @@
                 <tbody>
                     {% for character, count in Fabled %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -231,8 +243,9 @@
                 <tbody>
                     {% for character, count in Fabledleast %}
                     <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
