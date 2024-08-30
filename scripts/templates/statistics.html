@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load bootstrap4 %}
+{% load botc_script_tags %}
 
 {% block content %}
 
@@ -41,29 +42,26 @@
     }
 </style>
 
-<script>
-    {% include "chart.html" with ChartName="TownsfolkChart" ChartLabel="Number of Townsfolk" ChartDictionary=num_count.Townsfolk ChartColor="rgba(214,234,248,1)" ChartBorder="rgba(133,193,233,1)" %}
-    {% include "chart.html" with ChartName="OutsiderChart" ChartLabel="Number of Outsiders" ChartDictionary=num_count.Outsider ChartColor="rgba(214,234,248,1)" ChartBorder="rgbargba(133,193,233,1)" %}
-    {% include "chart.html" with ChartName="MinionChart" ChartLabel="Number of Minions" ChartDictionary=num_count.Minion ChartColor="rgba(250,219,216,1)" ChartBorder="rgba(245,183,177,1)" %}
-    {% include "chart.html" with ChartName="DemonChart" ChartLabel="Number of Demons" ChartDictionary=num_count.Demon ChartColor="rgba(250,219,216,1)" ChartBorder="rgba(245,183,177,1)" %}
-    {% include "chart.html" with ChartName="TravellerChart" ChartLabel="Number of Travellers" ChartDictionary=num_count.Traveller ChartColor="rgba(0,0,255,0.2)" ChartBorder="rgbargba(133,193,233,1)" %}
-    {% include "chart.html" with ChartName="FabledChart" ChartLabel="Number of Fabled" ChartDictionary=num_count.Fabled ChartColor="rgba(255,240,204,1)" ChartBorder="rgba(255,240,153,1)" %}
-</script>
-
 <div class="container">
     <div class="row">
         <h1>Total Scripts in Database: {{ total }}</h1>
-        <div class="col">
-        {% if user.is_authenticated and filter %}
-        <form action="" method="get" class="form mb-0">
-            <div class="float-right form-group row p-1 mb-0">
-                {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
-                {% bootstrap_button 'filter' extra_classes="btn-sm mr-1" %}
-                {% bootstrap_button 'clear' extra_classes="btn-sm" href="/statistics" %}
-            </div>
-        </form>
-        {% endif %}
+        <div class="col float-right pr-0">
+            {% if user.is_authenticated and filter %}
+            <form action="" method="get" class="form mb-0">
+                <div class="float-right form-group row p-1 mb-0">
+                    {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
+                    {% bootstrap_button 'filter' extra_classes="btn-sm mr-1" %}
+                    {% bootstrap_button 'clear' extra_classes="btn-sm" href="/statistics" %}
+                </div>
+            </form>
+            <div class="float-right mr-4 mt-2">
+            {% else %}
+            <div class="float-right mt-2">
+            {% endif %}
+            <input type="range" min="1" max="25" value="5" class="slider" id="DisplayRange">
+            <span id="DisplayRangeLabel"></label>
         </div>
+    </div>
     </div>
 </div>
 
@@ -75,9 +73,10 @@
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Townsfolk %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -88,9 +87,10 @@
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Townsfolkleast %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -104,9 +104,10 @@
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Outsider %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -117,9 +118,10 @@
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Outsiderleast %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -133,9 +135,10 @@
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Minion %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -146,9 +149,10 @@
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Minionleast %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -162,9 +166,10 @@
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Demon %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -175,9 +180,10 @@
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Demonleast %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -191,9 +197,10 @@
             <table class="w-100 table-sm table-striped-traveller">
                 <tbody>
                     {% for character, count in Traveller %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -204,9 +211,10 @@
             <table class="w-100 table-sm table-striped-traveller">
                 <tbody>
                     {% for character, count in Travellerleast %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -220,9 +228,10 @@
             <table class="w-100 table-sm table-striped-fabled">
                 <tbody>
                     {% for character, count in Fabled %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -233,9 +242,10 @@
             <table class="w-100 table-sm table-striped-fabled">
                 <tbody>
                     {% for character, count in Fabledleast %}
-                    <tr background-color="#">
-                        <td class="w-75"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
                         <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -243,6 +253,38 @@
         </div>
     </div>
 </div>
+
+<script>
+    {% include "chart.html" with ChartName="TownsfolkChart" ChartLabel="Number of Townsfolk" ChartDictionary=num_count.Townsfolk ChartColor="rgba(214,234,248,1)" ChartBorder="rgba(133,193,233,1)" %}
+    {% include "chart.html" with ChartName="OutsiderChart" ChartLabel="Number of Outsiders" ChartDictionary=num_count.Outsider ChartColor="rgba(214,234,248,1)" ChartBorder="rgbargba(133,193,233,1)" %}
+    {% include "chart.html" with ChartName="MinionChart" ChartLabel="Number of Minions" ChartDictionary=num_count.Minion ChartColor="rgba(250,219,216,1)" ChartBorder="rgba(245,183,177,1)" %}
+    {% include "chart.html" with ChartName="DemonChart" ChartLabel="Number of Demons" ChartDictionary=num_count.Demon ChartColor="rgba(250,219,216,1)" ChartBorder="rgba(245,183,177,1)" %}
+    {% include "chart.html" with ChartName="TravellerChart" ChartLabel="Number of Travellers" ChartDictionary=num_count.Traveller ChartColor="rgba(0,0,255,0.2)" ChartBorder="rgbargba(133,193,233,1)" %}
+    {% include "chart.html" with ChartName="FabledChart" ChartLabel="Number of Fabled" ChartDictionary=num_count.Fabled ChartColor="rgba(255,240,204,1)" ChartBorder="rgba(255,240,153,1)" %}
+
+    function show_and_hide_table_rows(rows_to_display) {
+        for (let i = 0; i < rows_to_display + 1; i++) {
+            let rowstring = '.row' + i.toString().padStart(2, '0')
+            for (let el of document.querySelectorAll(rowstring)) el.style.display = '';
+        }
+        for (let i = rows_to_display + 1; i < 100; i++) {
+            let rowstring = '.row' + i.toString().padStart(2, '0')
+            for (let el of document.querySelectorAll(rowstring)) el.style.display = 'none';
+        }
+
+    }
+    var slider = document.getElementById("DisplayRange");
+    var label = document.getElementById("DisplayRangeLabel");
+    label.innerHTML = slider.value;
+    show_and_hide_table_rows(parseInt(slider.value))
+    
+
+    // Update the current slider value (each time you drag the slider handle)
+    slider.oninput = function() {
+        label.innerHTML = this.value;
+        show_and_hide_table_rows(parseInt(this.value))
+    }
+</script>
 
 <canvas id="TownsfolkChart" width="400" height="100"></canvas>  
 <canvas id="OutsiderChart" width="400" height="100"></canvas>  
