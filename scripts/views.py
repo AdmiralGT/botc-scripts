@@ -568,7 +568,7 @@ class StatisticsView(generic.ListView, FilterView):
         self.object_list = super().get_queryset()
         context = super().get_context_data(**kwargs)
         stats_character = None
-        characters_to_display = 5
+        characters_to_display = 25
 
         if "all" in self.request.GET:
             queryset = models.ScriptVersion.objects.all()
@@ -608,7 +608,7 @@ class StatisticsView(generic.ListView, FilterView):
                 if int(self.request.GET.get("num")):
                     characters_to_display = int(self.request.GET.get("num"))
                     if characters_to_display < 1:
-                        characters_to_display = 5
+                        characters_to_display = 25
             except ValueError:
                 pass
 
