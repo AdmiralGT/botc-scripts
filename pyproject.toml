@@ -42,4 +42,4 @@ build-backend = "poetry.core.masonry.api"
 exclude = 'scripts/migrations'
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "botc.local"
+DJANGO_SETTINGS_MODULE = "tests.settings"
