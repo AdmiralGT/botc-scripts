@@ -30,6 +30,5 @@ jobs:
         run: poetry install --no-interaction
       - name: Run tests
         run: |
-          source .venv/bin/activate
-          pytest tests/
-          coverage report
+          poetry run pytest tests/
+          poetry run coverage report
