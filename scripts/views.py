@@ -382,9 +382,9 @@ class ScriptUploadView(generic.FormView):
 
         if self.request.user.is_staff:
             if form.fields.get("tags"):
-                form.fields.get(
-                    "tags"
-                ).queryset = models.ScriptTag.objects.all().order_by("order")
+                form.fields.get("tags").queryset = (
+                    models.ScriptTag.objects.all().order_by("order")
+                )
 
         return form
 
@@ -728,22 +728,22 @@ def vote_for_script(request, pk: int, version: str) -> None:
     update_user_related_script(models.Vote, request.user, script_version)
     return redirect(request.POST["next"])
 
+
 def map_similar_scripts(data):
     return {
-        'value': data[1],
-        'name': data[0].script.name,
-        'scriptPK': data[0].script.pk,
+        "value": data[1],
+        "name": data[0].script.name,
+        "scriptPK": data[0].script.pk,
     }
+
 
 # Seperate call to calculate similar scripts so we can lazy load it
 def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
     if request.method != "GET":
         raise Http404()
 
-    current_script = models.ScriptVersion.objects.filter(
-            script=pk, version=version
-    )[0]
-    
+    current_script = models.ScriptVersion.objects.filter(script=pk, version=version)[0]
+
     similarity = {}
     similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
     similarity[models.ScriptTypes.FULL.value] = {}
@@ -758,22 +758,27 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
             script_version.content,
             current_script.script_type == script_version.script_type,
         )
-    teensville_scripts = map(map_similar_scripts, sorted(
-        similarity[models.ScriptTypes.TEENSYVILLE].items(),
-        key=lambda x: x[1],
-        reverse=True,
-    )[:10])
+    teensville_scripts = map(
+        map_similar_scripts,
+        sorted(
+            similarity[models.ScriptTypes.TEENSYVILLE].items(),
+            key=lambda x: x[1],
+            reverse=True,
+        )[:10],
+    )
 
-    full_scripts = map(map_similar_scripts, sorted(
-        similarity[models.ScriptTypes.FULL].items(),
-        key=lambda x: x[1],
-        reverse=True,
-    )[:10])
-    
-    return JsonResponse({
-        'full': list(full_scripts),
-        'teensyville': list(teensville_scripts)
-    })
+    full_scripts = map(
+        map_similar_scripts,
+        sorted(
+            similarity[models.ScriptTypes.FULL].items(),
+            key=lambda x: x[1],
+            reverse=True,
+        )[:10],
+    )
+
+    return JsonResponse(
+        {"full": list(full_scripts), "teensyville": list(teensville_scripts)}
+    )
 
 
 def favourite_script(request, pk: int, version: str) -> None:
@@ -809,9 +814,7 @@ def translate_json_content(json_content: List, language: str):
         if character_id.get("id") == "_meta":
             translated_content.append(character_id)
             continue
-        translated_content.append(
-            translate_character(character_id.get("id"), language)
-        )
+        translated_content.append(translate_character(character_id.get("id"), language))
     return translated_content
 
 
@@ -1255,3 +1258,38 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
 class HealthCheckView(generic.View):
     def get(self, request, *args, **kwargs):
         return HttpResponse()
+
+
+class UpdateDatabaseView(LoginRequiredMixin, generic.FormView):
+    """
+    Updates scripts in the database.
+    """
+
+    template_name = "update_database.html"
+    form_class = forms.UpdateDatabaseForm
+    success_url = "/update"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        if not self.request.user.is_staff:
+            return redirect("")
+
+        start = form.cleaned_data.get("start", 0)
+        end = form.cleaned_data.get("end", 0)
+
+        for i in range(start, end + 1):
+            try:
+                script = models.ScriptVersion.objects.get(pk=i)
+                script.content = script_json.strip_special_characters_from_json(
+                    script.content
+                )
+                script.save()
+            except models.ScriptVersion.DoesNotExist:
+                # It's quite possible some script numbers don't exist, so just continue
+                continue
+
+        return HttpResponseRedirect(self.get_success_url())

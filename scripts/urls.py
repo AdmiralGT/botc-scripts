@@ -62,7 +62,11 @@ urlpatterns = [
         name="download_all_roles_json",
     ),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
-    path("script/<int:pk>/<str:version>/similar", views.get_similar_scripts, name="similar"),
+    path(
+        "script/<int:pk>/<str:version>/similar",
+        views.get_similar_scripts,
+        name="similar",
+    ),
     path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>/vote", views.vote_for_script, name="vote"),
     path(
@@ -97,6 +101,7 @@ urlpatterns = [
     path("statistics", views.StatisticsView.as_view()),
     path("statistics/<str:character>", views.StatisticsView.as_view()),
     path("statistics/tags/<int:tags>", views.StatisticsView.as_view()),
+    path("update", views.UpdateDatabaseView.as_view()),
     path("account/social/", include("allauth.socialaccount.urls")),
     path("account/delete/", views.UserDeleteView.as_view(), name="delete_user"),
     path(

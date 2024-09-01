@@ -93,7 +93,9 @@ class ScriptVersion(models.Model):
     script_type = models.CharField(
         max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.FULL
     )
-    author = models.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, null=True, blank=True)
+    author = models.CharField(
+        max_length=constants.MAX_AUTHOR_NAME_LENGTH, null=True, blank=True
+    )
     version = VersionField()
     content = models.JSONField()
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)

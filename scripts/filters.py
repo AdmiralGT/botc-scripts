@@ -43,8 +43,10 @@ def exclude_characters(queryset, value):
         queryset = queryset.exclude(content__contains=[{"id": name_to_id(character)}])
     return queryset
 
-def name_to_id(name:str):
+
+def name_to_id(name: str):
     return name.replace(" ", "_").replace("'", "").lower()
+
 
 class ScriptVersionFilter(filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
