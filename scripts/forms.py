@@ -228,10 +228,10 @@ class AdvancedSearchForm(forms.Form):
 
 class UpdateDatabaseForm(forms.Form):
     start = forms.IntegerField(
-        min_value=0, max_value=models.ScriptVersion.objects.count(), required=True
+        min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
     )
     end = forms.IntegerField(
-        min_value=0, max_value=models.ScriptVersion.objects.count(), required=True
+        min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
     )
 
     def clean(self):
@@ -243,8 +243,8 @@ class UpdateDatabaseForm(forms.Form):
             raise ValidationError(f"Start {start} must be less than End {end}")
 
         if (
-            start > models.ScriptVersion.objects.count()
-            or end > models.ScriptVersion.objects.count()
+            start > models.ScriptVersion.objects.latest('pk').pk
+            or end > models.ScriptVersion.objects.latest('pk').pk
         ):
             raise ValidationError(
                 f"Trying to update database entries that don't exist. There are {models.ScriptVersion.objects.count()} scripts in the database"
