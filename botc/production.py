@@ -17,6 +17,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG", False) == "True"
 UPLOAD_DISABLED = os.environ.get("UPLOAD_DISABLED", False) == "True"
 DISABLE_VALIDATORS = os.environ.get("DISABLE_VALIDATORS", False) == "True"
+BANNER = os.environ.get('BANNER', None)
 
 # DBHOST is only the server name, not the full URL
 hostname = os.environ.get("DBHOST")

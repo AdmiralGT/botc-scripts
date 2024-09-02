@@ -71,7 +71,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.request",
-                "scripts.context_processors.upload_disabled",
+                "scripts.context_processors.custom_configuration",
             ],
         },
     }
