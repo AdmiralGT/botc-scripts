@@ -228,10 +228,10 @@ class AdvancedSearchForm(forms.Form):
 
 class UpdateDatabaseForm(forms.Form):
     start = forms.IntegerField(
-        min_value=0, max_value=models.ScriptVersion.objects.count(), required=True
+        min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
     )
     end = forms.IntegerField(
-        min_value=0, max_value=models.ScriptVersion.objects.count(), required=True
+        min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
     )
 
     def clean(self):
