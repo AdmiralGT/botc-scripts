@@ -1,17 +1,14 @@
-from django.db import migrations, models
-
-from scripts.views import count_character
-from scripts.models import CharacterType
-
+from django.db import migrations
+from scripts.script_json import strip_special_characters
 
 def update_character_ids(apps, _schema_editor):
     Character = apps.get_model("scripts", "character")
     Translation = apps.get_model("scripts", "translation")
     for character in Character.objects.all():
-        character.character_id = character.character_id.replace("_","").replace("-","")
+        character.character_id = strip_special_characters(character.character_id)
 
     for translation in Translation.objects.all():
-        translation.character_id = translation.character_id.replace("_", "").replace("-", "")
+        translation.character_id = strip_special_characters(translation.character_id)
 
 
 class Migration(migrations.Migration):

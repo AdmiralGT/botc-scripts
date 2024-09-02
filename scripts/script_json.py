@@ -32,6 +32,10 @@ class JSONError(Exception):
     pass
 
 
+def strip_special_characters(character_id):
+    return character_id.replace("_", "").replace("-", "").lower()
+
+
 def strip_special_characters_from_json(json):
     new_json = []
     for item in json:
@@ -42,6 +46,6 @@ def strip_special_characters_from_json(json):
         if character == "_meta":
             new_json.append(item)
             continue
-        new_json.append({"id": character.replace("_", "").replace("-", "")})
+        new_json.append({"id": strip_special_characters(character)})
 
     return new_json
