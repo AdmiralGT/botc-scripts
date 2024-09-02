@@ -243,8 +243,8 @@ class UpdateDatabaseForm(forms.Form):
             raise ValidationError(f"Start {start} must be less than End {end}")
 
         if (
-            start > models.ScriptVersion.objects.count()
-            or end > models.ScriptVersion.objects.count()
+            start > models.ScriptVersion.objects.latest('pk').pk
+            or end > models.ScriptVersion.objects.latest('pk').pk
         ):
             raise ValidationError(
                 f"Trying to update database entries that don't exist. There are {models.ScriptVersion.objects.count()} scripts in the database"

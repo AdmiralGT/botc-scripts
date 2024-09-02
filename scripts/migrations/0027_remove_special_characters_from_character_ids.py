@@ -6,9 +6,11 @@ def update_character_ids(apps, _schema_editor):
     Translation = apps.get_model("scripts", "translation")
     for character in Character.objects.all():
         character.character_id = strip_special_characters(character.character_id)
+        character.save()
 
     for translation in Translation.objects.all():
         translation.character_id = strip_special_characters(translation.character_id)
+        translation.save()
 
 
 class Migration(migrations.Migration):
