@@ -12,7 +12,11 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
+
+# Settings configurable via Environment Variables
 DEBUG = os.environ.get("DEBUG", False) == "True"
+UPLOAD_DISABLED = os.environ.get("UPLOAD_DISABLED", False) == "True"
+DISABLE_VALIDATORS = os.environ.get("DISABLE_VALIDATORS", False) == "True"
 
 # DBHOST is only the server name, not the full URL
 hostname = os.environ.get("DBHOST")

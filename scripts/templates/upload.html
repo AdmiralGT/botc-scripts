@@ -41,7 +41,11 @@
         {% endif %}
     </div>
     {% buttons %}
-        <button type="submit" class="btn btn-primary m-1">Submit</button>
+        {% if UPLOAD_DISABLED and not user.is_staff %}
+            <button type="submit" class="btn btn-primary m-1" disabled>Submit</button>
+        {% else %}
+            <button type="submit" class="btn btn-primary m-1">Submit</button>
+        {% endif %}
     {% endbuttons %}
 </form>
 
