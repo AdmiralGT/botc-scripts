@@ -33,7 +33,7 @@ excluded_script_version_fields = (
     "num_fabled",
     "edition",
     "version",
-    "pdf"
+    "pdf",
 )
 
 
@@ -54,56 +54,58 @@ class ScriptTable(tables.Table):
 
     name = tables.Column(
         empty_values=(),
-        order_by= ( "script.name", "-version" ),
+        order_by=("script.name", "-version"),
         linkify=(
             "script",
             {"pk": tables.A("script.pk"), "version": tables.A("version")},
         ),
         attrs={"td": {"class": "pl-2 pr-2 p-0 align-middle"}},
     )
-    
+
     author = tables.Column(attrs=table_class)
-    
+
     script_type = tables.Column(attrs=table_class, verbose_name="Type")
-    
+
     score = tables.TemplateColumn(
-        template_name = "script_table/likes.html", 
-        verbose_name = "Likes",
-        order_by = ("-score"),
-        attrs = {
+        template_name="script_table/likes.html",
+        verbose_name="Likes",
+        order_by=("-score"),
+        attrs={
             "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
             "th": {"class": "align-middle text-center"},
-        }
-    )
-    
-    num_favs = tables.TemplateColumn(
-        template_name = "script_table/favourites.html", 
-        verbose_name = "Favs",
-        order_by = ("-num_favs"),
-        attrs = {
-            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
-            "th": {"class": "align-middle text-center"},
-        }
-    )
-    
-    tags = tables.TemplateColumn(
-        orderable = False, 
-        template_name = "tags.html", 
-        attrs = { 
-            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center" },
-            "th": {"class": "pl-2 pr-2 p-0 align-middle text-center"}
         },
     )
-    
+
+    num_favs = tables.TemplateColumn(
+        template_name="script_table/favourites.html",
+        verbose_name="Favs",
+        order_by=("-num_favs"),
+        attrs={
+            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
+            "th": {"class": "align-middle text-center"},
+        },
+    )
+
+    tags = tables.TemplateColumn(
+        orderable=False,
+        template_name="tags.html",
+        attrs={
+            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
+            "th": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
+        },
+    )
+
     actions = tables.TemplateColumn(
-        template_name = "script_table/actions/default.html",
-        orderable = False,
-        verbose_name = "",
-        attrs = script_table_actions_class,
+        template_name="script_table/actions/default.html",
+        orderable=False,
+        verbose_name="",
+        attrs=script_table_actions_class,
     )
 
     def render_name(self, value, record):
-        return "{name} ({version})".format(name=record.script.name, version=record.version)
+        return "{name} ({version})".format(
+            name=record.script.name, version=record.version
+        )
 
 
 class UserScriptTable(ScriptTable):
@@ -120,12 +122,12 @@ class UserScriptTable(ScriptTable):
             "actions",
         )
         orderable = True
-        
+
     actions = tables.TemplateColumn(
-        template_name = "script_table/actions/authenticated.html",
-        orderable = False,
-        verbose_name = "",
-        attrs = script_table_actions_class,
+        template_name="script_table/actions/authenticated.html",
+        orderable=False,
+        verbose_name="",
+        attrs=script_table_actions_class,
     )
 
 
@@ -144,10 +146,10 @@ class CollectionScriptTable(UserScriptTable):
         )
 
     actions = tables.TemplateColumn(
-        template_name = "script_table/actions/collection.html",
+        template_name="script_table/actions/collection.html",
         orderable=False,
         verbose_name="",
-        attrs = script_table_actions_class,
+        attrs=script_table_actions_class,
     )
 
 

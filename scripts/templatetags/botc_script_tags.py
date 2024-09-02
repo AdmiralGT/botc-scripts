@@ -12,6 +12,7 @@ def user_voted(context, script_version):
         return "btn-danger"
     return "btn-success"
 
+
 @register.simple_tag(takes_context=True)
 def user_voted_icon(context, script_version):
     user = context["user"]
@@ -138,7 +139,8 @@ def get_language_name(locale: str):
             return get_language_name("ar_KW")
 
         return locale
-    
+
+
 @register.simple_tag()
 def get_character_percentage(count: int, total: int):
     percentage = count * 100 / total

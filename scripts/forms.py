@@ -17,8 +17,12 @@ def tagOptions():
 
 
 class ScriptForm(forms.Form):
-    name = forms.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False, label="Script name")
-    author = forms.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False)
+    name = forms.CharField(
+        max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False, label="Script name"
+    )
+    author = forms.CharField(
+        max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False
+    )
     script_type = forms.ChoiceField(
         choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
     )
@@ -124,19 +128,10 @@ def get_json_content(data):
         raise JSONError("Could not read file type")
     json = js.loads(json_content.read().decode("utf-8"))
     json_content.seek(0)
-    json = revert_to_old_format(json)
+    json = script_json.revert_to_old_format(json)
+    json = script_json.strip_special_characters_from_json(json)
     return json
 
-def revert_to_old_format(json):
-    old_format_json = []
-
-    for item in json:
-        if isinstance(item, str):
-            old_format_json.append({ "id": item })
-        else:
-            old_format_json.append(item)
-
-    return old_format_json
 
 class CollectionForm(forms.ModelForm):
     class Meta:
@@ -154,7 +149,9 @@ class CollectionForm(forms.ModelForm):
 
 class AdvancedSearchForm(forms.Form):
     name = forms.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False)
-    author = forms.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False)
+    author = forms.CharField(
+        max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False
+    )
     script_type = forms.ChoiceField(
         choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
     )
@@ -227,3 +224,28 @@ class AdvancedSearchForm(forms.Form):
         self.fields["number_of_demons"].choices = demon_choices
         self.fields["number_of_fabled"].choices = fabled_choices
         self.fields["number_of_travellers"].choices = traveller_choices
+
+
+class UpdateDatabaseForm(forms.Form):
+    start = forms.IntegerField(
+        min_value=0, max_value=models.ScriptVersion.objects.count(), required=True
+    )
+    end = forms.IntegerField(
+        min_value=0, max_value=models.ScriptVersion.objects.count(), required=True
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        start = cleaned_data.get("start")
+        end = cleaned_data.get("end")
+        if start > end:
+            raise ValidationError(f"Start {start} must be less than End {end}")
+
+        if (
+            start > models.ScriptVersion.objects.count()
+            or end > models.ScriptVersion.objects.count()
+        ):
+            raise ValidationError(
+                f"Trying to update database entries that don't exist. There are {models.ScriptVersion.objects.count()} scripts in the database"
+            )

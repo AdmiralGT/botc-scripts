@@ -5,7 +5,7 @@ from django_filters import rest_framework as filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
 
-from scripts import models, widgets
+from scripts import models, widgets, script_json
 
 edition_choices = (
     (models.Edition.BASE, models.Edition.BASE.label),
@@ -28,7 +28,7 @@ def annotate_queryset(queryset, field, value):
 
 def include_characters(queryset, value):
     for character in re.split(",|;|:|/", value):
-        character = character.strip()
+        character = script_json.strip_special_characters(character.strip())
         if character in ",;:/":
             continue
         queryset = queryset.filter(content__contains=[{"id": name_to_id(character)}])
@@ -37,14 +37,16 @@ def include_characters(queryset, value):
 
 def exclude_characters(queryset, value):
     for character in re.split(",|;|:|/", value):
-        character = character.strip()
+        character = script_json.strip_special_characters(character.strip())
         if character in ",;:/":
             continue
         queryset = queryset.exclude(content__contains=[{"id": name_to_id(character)}])
     return queryset
 
-def name_to_id(name:str):
+
+def name_to_id(name: str):
     return name.replace(" ", "_").replace("'", "").lower()
+
 
 class ScriptVersionFilter(filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(

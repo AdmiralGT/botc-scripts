@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% load bootstrap4 %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+        {% bootstrap_form form form_group_class="form-group m-1" %}
+    </div>
+    {% buttons %}
+        <button type="submit" class="btn btn-primary m-1">Submit</button>
+    {% endbuttons %}
+</form>
+  
+{% endblock %}
