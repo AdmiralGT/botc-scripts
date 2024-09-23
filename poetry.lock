@@ -578,18 +578,18 @@ requests = "*"
 
 [[package]]
 name = "django-bootstrap4"
-version = "24.3"
-description = "Django extensions by Zostera"
+version = "24.4"
+description = "Bootstrap 4 for Django"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "django_bootstrap4-24.3-py3-none-any.whl", hash = "sha256:b555d87740a571036f100ad6026b1f62aabcb913404fb7f08f521881019b14bc"},
-    {file = "django_bootstrap4-24.3.tar.gz", hash = "sha256:819bc0ba7b25fcdeb12eb04353962436dbe95b228ba4cf4b49f5d3fee53692e1"},
+    {file = "django_bootstrap4-24.4-py3-none-any.whl", hash = "sha256:90f642d8c9a6622694544a4fdbf8e6734a037b33b5d6b2884cfd79c87c5d610f"},
+    {file = "django_bootstrap4-24.4.tar.gz", hash = "sha256:b6147eeaa534057f866962d50bcf506b3d378720340d7a8243494a6e33f4e23e"},
 ]
 
 [package.dependencies]
-beautifulsoup4 = ">=4.8.0"
-Django = ">=4.1"
+beautifulsoup4 = ">=4.10.0"
+Django = ">=4.2"
 
 [[package]]
 name = "django-cors-headers"
@@ -1248,4 +1248,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "a384c846e850d146068a6d5b9c018f8004f3c438368e3a72cd8812026a5514fe"
+content-hash = "9ba57f72ab6fb42a240505caa41c0a83a9c042d3e295ffd2aeb8aa575076f51e"
