@@ -379,6 +379,7 @@ class ScriptUploadView(generic.FormView):
                 # If this is an update to an existing script, we can't make it anonymous.
                 if script:
                     form.fields.pop("anonymous")
+                    form.fields.get("name").disabled = True
 
         if self.request.user.is_staff:
             if form.fields.get("tags"):
