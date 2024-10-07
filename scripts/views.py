@@ -1298,15 +1298,20 @@ class UpdateDatabaseView(LoginRequiredMixin, generic.FormView):
 class MissingCharactersView(LoginRequiredMixin, generic.TemplateView):
     template_name = "missing_characters.html"
 
-    def get(self, request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
 
+
+    def get(self, _):
         rsp: requests.Response = requests.get("https://script.bloodontheclocktower.com/data/roles.json")
         rsp.raise_for_status()
         missing = []
         for character in rsp.json():
             id = character.get("id")
             try:
-                _entry = models.Character.objects.get(character_id=id)
+                models.Character.objects.get(character_id=id)
             except models.Character.DoesNotExist:
                 missing.append(id)
         context = {}
