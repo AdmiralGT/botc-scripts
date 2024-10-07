@@ -1268,7 +1268,7 @@ class UpdateDatabaseView(LoginRequiredMixin, generic.FormView):
 
     template_name = "update_database.html"
     form_class = forms.UpdateDatabaseForm
-    success_url = "/update"
+    success_url = "/owner/update"
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_staff:
@@ -1294,3 +1294,23 @@ class UpdateDatabaseView(LoginRequiredMixin, generic.FormView):
                 continue
 
         return HttpResponseRedirect(self.get_success_url())
+    
+class MissingCharactersView(LoginRequiredMixin, generic.TemplateView):
+    template_name = "missing_characters.html"
+
+    def get(self, request, *args, **kwargs):
+
+        rsp: requests.Response = requests.get("https://script.bloodontheclocktower.com/data/roles.json")
+        rsp.raise_for_status()
+        missing = []
+        for character in rsp.json():
+            id = character.get("id")
+            try:
+                _entry = models.Character.objects.get(character_id=id)
+            except models.Character.DoesNotExist:
+                missing.append(id)
+        context = {}
+        context["missing"] = missing
+        return self.render_to_response(context)
+
+    pass
