@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load markdownify %}
+{% load botc_script_tags %}
+{% load bootstrap_icons %}
+
+<ul>
+{% for id in missing %}
+    <li>{{ id }}</li>
+    {% endfor %}
+</ul>
+
+
+{% endblock %}
