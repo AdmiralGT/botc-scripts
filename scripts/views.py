@@ -315,34 +315,26 @@ def update_script(script_version: models.ScriptVersion, cleaned_data, author, us
         script_version.tags.set(cleaned_data["tags"] | current_tags)
     script_version.save()
 
-
-class ScriptUploadView(generic.FormView):
+class BaseScriptUploadView(generic.FormView):
     template_name = "upload.html"
-    form_class = forms.ScriptForm
     script_version = None
+
+    def get_script(self, script_pk):
+        if script_pk:
+            script = models.Script.objects.get(pk=script_pk)
+            return script
 
     def get_initial(self):
         initial = super().get_initial()
-        initial["tags"] = []
         script_pk = self.request.GET.get("script", None)
-        if script_pk:
-            script = models.Script.objects.get(pk=script_pk)
-            if script:
-                script_version = script.latest_version()
-                initial["name"] = script.name
-                initial["author"] = script_version.author
-                initial["version"] = script_version.version
-                if script_version.notes:
-                    initial["notes"] = script_version.notes
-                if script_version.tags:
-                    initial["tags"] = script_version.tags.all()
-
-        tags = self.request.GET.getlist("tags", [])
-        for tag in tags:
-            try:
-                initial["tags"].append(models.ScriptTag.objects.get(pk=tag))
-            except models.ScriptTag.DoesNotExist:
-                continue
+        script = self.get_script(script_pk)
+        if script:
+            script_version = script.latest_version()
+            initial["name"] = script.name
+            initial["author"] = script_version.author
+            initial["version"] = script_version.version
+            if script_version.notes:
+                initial["notes"] = script_version.notes
 
         return initial
 
@@ -351,7 +343,7 @@ class ScriptUploadView(generic.FormView):
         We want to provide the user to the Form's clean method so the user
         can't overwrite scripts owned by someone else.
         """
-        kwargs = super(ScriptUploadView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs.update({"user": self.request.user})
         return kwargs
 
@@ -381,13 +373,42 @@ class ScriptUploadView(generic.FormView):
                     form.fields.pop("anonymous")
                     form.fields.get("name").disabled = True
 
+        return form
+
+
+
+
+class ScriptUploadView(BaseScriptUploadView):
+    form_class = forms.ScriptForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["tags"] = []
+        script_pk = self.request.GET.get("script", None)
+        script = self.get_script(script_pk)
+        if script:
+            script_version = script.latest_version()
+            if script_version.tags:
+                initial["tags"] = script_version.tags.all()
+
+        tags = self.request.GET.getlist("tags", [])
+        for tag in tags:
+            try:
+                initial["tags"].append(models.ScriptTag.objects.get(pk=tag))
+            except models.ScriptTag.DoesNotExist:
+                continue
+
+        return initial
+    
+    def get_form(self):
+        form = super().get_form()
         if self.request.user.is_staff:
             if form.fields.get("tags"):
                 form.fields.get("tags").queryset = (
                     models.ScriptTag.objects.all().order_by("order")
                 )
-
         return form
+
 
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)
@@ -552,12 +573,15 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
             latest_version = script.latest_version()
             latest_version.latest = True
             latest_version.save()
-            self.success_url = f"/script/{script.pk}"
+            self.success_url = self.determine_success_url(script)
         else:
             script.delete()
             self.success_url = "/"
 
         return HttpResponseRedirect(self.get_success_url())
+    
+    def determine_success_url(self, script):
+        return f"/script/{script.pk}"
 
 
 class StatisticsView(generic.ListView, FilterView):
@@ -1015,11 +1039,15 @@ class CommentCreateView(LoginRequiredMixin, generic.View):
         except models.Script.DoesNotExist:
             return HttpResponseRedirect("/")
 
+        redirect_url = f"/script/{script.pk}"
+        if "/homebrew/" in request.get_full_path():
+            redirect_url = "/homebrew" + redirect_url
+
         if request.POST.get("parent"):
             try:
                 parent = models.Comment.objects.get(pk=request.POST["parent"])
             except models.Comment.DoesNotExist:
-                return HttpResponseRedirect(f"/script/{script.pk}")
+                return HttpResponseRedirect(redirect_url)
 
         if request.POST["comment"]:
             if parent:
@@ -1034,7 +1062,7 @@ class CommentCreateView(LoginRequiredMixin, generic.View):
                     user=request.user, comment=request.POST["comment"], script=script
                 )
         messages.success(request, "comments-tab")
-        return HttpResponseRedirect(f"/script/{script.pk}")
+        return HttpResponseRedirect(redirect_url)
 
 
 class CommentEditView(LoginRequiredMixin, generic.View):
@@ -1053,7 +1081,10 @@ class CommentEditView(LoginRequiredMixin, generic.View):
             comment.save()
 
         messages.success(request, "comments-tab")
+
         success_url = f"/script/{comment.script.pk}"
+        if "/homebrew/" in request.get_full_path():
+            success_url = "/homebrew" + success_url
         return HttpResponseRedirect(success_url)
 
 
@@ -1076,6 +1107,8 @@ class CommentDeleteView(LoginRequiredMixin, generic.View):
                 child.save()
 
         success_url = f"/script/{comment.script.pk}"
+        if "/homebrew/" in request.get_full_path():
+            success_url = "/homebrew" + success_url
         comment.delete()
         messages.success(request, "comments-tab")
         return HttpResponseRedirect(success_url)

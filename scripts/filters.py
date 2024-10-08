@@ -47,8 +47,7 @@ def exclude_characters(queryset, value):
 def name_to_id(name: str):
     return name.replace(" ", "_").replace("'", "").lower()
 
-
-class ScriptVersionFilter(filters.FilterSet):
+class BaseScriptVersionFilter(filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
         method="display_all_scripts",
         widget=forms.CheckboxInput,
@@ -62,15 +61,6 @@ class ScriptVersionFilter(filters.FilterSet):
     )
     author = django_filters.filters.CharFilter(method="search_authors", label="Author")
     search = django_filters.filters.CharFilter(method="search_scripts", label="Search")
-    tags = django_filters.filters.ModelMultipleChoiceFilter(
-        queryset=models.ScriptTag.objects.all().order_by("order"),
-        widget=widgets.BadgePillSelectMultiple,
-    )
-    edition = django_filters.filters.ChoiceFilter(
-        label="Edition",
-        method="filter_edition",
-        choices=edition_choices,
-    )
     mono_demon = django_filters.filters.BooleanFilter(
         method="filter_mono_demon_scripts",
         widget=forms.CheckboxInput,
@@ -117,6 +107,18 @@ class ScriptVersionFilter(filters.FilterSet):
             pass
 
         return queryset.filter(similarity__gt=0.3).order_by("-similarity")
+
+
+class ScriptVersionFilter(BaseScriptVersionFilter):
+    tags = django_filters.filters.ModelMultipleChoiceFilter(
+        queryset=models.ScriptTag.objects.all().order_by("order"),
+        widget=widgets.BadgePillSelectMultiple,
+    )
+    edition = django_filters.filters.ChoiceFilter(
+        label="Edition",
+        method="filter_edition",
+        choices=edition_choices,
+    )
 
     def filter_edition(self, queryset, _, value):
         return queryset.filter(edition__lte=value)

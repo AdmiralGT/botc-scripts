@@ -1,11 +1,14 @@
-import json as js
-
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
+import jsonschema.exceptions
 from versionfield import Version
 
-from scripts import constants, models, script_json, validators, widgets
+from scripts import constants, models, validators, widgets, script_json
+import json as js
+import requests
+import os
+import jsonschema
 
 
 class JSONError(Exception):
@@ -16,7 +19,7 @@ def tagOptions():
     return models.ScriptTag.objects.filter(public=True)
 
 
-class ScriptForm(forms.Form):
+class BaseScriptForm(forms.Form):
     name = forms.CharField(
         max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False, label="Script name"
     )
@@ -28,12 +31,6 @@ class ScriptForm(forms.Form):
     )
     version = forms.CharField(
         max_length=20, initial="1", validators=[validators.valid_version]
-    )
-    tags = forms.ModelMultipleChoiceField(
-        queryset=tagOptions(),
-        to_field_name="name",
-        required=False,
-        widget=forms.CheckboxSelectMultiple,
     )
     content = forms.FileField(
         label="JSON", validators=[FileExtensionValidator(["json"])]
@@ -53,12 +50,28 @@ class ScriptForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
-        super(ScriptForm, self).__init__(*args, **kwargs)
+        super(BaseScriptForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
         try:
             json = get_json_content(cleaned_data)
+
+            try:
+                schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.33.2"))
+                schema_url = f"https://raw.githubusercontent.com/ThePandemoniumInstitute/botc-release/refs/tags/{schema_version}/script-schema.json"
+                schema = requests.get(schema_url, timeout=2)
+                try:
+                    jsonschema.validate(json, schema.content)
+                except jsonschema.exceptions.ValidationError as e:
+                    raise ValidationError(
+                        f"This is not a valid script JSON. It does not conform to the schema at {schema_url}. \
+                        Error message: {e.message}"
+                    )
+                except jsonschema.exceptions.SchemaError as e:
+                    pass
+            except requests.exceptions.Timeout:
+                pass
 
             if not isinstance(json, list):
                 raise ValidationError(
@@ -96,8 +109,6 @@ class ScriptForm(forms.Form):
             #             f"Entered Name {entered_name} does not match script JSON name {json_name}"
             #         )
 
-            validators.validate_json(json)
-
             # script_name = json_name if json_name else entered_name
             script_name = entered_name
 
@@ -118,6 +129,22 @@ class ScriptForm(forms.Form):
 
         except models.Script.DoesNotExist:
             pass
+        except JSONError:
+            pass
+
+class ScriptForm(BaseScriptForm):
+    tags = forms.ModelMultipleChoiceField(
+        queryset=tagOptions(),
+        to_field_name="name",
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        try:
+            json = get_json_content(cleaned_data)
+            validators.validate_json(json)
         except JSONError:
             pass
 
@@ -227,11 +254,17 @@ class AdvancedSearchForm(forms.Form):
 
 
 class UpdateDatabaseForm(forms.Form):
+    # start = forms.IntegerField(
+    #     min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
+    # )
+    # end = forms.IntegerField(
+    #     min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
+    # )
     start = forms.IntegerField(
-        min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
+        min_value=0, max_value=10000, required=True
     )
     end = forms.IntegerField(
-        min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
+        min_value=0, max_value=10000, required=True
     )
 
     def clean(self):

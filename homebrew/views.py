@@ -1,6 +1,7 @@
 from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
-from scripts import models, filters, tables
+from scripts import models, tables, views
+from homebrew import filters
 
 class ScriptsListView(SingleTableMixin, FilterView):
     model = models.ScriptVersion
@@ -11,8 +12,8 @@ class ScriptsListView(SingleTableMixin, FilterView):
 
     def get_filterset_class(self):
         if self.request.user.is_authenticated:
-            return filters.FavouriteScriptVersionFilter
-        return filters.ScriptVersionFilter
+            return filters.FavouriteHomebrewVersionFilter
+        return filters.HomebrewVersionFilter
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
@@ -25,4 +26,10 @@ class ScriptsListView(SingleTableMixin, FilterView):
             return tables.UserScriptTable
         return tables.ScriptTable
 
+class HomebrewScriptView(views.ScriptView):
+    template_name = "homebrew/script.html"
+
+class HomebrewDeleteView(views.ScriptDeleteView):
+    def determine_success_url(self, script):
+        return f"/homebrew/script/{script.pk}"
 

@@ -7,13 +7,18 @@ urlpatterns = [
     path("", h_views.ScriptsListView.as_view()),
     path("comment/<int:pk>/edit", s_views.CommentEditView.as_view(), name="edit_comment"),
     path("comment/new", s_views.CommentCreateView.as_view(), name="create_comment"),
-    path("script/<int:pk>", s_views.ScriptView.as_view(), name="script"),
+    path(
+        "comment/<int:pk>/delete",
+        s_views.CommentDeleteView.as_view(),
+        name="delete_homebrew_comment",
+    ),
+    path("script/<int:pk>", h_views.HomebrewScriptView.as_view(), name="script"),
     path(
         "script/<int:pk>/<str:version>/similar",
         s_views.get_similar_scripts,
         name="similar",
     ),
-    path("script/<int:pk>/<str:version>", s_views.ScriptView.as_view(), name="script"),
+    path("script/<int:pk>/<str:version>", h_views.HomebrewScriptView.as_view(), name="script"),
     path("script/<int:pk>/<str:version>/vote", s_views.vote_for_script, name="vote"),
     path(
         "script/<int:pk>/<str:version>/favourite",
@@ -22,7 +27,7 @@ urlpatterns = [
     ),
     path(
         "script/<int:pk>/<str:version>/delete",
-        s_views.ScriptDeleteView.as_view(),
+        h_views.HomebrewDeleteView.as_view(),
         name="delete_script",
     ),
     path(
@@ -35,7 +40,5 @@ urlpatterns = [
         s_views.download_pdf,
         name="download_pdf",
     ),
-    path("script/search", s_views.AdvancedSearchView.as_view(), name="advanced_search"),
-    path("script/search/results", s_views.AdvancedSearchResultsView.as_view()),
     path("script/upload", s_views.ScriptUploadView.as_view(), name="upload"),
 ]

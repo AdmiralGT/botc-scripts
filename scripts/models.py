@@ -251,20 +251,12 @@ class BaseCharacterInfo(models.Model):
         abstract = True
 
 
-class Character(BaseCharacterInfo):
-    """
-    Model for characters.
-    """
-
+class BaseCharacter(BaseCharacterInfo):
     character_type = models.CharField(max_length=30, choices=CharacterType.choices)
-    edition = models.IntegerField(choices=Edition.choices)
-    first_night_position = models.IntegerField(blank=True, null=True)
-    other_night_position = models.IntegerField(blank=True, null=True)
+    first_night_position = models.FloatField(blank=True, null=True)
+    other_night_position = models.FloatField(blank=True, null=True)
     image_url = models.CharField(blank=True, null=True, max_length=100)
     modifies_setup = models.BooleanField(default=False)
-
-    class Meta:
-        permissions = [("update_characters", "Can update character information")]
 
     def full_character_json(self) -> Dict:
         character_json = {}
@@ -285,6 +277,18 @@ class Character(BaseCharacterInfo):
 
     def __str__(self):
         return f"{self.character_name}"
+
+    class Meta:
+        abstract = True
+
+class Character(BaseCharacter):
+    """
+    Model for characters.
+    """
+    edition = models.IntegerField(choices=Edition.choices)
+
+    class Meta:
+        permissions = [("update_characters", "Can update character information")]
 
 
 class Translation(BaseCharacterInfo):
