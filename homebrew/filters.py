@@ -1,16 +1,17 @@
 import django_filters
 from django import forms
-from scripts import filters, models
+from scripts import filters
+from homebrew import models
 
 class HomebrewVersionFilter(filters.BaseScriptVersionFilter):
     class Meta:
-        model = models.ScriptVersion
+        model = models.HomebrewVersion
         fields = [
             "search",
             "script_type",
             "include",
             "exclude",
-            # "homebrewiness",
+            "homebrewiness",
             "author",
             "mono_demon",
             "all_scripts",
@@ -33,13 +34,13 @@ class FavouriteHomebrewVersionFilter(HomebrewVersionFilter):
         return queryset
 
     class Meta:
-        model = models.ScriptVersion
+        model = models.HomebrewVersion
         fields = [
             "search",
             "script_type",
             "include",
             "exclude",
-            # "homebrewiness",
+            "homebrewiness",
             "author",
             "mono_demon",
             "favourites",

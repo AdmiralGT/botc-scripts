@@ -57,13 +57,13 @@ class ScriptsListView(SingleTableMixin, FilterView):
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
-            return tables.UserScriptTable
-        return tables.ScriptTable
+            return tables.UserClocktowerTable
+        return tables.ClocktowerTable
 
 
 class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
-    table_class = tables.UserScriptTable
+    table_class = tables.UserClocktowerTable
     template_name = "scriptlist.html"
     script_view = None
     table_pagination = {"per_page": 20}
@@ -917,10 +917,10 @@ class CollectionScriptListView(SingleTableView):
     def get_table_class(self):
         collection = models.Collection.objects.get(pk=self.kwargs["pk"])
         if self.request.user == collection.owner:
-            return tables.CollectionScriptTable
+            return tables.CollectionClocktowerTable
         elif self.request.user.is_authenticated:
-            return tables.UserScriptTable
-        return tables.ScriptTable
+            return tables.UserClocktowerTable
+        return tables.ClocktowerTable
 
     def get_queryset(self):
         collection = models.Collection.objects.get(pk=self.kwargs["pk"])
@@ -1134,8 +1134,8 @@ class AdvancedSearchResultsView(SingleTableView):
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
-            return tables.UserScriptTable
-        return tables.ScriptTable
+            return tables.UserClocktowerTable
+        return tables.ClocktowerTable
 
 
 class AdvancedSearchView(generic.FormView, SingleTableMixin):

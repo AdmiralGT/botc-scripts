@@ -4,7 +4,7 @@ from homebrew import views as h_views
 
 # Routers provide an easy way of automatically determining the URL conf.
 urlpatterns = [
-    path("", h_views.ScriptsListView.as_view()),
+    path("", h_views.HomebrewListView.as_view()),
     path("comment/<int:pk>/edit", s_views.CommentEditView.as_view(), name="edit_comment"),
     path("comment/new", s_views.CommentCreateView.as_view(), name="create_comment"),
     path(

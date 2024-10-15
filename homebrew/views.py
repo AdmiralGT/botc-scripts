@@ -1,10 +1,10 @@
 from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
-from scripts import models, tables, views
-from homebrew import filters
+from scripts import views
+from homebrew import filters, tables, models
 
-class ScriptsListView(SingleTableMixin, FilterView):
-    model = models.ScriptVersion
+class HomebrewListView(SingleTableMixin, FilterView):
+    model = models.HomebrewVersion
     template_name = "scriptlist.html"
     table_pagination = {"per_page": 20}
     ordering = ["-pk"]
@@ -16,15 +16,15 @@ class ScriptsListView(SingleTableMixin, FilterView):
         return filters.HomebrewVersionFilter
 
     def get_filterset_kwargs(self, filterset_class):
-        kwargs = super(ScriptsListView, self).get_filterset_kwargs(filterset_class)
+        kwargs = super(HomebrewListView, self).get_filterset_kwargs(filterset_class)
         if kwargs["data"] is None:
             kwargs["data"] = {"latest": True}
         return kwargs
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
-            return tables.UserScriptTable
-        return tables.ScriptTable
+            return tables.UserHomebrewTable
+        return tables.HomebrewTable
 
 class HomebrewScriptView(views.ScriptView):
     template_name = "homebrew/script.html"

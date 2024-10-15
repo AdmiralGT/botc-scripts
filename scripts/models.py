@@ -81,14 +81,11 @@ def determine_script_location(instance, filename):
     return f"{instance.script.pk}/{instance.version}/{filename}"
 
 
-class ScriptVersion(models.Model):
+class BaseVersion(models.Model):
     """
     Actual script model, tracking type, author, JSON, PDF etc.
     """
 
-    script = models.ForeignKey(
-        Script, on_delete=models.CASCADE, related_name="versions"
-    )
     latest = models.BooleanField(default=True)
     script_type = models.CharField(
         max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.FULL
@@ -99,7 +96,6 @@ class ScriptVersion(models.Model):
     version = VersionField()
     content = models.JSONField()
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
-    tags = models.ManyToManyField(ScriptTag, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True)
     num_townsfolk = models.IntegerField()
@@ -108,12 +104,25 @@ class ScriptVersion(models.Model):
     num_demons = models.IntegerField()
     num_fabled = models.IntegerField()
     num_travellers = models.IntegerField()
-    edition = models.IntegerField(choices=Edition.choices, default=Edition.BASE)
-
-    objects = ScriptViewManager()
 
     def __str__(self):
         return f"{self.pk}. {self.script.name} - v{self.version}"
+    
+    class Meta:
+        abstract = True
+
+
+class ScriptVersion(BaseVersion):
+    """
+    Actual script model, tracking type, author, JSON, PDF etc.
+    """
+    script = models.ForeignKey(
+        Script, on_delete=models.CASCADE, related_name="clocktower_versions"
+    )
+    tags = models.ManyToManyField(ScriptTag, blank=True)
+    edition = models.IntegerField(choices=Edition.choices, default=Edition.BASE)
+
+    objects = ScriptViewManager()
 
     class Meta:
         permissions = [
@@ -175,18 +184,6 @@ class Favourite(models.Model):
         ScriptVersion, on_delete=models.CASCADE, related_name="favourites"
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favourites")
-
-
-class Play(models.Model):
-    """
-    Model for a user to track plays on a script.
-    """
-
-    script = models.ForeignKey(
-        ScriptVersion, on_delete=models.CASCADE, related_name="plays"
-    )
-    playtime = models.DateField(blank=True, auto_now_add=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="plays")
 
 
 class WorldCup(models.Model):
