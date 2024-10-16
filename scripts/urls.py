@@ -4,11 +4,13 @@ from allauth.account.views import login, logout
 from allauth.socialaccount import providers
 from importlib import import_module
 from scripts import api_views, views, viewsets, worldcup
+from homebrew import viewsets as h_viewsets
 from django.views.generic.base import TemplateView
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
 router.register(r"scripts", viewsets.ScriptViewSet)
+router.register(r"homebrews", h_viewsets.HomebrewViewSet)
 
 translation_detail = viewsets.TranslationViewSet.as_view(
     {"get": "retrieve", "put": "update", "post": "create"}

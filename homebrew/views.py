@@ -106,7 +106,7 @@ class HomebrewUploadView(views.BaseScriptUploadView):
         script_name = form.cleaned_data["name"]
 
         # Either get the current script, or create a new one based on the name.
-        script, created = models.Script.objects.get_or_create(name=script_name)
+        script, created = models.HomebrewScript.objects.get_or_create(name=script_name)
 
         # We only want to set the owner on newly created scripts, so if we've
         # just created the script and the user is authenticated, set the owner to this user

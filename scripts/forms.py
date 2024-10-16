@@ -52,81 +52,65 @@ class BaseScriptForm(forms.Form):
         cleaned_data = super().clean()
         try:
             json = script_json.get_json_content(cleaned_data)
-
-            try:
-                schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.33.2"))
-                schema_url = f"https://raw.githubusercontent.com/ThePandemoniumInstitute/botc-release/refs/tags/{schema_version}/script-schema.json"
-                schema = requests.get(schema_url, timeout=2)
-                try:
-                    jsonschema.validate(json, js.loads(schema.content))
-                except jsonschema.exceptions.ValidationError as e:
-                    raise ValidationError(
-                        f"This is not a valid script JSON. It does not conform to the schema at {schema_url}. \
-                        Error message: {e.message}"
-                    )
-                except jsonschema.exceptions.SchemaError as e:
-                    pass
-            except requests.exceptions.Timeout:
-                pass
-
-            if not isinstance(json, list):
-                raise ValidationError(
-                    f"This is not a valid script JSON. Script JSONs are lists of character objects."
-                )
-            # Author is optional so may not be entered or in JSON
-            entered_author = cleaned_data.get("author", None)
-            json_author = script_json.get_author_from_json(json)
-
-            entered_name = cleaned_data.get("name", None)
-            if not entered_name:
-                raise ValidationError(
-                    f"No script name provided. A name must be entered."
-                )
-
-            # The script tool currently removes spaces from name and author fields. As such people either
-            # need to manually update the JSON manually or upload with weird names. Temporarily remove
-            # said validation.
-            # if entered_author and json_author:
-            #    if entered_author != json_author:
-            #        raise ValidationError(
-            #            f"Entered Author {entered_author} does not match script JSON author {json_author}."
-            #        )
-
-            # entered_name = cleaned_data.get("name", None)
-            # json_name = script_json.get_name_from_json(json)
-            # if not entered_name and not json_name:
-            #     raise ValidationError(
-            #         f"No script name provided. A name must be entered or provided in the script JSON"
-            #     )
-
-            # if json_name and entered_name:
-            #     if json_name != entered_name:
-            #         raise ValidationError(
-            #             f"Entered Name {entered_name} does not match script JSON name {json_name}"
-            #         )
-
-            # script_name = json_name if json_name else entered_name
-            script_name = entered_name
-
-            script = models.Script.objects.get(name=script_name)
-
-            if script.owner and (script.owner != self.user):
-                raise ValidationError(
-                    "You are not the owner of this script and cannot upload a new version"
-                )
-
-            new_version = cleaned_data["version"]
-            for script_version in script.versions.all():
-                if Version(new_version) == script_version.version:
-                    if script_version.content != json:
-                        raise ValidationError(
-                            f"Version {new_version} already exists. You cannot upload a different script with the same version number."
-                        )
-
-        except models.Script.DoesNotExist:
-            pass
         except script_json.JSONError:
             pass
+
+        try:
+            schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.33.2"))
+            schema_url = f"https://raw.githubusercontent.com/ThePandemoniumInstitute/botc-release/refs/tags/{schema_version}/script-schema.json"
+            schema = requests.get(schema_url, timeout=2)
+            try:
+                jsonschema.validate(json, js.loads(schema.content))
+            except jsonschema.exceptions.ValidationError as e:
+                raise ValidationError(
+                    f"This is not a valid script JSON. It does not conform to the schema at {schema_url}. \
+                    Error message: {e.message}"
+                )
+            except jsonschema.exceptions.SchemaError as e:
+                pass
+        except requests.exceptions.Timeout:
+            pass
+
+        if not isinstance(json, list):
+            raise ValidationError(
+                f"This is not a valid script JSON. Script JSONs are lists of character objects."
+            )
+        # Author is optional so may not be entered or in JSON
+        entered_author = cleaned_data.get("author", None)
+        json_author = script_json.get_author_from_json(json)
+
+        entered_name = cleaned_data.get("name", None)
+        if not entered_name:
+            raise ValidationError(
+                f"No script name provided. A name must be entered."
+            )
+
+        # The script tool currently removes spaces from name and author fields. As such people either
+        # need to manually update the JSON manually or upload with weird names. Temporarily remove
+        # said validation.
+        # if entered_author and json_author:
+        #    if entered_author != json_author:
+        #        raise ValidationError(
+        #            f"Entered Author {entered_author} does not match script JSON author {json_author}."
+        #        )
+
+        # entered_name = cleaned_data.get("name", None)
+        # json_name = script_json.get_name_from_json(json)
+        # if not entered_name and not json_name:
+        #     raise ValidationError(
+        #         f"No script name provided. A name must be entered or provided in the script JSON"
+        #     )
+
+        # if json_name and entered_name:
+        #     if json_name != entered_name:
+        #         raise ValidationError(
+        #             f"Entered Name {entered_name} does not match script JSON name {json_name}"
+        #         )
+
+        # script_name = json_name if json_name else entered_name
+        script_name = entered_name
+
+        self.validate_script(script_name, cleaned_data["version"], json)
 
         return cleaned_data
 
@@ -137,6 +121,26 @@ class ScriptForm(BaseScriptForm):
         required=False,
         widget=forms.CheckboxSelectMultiple,
     )
+
+    def validate_script(self, name, new_version, json):
+        try:
+            script = models.Script.objects.get(name=name)
+
+            if script.owner and (script.owner != self.user):
+                raise ValidationError(
+                    "You are not the owner of this script and cannot upload a new version"
+                )
+
+            for script_version in script.versions.all():
+                if Version(new_version) == script_version.version:
+                    if script_version.content != json:
+                        raise ValidationError(
+                            f"Version {new_version} already exists. You cannot upload a different script with the same version number."
+                        )
+
+        except models.Script.DoesNotExist:
+            pass
+
 
     def clean(self):
         cleaned_data = super().clean()

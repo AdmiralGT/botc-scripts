@@ -25,12 +25,21 @@ class HomebrewCharacter(s_models.BaseCharacter):
     """
     character_type = models.CharField(max_length=30, choices=HomebrewCharacterType.choices)
 
+
+class HomebrewScript(s_models.BaseScript):
+    pass
+
+
 class HomebrewVersion(s_models.BaseVersion):
     """
     Model for Homebrew and Hybrid scripts.
     """
+    def determine_script_location(instance, filename):
+        return f"homebrew/{instance.script.pk}/{instance.version}/{filename}"
+
     script = models.ForeignKey(
-        s_models.Script, on_delete=models.CASCADE, related_name="homebrew_versions"
+        HomebrewScript, on_delete=models.CASCADE, related_name="homebrew_versions"
     )
+    pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     homebrewiness = models.IntegerField(choices=Homebrewiness.choices, default=Homebrewiness.HOMEBREW)
 

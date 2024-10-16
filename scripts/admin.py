@@ -8,6 +8,9 @@ from homebrew import models as h_models
 class ScriptVersionAdmin(admin.ModelAdmin):
     readonly_fields = ["created"]
 
+class HomebrewVersionAdmin(admin.ModelAdmin):
+    readonly_fields = ["created"]
+
 
 admin.site.register(models.ClocktowerCharacter)
 admin.site.register(models.Translation)
@@ -20,5 +23,6 @@ admin.site.register(models.ScriptTag)
 admin.site.register(models.Vote)
 admin.site.register(models.WorldCup)
 
+admin.site.register(h_models.HomebrewScript)
 admin.site.register(h_models.HomebrewCharacter)
-admin.site.register(h_models.HomebrewVersion)
+admin.site.register(h_models.HomebrewVersion, HomebrewVersionAdmin)

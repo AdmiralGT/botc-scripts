@@ -15,16 +15,17 @@ class Migration(migrations.Migration):
             old_name='Character', 
             new_name='ClocktowerCharacter',
         ),
-        migrations.AlterField(
-            model_name="scriptversion",
-            name="script",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="clocktower_versions",
-                to="scripts.script",
-            ),
-        ),
         migrations.DeleteModel(
             name="Play",
+        ),
+        migrations.AlterField(
+            model_name="clocktowercharacter",
+            name="first_night_position",
+            field=models.FloatField(blank=True, null=True),
+        ),
+        migrations.AlterField(
+            model_name="clocktowercharacter",
+            name="other_night_position",
+            field=models.FloatField(blank=True, null=True),
         ),
     ]

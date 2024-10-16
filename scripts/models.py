@@ -58,27 +58,30 @@ class ScriptTag(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+    
 
-
-class Script(models.Model):
-    """
-    A named script that can have multiple ScriptVersions
-    """
-
+class BaseScript(models.Model):
     name = models.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH)
     owner = models.ForeignKey(
         User, blank=True, null=True, on_delete=models.SET_NULL, related_name="+"
     )
 
-    def latest_version(self):
-        return self.versions.order_by("-version").first()
-
     def __str__(self):
         return f"{self.pk}. {self.name}"
 
+    def latest_version(self):
+        return self.versions.order_by("-version").first()
 
-def determine_script_location(instance, filename):
-    return f"{instance.script.pk}/{instance.version}/{filename}"
+    class Meta:
+        abstract = True
+
+
+class Script(BaseScript):
+    """
+    A named Clocktower script that can have multiple ScriptVersions
+    """
+    pass
+
 
 
 class BaseVersion(models.Model):
@@ -95,7 +98,6 @@ class BaseVersion(models.Model):
     )
     version = VersionField()
     content = models.JSONField()
-    pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     created = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True)
     num_townsfolk = models.IntegerField()
@@ -116,9 +118,13 @@ class ScriptVersion(BaseVersion):
     """
     Actual script model, tracking type, author, JSON, PDF etc.
     """
+    def determine_script_location(instance, filename):
+        return f"{instance.script.pk}/{instance.version}/{filename}"
+
     script = models.ForeignKey(
-        Script, on_delete=models.CASCADE, related_name="clocktower_versions"
+        Script, on_delete=models.CASCADE, related_name="versions"
     )
+    pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     tags = models.ManyToManyField(ScriptTag, blank=True)
     edition = models.IntegerField(choices=Edition.choices, default=Edition.BASE)
 
