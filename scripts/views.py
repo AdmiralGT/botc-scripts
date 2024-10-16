@@ -151,15 +151,26 @@ def get_comments(script: models.Script) -> Dict:
     return comments
 
 
-def count_character(script_content: Dict, character_type: models.CharacterType) -> int:
+def count_character(script_content, character_type: models.HomebrewCharacterType) -> int:
     count = 0
     for json_entry in script_content:
-        try:
-            character = models.ClocktowerCharacter.objects.get(character_id=json_entry.get("id"))
-        except models.ClocktowerCharacter.DoesNotExist:
-            continue
-        if character and character.character_type == character_type:
-            count += 1
+        if isinstance(json_entry, str):
+            try:
+                character = models.ClocktowerCharacter.objects.get(character_id=json_entry)
+            except models.ClocktowerCharacter.DoesNotExist:
+                continue
+        elif isinstance(json_entry, dict):
+            try:
+                character = models.ClocktowerCharacter.objects.get(character_id=json_entry.get("id"))
+                if character and character.character_type == character_type:
+                    count += 1
+            except models.ClocktowerCharacter.DoesNotExist:
+                try:
+                    homebrew = models.HomebrewCharacter.objects.get(character_id=json_entry.get("id"))
+                    if homebrew and homebrew.character_type == character_type:
+                        count += 1
+                except models.HomebrewCharacter.DoesNotExist:
+                    continue
     return count
 
 
@@ -1327,3 +1338,48 @@ class UpdateDatabaseView(LoginRequiredMixin, generic.FormView):
                 continue
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+def get_character_type_from_team(team):
+    match team:
+        case "townsfolk":
+            return models.CharacterType.TOWNSFOLK
+        case "outsider":
+            return models.CharacterType.OUTSIDER
+        case "minion":
+            return models.CharacterType.MINION
+        case "demon":
+            return models.CharacterType.DEMON
+        case "traveler" | "traveller":
+            return models.CharacterType.TRAVELLER
+        case "fabled":
+            return models.CharacterType.FABLED
+        case _:
+            return models.CharacterType.UNKNOWN
+        
+
+def create_characters_and_determine_homebrew_status(json):
+    homebrewiness = models.Homebrewiness.HOMEBREW
+    for item in json:
+        if isinstance(item, str):
+            homebrewiness = models.Homebrewiness.HYBRID
+        elif isinstance(item, dict):
+            if item.get("id", "") == "_meta":
+                continue
+
+            models.HomebrewCharacter.objects.update_or_create(
+                character_id=item.get("id"),
+                character_name=item.get("name"),
+                image_url=" ".join(item.get("image")),
+                character_type=get_character_type_from_team(item.get("team")),
+                ability=item.get("ability"),
+                first_night_position=item.get("firstNight", None),
+                other_night_position=item.get("otherNight", None),
+                first_night_reminder=item.get("firstNightReminder", None),
+                other_night_reminder=item.get("otherNightReminder", None),
+                global_reminder=" ".join(item.get("remindersGlobal")),
+                reminders=" ".join(item.get("reminders")),
+                modifies_setup=item.get("setup", False),
+            )
+
+    return homebrewiness

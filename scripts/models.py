@@ -41,6 +41,13 @@ class CharacterType(models.TextChoices):
     DEMON = "Demon"
     TRAVELLER = "Traveller"
     FABLED = "Fabled"
+    UNKNOWN = "Unknown"
+
+
+class Homebrewiness(models.IntegerChoices):
+    CLOCKTOWER = 0, "Clocktower"
+    HYBRID = 1, "Hybrid"
+    HOMEBREW = 2, "Homebrew"
 
 
 class ScriptTag(models.Model):
@@ -127,6 +134,7 @@ class ScriptVersion(BaseVersion):
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     tags = models.ManyToManyField(ScriptTag, blank=True)
     edition = models.IntegerField(choices=Edition.choices, default=Edition.BASE)
+    homebrewiness = models.IntegerField(choices=Homebrewiness.choices, default=Homebrewiness.HOMEBREW)
 
     objects = ScriptViewManager()
 
@@ -290,6 +298,14 @@ class ClocktowerCharacter(BaseCharacter):
     """
     edition = models.IntegerField(choices=Edition.choices)
 
+    class Meta:
+        permissions = [("update_characters", "Can update character information")]
+
+
+class HomebrewCharacter(BaseCharacter):
+    """
+    Model for characters.
+    """
     class Meta:
         permissions = [("update_characters", "Can update character information")]
 
