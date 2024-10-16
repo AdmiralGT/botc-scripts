@@ -1,3 +1,5 @@
+import json as js
+
 def get_author_from_json(json):
     return get_metadata_field_from_json(json, "author")
 
@@ -49,3 +51,14 @@ def strip_special_characters_from_json(json):
         new_json.append({"id": strip_special_characters(character)})
 
     return new_json
+
+
+def get_json_content(data):
+    json_content = data.get("content", None)
+    if not json_content:
+        raise JSONError("Could not read file type")
+    json = js.loads(json_content.read().decode("utf-8"))
+    json_content.seek(0)
+    json = revert_to_old_format(json)
+    json = strip_special_characters_from_json(json)
+    return json

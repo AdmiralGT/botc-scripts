@@ -155,8 +155,8 @@ def count_character(script_content: Dict, character_type: models.CharacterType) 
     count = 0
     for json_entry in script_content:
         try:
-            character = models.Character.objects.get(character_id=json_entry.get("id"))
-        except models.Character.DoesNotExist:
+            character = models.ClocktowerCharacter.objects.get(character_id=json_entry.get("id"))
+        except models.ClocktowerCharacter.DoesNotExist:
             continue
         if character and character.character_type == character_type:
             count += 1
@@ -167,8 +167,8 @@ def calculate_edition(script_content: Dict) -> int:
     edition = models.Edition.BASE
     for json_entry in script_content:
         try:
-            character = models.Character.objects.get(character_id=json_entry.get("id"))
-        except models.Character.DoesNotExist:
+            character = models.ClocktowerCharacter.objects.get(character_id=json_entry.get("id"))
+        except models.ClocktowerCharacter.DoesNotExist:
             continue
 
         if character and character.edition > edition:
@@ -248,7 +248,7 @@ def get_all_roles(edition: models.Edition):
         ordering = r.json()
     except requests.RequestException:
         pass
-    for character in models.Character.objects.all().filter(edition__lte=edition):
+    for character in models.ClocktowerCharacter.objects.all().filter(edition__lte=edition):
         roles.append(
             Role(character.character_id, ordering.get(character.character_id, "7"))
         )
@@ -415,7 +415,7 @@ class ScriptUploadView(BaseScriptUploadView):
 
     def form_valid(self, form):
         user = self.request.user
-        json = forms.get_json_content(form.cleaned_data)
+        json = script_json.get_json_content(form.cleaned_data)
         is_latest = True
         current_tags = None
 
@@ -607,13 +607,13 @@ class StatisticsView(generic.ListView, FilterView):
 
         if "character" in self.kwargs:
             try:
-                stats_character = models.Character.objects.get(
+                stats_character = models.ClocktowerCharacter.objects.get(
                     character_id=self.kwargs.get("character")
                 )
                 queryset = queryset.filter(
                     content__contains=[{"id": stats_character.character_id}]
                 )
-            except models.Character.DoesNotExist:
+            except models.ClocktowerCharacter.DoesNotExist:
                 raise Http404()
         elif "tags" in self.kwargs:
             tags = models.ScriptTag.objects.get(pk=self.kwargs.get("tags"))
@@ -654,7 +654,7 @@ class StatisticsView(generic.ListView, FilterView):
             character_count[type.value] = Counter()
             num_count[type.value] = Counter()
 
-        for character in models.Character.objects.all():
+        for character in models.ClocktowerCharacter.objects.all():
             # If we're on a Character Statistics page, don't include this character in the count.
             if character == stats_character:
                 continue
@@ -816,8 +816,8 @@ def favourite_script(request, pk: int, version: str) -> None:
 
 def translate_character(character_id: str, language: str) -> Dict:
     try:
-        character = models.Character.objects.get(character_id=character_id)
-    except models.Character.DoesNotExist:
+        character = models.ClocktowerCharacter.objects.get(character_id=character_id)
+    except models.ClocktowerCharacter.DoesNotExist:
         return {}
 
     original_character = character.full_character_json()
@@ -881,14 +881,14 @@ def download_unsupported_json(request, pk: int, version: str) -> FileResponse:
             continue
 
         try:
-            character = models.Character.objects.get(
+            character = models.ClocktowerCharacter.objects.get(
                 character_id=character_json.get("id")
             )
             if character.edition == models.Edition.CLOCKTOWER_APP:
                 content.append(character.full_character_json())
             else:
                 content.append(character_json)
-        except models.Character.DoesNotExist:
+        except models.ClocktowerCharacter.DoesNotExist:
             content.append(character_json)
 
     return json_file_response(script.name, content)

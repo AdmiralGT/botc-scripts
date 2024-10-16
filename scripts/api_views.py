@@ -18,34 +18,34 @@ class StatisticsAPI(APIView):
             if param[0] == "character":
                 for character in param[1]:
                     try:
-                        character = models.Character.objects.get(character_id=character)
+                        character = models.ClocktowerCharacter.objects.get(character_id=character)
                         queryset = queryset.filter(
                             content__contains=[{"id": character.character_id}]
                         )
-                    except models.Character.DoesNotExist:
+                    except models.ClocktowerCharacter.DoesNotExist:
                         continue
             elif param[0] == "character_or":
                 orig_queryset = queryset.all()
                 queryset = models.ScriptVersion.objects.none()
                 for character in param[1]:
                     try:
-                        character = models.Character.objects.get(character_id=character)
+                        character = models.ClocktowerCharacter.objects.get(character_id=character)
                         queryset = queryset | orig_queryset.filter(
                             content__contains=[{"id": character.character_id}]
                         )
-                    except models.Character.DoesNotExist:
+                    except models.ClocktowerCharacter.DoesNotExist:
                         continue
             elif param[0] == "exclude":
                 for character in param[1]:
                     try:
-                        character = models.Character.objects.get(character_id=character)
+                        character = models.ClocktowerCharacter.objects.get(character_id=character)
                         queryset = queryset.exclude(
                             content__contains=[{"id": character.character_id}]
                         )
-                    except models.Character.DoesNotExist:
+                    except models.ClocktowerCharacter.DoesNotExist:
                         continue
 
-        for character in models.Character.objects.all():
+        for character in models.ClocktowerCharacter.objects.all():
             counter[character.character_id] = queryset.filter(
                 content__contains=[{"id": character.character_id}]
             ).count()

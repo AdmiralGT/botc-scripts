@@ -15,11 +15,11 @@ edition_choices = (
 
 
 def get_characters_by_type(type: models.CharacterType):
-    return models.Character.objects.filter(character_type=type)
+    return models.ClocktowerCharacter.objects.filter(character_type=type)
 
 
 def get_characters_not_in_edition(edition: models.Edition):
-    return models.Character.objects.filter(edition__gt=edition)
+    return models.ClocktowerCharacter.objects.filter(edition__gt=edition)
 
 
 def annotate_queryset(queryset, field, value):

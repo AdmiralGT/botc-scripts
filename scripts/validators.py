@@ -37,11 +37,11 @@ def validate_json(json):
         check_for_homebrew(item)
         if contains_character < MIN_KNOWN_CHARACTERS:
             try:
-                models.Character.objects.get(
+                models.ClocktowerCharacter.objects.get(
                     character_id=item.get("id", "DoesNotExist")
                 )
                 contains_character += 1
-            except models.Character.DoesNotExist:
+            except models.ClocktowerCharacter.DoesNotExist:
                 continue
     if contains_character < MIN_KNOWN_CHARACTERS:
         raise ValidationError(

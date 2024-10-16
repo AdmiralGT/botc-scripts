@@ -54,7 +54,7 @@ class WorldCupStatisticsView(generic.TemplateView):
         for type in models.CharacterType:
             character_count["additions"][type.value] = Counter()
             character_count["deletions"][type.value] = Counter()
-            for character in models.Character.objects.all():
+            for character in models.ClocktowerCharacter.objects.all():
                 if character.character_type != type:
                     continue
                 character_count["additions"][character.character_type][character] = 0
@@ -72,10 +72,10 @@ class WorldCupStatisticsView(generic.TemplateView):
                         if addition.get("id", "_meta") == "_meta":
                             pass
                         try:
-                            character = models.Character.objects.get(
+                            character = models.ClocktowerCharacter.objects.get(
                                 character_id=addition.get("id")
                             )
-                        except models.Character.DoesNotExist:
+                        except models.ClocktowerCharacter.DoesNotExist:
                             continue
 
                         character_count["additions"][character.character_type][
@@ -93,10 +93,10 @@ class WorldCupStatisticsView(generic.TemplateView):
                         if deletion.get("id", "_meta") == "_meta":
                             pass
                         try:
-                            character = models.Character.objects.get(
+                            character = models.ClocktowerCharacter.objects.get(
                                 character_id=deletion.get("id")
                             )
-                        except models.Character.DoesNotExist:
+                        except models.ClocktowerCharacter.DoesNotExist:
                             continue
 
                         character_count["deletions"][character.character_type][

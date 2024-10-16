@@ -278,7 +278,7 @@ class BaseCharacter(BaseCharacterInfo):
     class Meta:
         abstract = True
 
-class Character(BaseCharacter):
+class ClocktowerCharacter(BaseCharacter):
     """
     Model for characters.
     """

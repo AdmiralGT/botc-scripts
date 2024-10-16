@@ -7,15 +7,23 @@ class Homebrewiness(models.IntegerChoices):
     HYBRID = 0, "Hybrid"
     HOMEBREW = 1, "Homebrew"
 
+class HomebrewCharacterType(models.TextChoices):
+    TOWNSFOLK = "Townsfolk"
+    OUTSIDER = "Outsider"
+    MINION = "Minion"
+    DEMON = "Demon"
+    TRAVELLER = "Traveller"
+    FABLED = "Fabled"
+    UNKNOWN = "Unknown"
 
 class HomebrewCharacter(s_models.BaseCharacter):
     """
     Model for homebrew characters.
 
-    The BaseCharacter class has all the information required in currently, but is an abstract
-    class in case we want to change the inheritence hierarchy.
+    The BaseCharacter class has all the information required but we override the character_type
+    to allow for unknown character types (I don't think character type means anything to the app).
     """
-    pass
+    character_type = models.CharField(max_length=30, choices=HomebrewCharacterType.choices)
 
 class HomebrewVersion(s_models.BaseVersion):
     """

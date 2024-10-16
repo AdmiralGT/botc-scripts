@@ -11,10 +11,6 @@ import os
 import jsonschema
 
 
-class JSONError(Exception):
-    pass
-
-
 def tagOptions():
     return models.ScriptTag.objects.filter(public=True)
 
@@ -55,14 +51,14 @@ class BaseScriptForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         try:
-            json = get_json_content(cleaned_data)
+            json = script_json.get_json_content(cleaned_data)
 
             try:
                 schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.33.2"))
                 schema_url = f"https://raw.githubusercontent.com/ThePandemoniumInstitute/botc-release/refs/tags/{schema_version}/script-schema.json"
                 schema = requests.get(schema_url, timeout=2)
                 try:
-                    jsonschema.validate(json, schema.content)
+                    jsonschema.validate(json, js.loads(schema.content))
                 except jsonschema.exceptions.ValidationError as e:
                     raise ValidationError(
                         f"This is not a valid script JSON. It does not conform to the schema at {schema_url}. \
@@ -129,8 +125,10 @@ class BaseScriptForm(forms.Form):
 
         except models.Script.DoesNotExist:
             pass
-        except JSONError:
+        except script_json.JSONError:
             pass
+
+        return cleaned_data
 
 class ScriptForm(BaseScriptForm):
     tags = forms.ModelMultipleChoiceField(
@@ -143,21 +141,10 @@ class ScriptForm(BaseScriptForm):
     def clean(self):
         cleaned_data = super().clean()
         try:
-            json = get_json_content(cleaned_data)
+            json = script_json.get_json_content(cleaned_data)
             validators.validate_json(json)
-        except JSONError:
+        except script_json.JSONError:
             pass
-
-
-def get_json_content(data):
-    json_content = data.get("content", None)
-    if not json_content:
-        raise JSONError("Could not read file type")
-    json = js.loads(json_content.read().decode("utf-8"))
-    json_content.seek(0)
-    json = script_json.revert_to_old_format(json)
-    json = script_json.strip_special_characters_from_json(json)
-    return json
 
 
 class CollectionForm(forms.ModelForm):
