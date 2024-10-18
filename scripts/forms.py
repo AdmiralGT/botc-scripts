@@ -15,7 +15,7 @@ def tagOptions():
     return models.ScriptTag.objects.filter(public=True)
 
 
-class BaseScriptForm(forms.Form):
+class ScriptForm(forms.Form):
     name = forms.CharField(
         max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False, label="Script name"
     )
@@ -43,10 +43,16 @@ class BaseScriptForm(forms.Form):
     anonymous = forms.BooleanField(
         required=False, initial=False, label="Upload without owning the script"
     )
+    tags = forms.ModelMultipleChoiceField(
+        queryset=tagOptions(),
+        to_field_name="name",
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
-        super(BaseScriptForm, self).__init__(*args, **kwargs)
+        super(ScriptForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -110,27 +116,15 @@ class BaseScriptForm(forms.Form):
         # script_name = json_name if json_name else entered_name
         script_name = entered_name
 
-        self.validate_script(script_name, cleaned_data["version"], json)
-
-        return cleaned_data
-
-class ScriptForm(BaseScriptForm):
-    tags = forms.ModelMultipleChoiceField(
-        queryset=tagOptions(),
-        to_field_name="name",
-        required=False,
-        widget=forms.CheckboxSelectMultiple,
-    )
-
-    def validate_script(self, name, new_version, json):
         try:
-            script = models.Script.objects.get(name=name)
+            script = models.Script.objects.get(name=script_name)
 
             if script.owner and (script.owner != self.user):
                 raise ValidationError(
                     "You are not the owner of this script and cannot upload a new version"
                 )
 
+            new_version = cleaned_data["version"]
             for script_version in script.versions.all():
                 if Version(new_version) == script_version.version:
                     if script_version.content != json:
@@ -141,14 +135,9 @@ class ScriptForm(BaseScriptForm):
         except models.Script.DoesNotExist:
             pass
 
+        validators.validate_json(json)
 
-    def clean(self):
-        cleaned_data = super().clean()
-        try:
-            json = script_json.get_json_content(cleaned_data)
-            validators.validate_json(json)
-        except script_json.JSONError:
-            pass
+        return cleaned_data
 
 
 class CollectionForm(forms.ModelForm):

@@ -67,7 +67,10 @@ class ScriptTag(models.Model):
         return f"{self.name}"
     
 
-class BaseScript(models.Model):
+class Script(models.Model):
+    """
+    A named Clocktower script that can have multiple ScriptVersions
+    """
     name = models.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH)
     owner = models.ForeignKey(
         User, blank=True, null=True, on_delete=models.SET_NULL, related_name="+"
@@ -79,23 +82,19 @@ class BaseScript(models.Model):
     def latest_version(self):
         return self.versions.order_by("-version").first()
 
-    class Meta:
-        abstract = True
 
 
-class Script(BaseScript):
-    """
-    A named Clocktower script that can have multiple ScriptVersions
-    """
-    pass
-
-
-
-class BaseVersion(models.Model):
+class ScriptVersion(models.Model):
     """
     Actual script model, tracking type, author, JSON, PDF etc.
     """
+    def determine_script_location(instance, filename):
+        return f"{instance.script.pk}/{instance.version}/{filename}"
 
+    script = models.ForeignKey(
+        Script, on_delete=models.CASCADE, related_name="versions"
+    )
+    pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     latest = models.BooleanField(default=True)
     script_type = models.CharField(
         max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.FULL
@@ -113,31 +112,15 @@ class BaseVersion(models.Model):
     num_demons = models.IntegerField()
     num_fabled = models.IntegerField()
     num_travellers = models.IntegerField()
-
-    def __str__(self):
-        return f"{self.pk}. {self.script.name} - v{self.version}"
-    
-    class Meta:
-        abstract = True
-
-
-class ScriptVersion(BaseVersion):
-    """
-    Actual script model, tracking type, author, JSON, PDF etc.
-    """
-    def determine_script_location(instance, filename):
-        return f"{instance.script.pk}/{instance.version}/{filename}"
-
-    script = models.ForeignKey(
-        Script, on_delete=models.CASCADE, related_name="versions"
-    )
-    pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     tags = models.ManyToManyField(ScriptTag, blank=True)
     edition = models.IntegerField(choices=Edition.choices, default=Edition.BASE)
     homebrewiness = models.IntegerField(choices=Homebrewiness.choices, default=Homebrewiness.HOMEBREW)
 
     objects = ScriptViewManager()
 
+    def __str__(self):
+        return f"{self.pk}. {self.script.name} - v{self.version}"
+    
     class Meta:
         permissions = [
             (
@@ -255,7 +238,7 @@ class BaseCharacterInfo(models.Model):
     ability = models.TextField()
     first_night_reminder = models.TextField(blank=True, null=True)
     other_night_reminder = models.TextField(blank=True, null=True)
-    global_reminders = models.CharField(max_length=30, blank=True, null=True)
+    global_reminders = models.CharField(max_length=60, blank=True, null=True)
     reminders = models.TextField(blank=True, null=True)
 
     class Meta:

@@ -15,11 +15,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-                {% if "homebrew/" in request.path %}
-                    <form action="{% url 'delete_homebrew_comment' comment.pk %}" method="post">
-                {% else %}
-                    <form action="{% url 'delete_comment' comment.pk %}" method="post">
-                {% endif %}
+                <form action="{% url 'delete_comment' comment.pk %}" method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>

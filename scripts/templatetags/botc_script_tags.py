@@ -1,6 +1,5 @@
 from django import template
-from scripts import models as s_models
-from homebrew import models as h_models
+from scripts import models
 from babel.core import Locale, UnknownLocaleError
 
 register = template.Library()
@@ -54,17 +53,17 @@ def script_not_in_user_collection(user, script_version):
 
 def get_colour_from_character_type(character_type):
     match character_type:
-        case h_models.HomebrewCharacterType.TOWNSFOLK:
+        case models.CharacterType.TOWNSFOLK:
             return "style=color:#0000ff"
-        case h_models.HomebrewCharacterType.OUTSIDER:
+        case models.CharacterType.OUTSIDER:
             return "style=color:#00ccff"
-        case h_models.HomebrewCharacterType.MINION:
+        case models.CharacterType.MINION:
             return "style=color:#ff8000"
-        case h_models.HomebrewCharacterType.DEMON:
+        case models.CharacterType.DEMON:
             return "style=color:#ff0000"
-        case h_models.HomebrewCharacterType.TRAVELLER:
+        case models.CharacterType.TRAVELLER:
             return "style=color:#cc0099"
-        case h_models.HomebrewCharacterType.FABLED:
+        case models.CharacterType.FABLED:
             return "style=color:#996600"
         case _:
             return "style=color:#000000"
@@ -74,13 +73,13 @@ def get_colour_from_character_type(character_type):
 @register.simple_tag()
 def character_colourisation(character_id):
     try:
-        character = s_models.ClocktowerCharacter.objects.get(character_id=character_id)
+        character = models.ClocktowerCharacter.objects.get(character_id=character_id)
         return get_colour_from_character_type(character.character_type)
-    except s_models.ClocktowerCharacter.DoesNotExist:
+    except models.ClocktowerCharacter.DoesNotExist:
         try:
-            character = h_models.HomebrewCharacter.objects.get(character_id=character_id)
+            character = models.HomebrewCharacter.objects.get(character_id=character_id)
             return get_colour_from_character_type(character.character_type)
-        except h_models.HomebrewCharacter.DoesNotExist:
+        except models.HomebrewCharacter.DoesNotExist:
             return "style=color:#000000"
 
 
@@ -90,27 +89,27 @@ def character_type_change(content, counter):
         prev_character_id = content[counter - 1].get("id", None)
         curr_character_id = content[counter].get("id", None)
         try:
-            prev_character = s_models.ClocktowerCharacter.objects.get(
+            prev_character = models.ClocktowerCharacter.objects.get(
                 character_id=prev_character_id
             )
-        except s_models.ClocktowerCharacter.DoesNotExist:
+        except models.ClocktowerCharacter.DoesNotExist:
             try:
-                prev_character = h_models.HomebrewCharacter.objects.get(
+                prev_character = models.HomebrewCharacter.objects.get(
                     character_id=prev_character_id
                 )
-            except h_models.HomebrewCharacter.DoesNotExist:
+            except models.HomebrewCharacter.DoesNotExist:
                 return False
 
         try:
-            curr_character = s_models.ClocktowerCharacter.objects.get(
+            curr_character = models.ClocktowerCharacter.objects.get(
                 character_id=curr_character_id
             )
-        except s_models.ClocktowerCharacter.DoesNotExist:
+        except models.ClocktowerCharacter.DoesNotExist:
             try:
-                curr_character = h_models.HomebrewCharacter.objects.get(
+                curr_character = models.HomebrewCharacter.objects.get(
                     character_id=curr_character_id
                 )
-            except h_models.HomebrewCharacter.DoesNotExist:
+            except models.HomebrewCharacter.DoesNotExist:
                 return False
 
         if prev_character and curr_character:
@@ -122,9 +121,12 @@ def character_type_change(content, counter):
 @register.simple_tag()
 def convert_id_to_friendly_text(character_id):
     try:
-        return s_models.ClocktowerCharacter.objects.get(character_id=character_id).character_name
-    except s_models.ClocktowerCharacter.DoesNotExist:
-        return character_id
+        return models.ClocktowerCharacter.objects.get(character_id=character_id).character_name
+    except models.ClocktowerCharacter.DoesNotExist:
+        try:
+            return models.HomebrewCharacter.objects.get(character_id=character_id).character_name
+        except models.HomebrewCharacter.DoesNotExist:
+            return character_id
 
 
 @register.filter

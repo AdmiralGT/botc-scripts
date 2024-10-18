@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "scripts.apps.ScriptsConfig",
-    "homebrew.apps.HomebrewConfig",
     "versionfield",
     "django_tables2",
     "django_filters",

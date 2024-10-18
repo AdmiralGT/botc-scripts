@@ -30,23 +30,7 @@ def validate_json(json):
     if settings.DISABLE_VALIDATORS:
         return
 
-    MIN_KNOWN_CHARACTERS = round(len(json) / 2)
-    contains_character = 0
     prevent_fishbucket(json)
-    for item in json:
-        check_for_homebrew(item)
-        if contains_character < MIN_KNOWN_CHARACTERS:
-            try:
-                models.ClocktowerCharacter.objects.get(
-                    character_id=item.get("id", "DoesNotExist")
-                )
-                contains_character += 1
-            except models.ClocktowerCharacter.DoesNotExist:
-                continue
-    if contains_character < MIN_KNOWN_CHARACTERS:
-        raise ValidationError(
-            f"Script must contain at least {MIN_KNOWN_CHARACTERS} official Blood on the Clocktower character"
-        )
     return
 
 

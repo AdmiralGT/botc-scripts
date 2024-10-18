@@ -48,7 +48,8 @@ def strip_special_characters_from_json(json):
         if character == "_meta":
             new_json.append(item)
             continue
-        new_json.append({"id": strip_special_characters(character)})
+        item["id"] = strip_special_characters(character)
+        new_json.append(item)
 
     return new_json
 

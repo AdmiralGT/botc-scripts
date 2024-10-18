@@ -34,6 +34,7 @@ excluded_clocktower_version_fields = (
     "edition",
     "version",
     "pdf",
+    "homebrewiness",
 )
 
 class ScriptTable(tables.Table):

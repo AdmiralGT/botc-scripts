@@ -151,7 +151,7 @@ def get_comments(script: models.Script) -> Dict:
     return comments
 
 
-def count_character(script_content, character_type: models.HomebrewCharacterType) -> int:
+def count_character(script_content, character_type: models.CharacterType) -> int:
     count = 0
     for json_entry in script_content:
         if isinstance(json_entry, str):
@@ -510,6 +510,8 @@ class ScriptUploadView(BaseScriptUploadView):
                         # as the latest, that's still the current latest.
                         is_latest = False
 
+        homebrewiness = create_characters_and_determine_homebrew_status(json)
+
         num_townsfolk = count_character(json, models.CharacterType.TOWNSFOLK)
         num_outsiders = count_character(json, models.CharacterType.OUTSIDER)
         num_minions = count_character(json, models.CharacterType.MINION)
@@ -534,6 +536,7 @@ class ScriptUploadView(BaseScriptUploadView):
             num_fabled=num_fabled,
             num_travellers=num_travellers,
             edition=edition,
+            homebrewiness=homebrewiness,
         )
         if form.cleaned_data.get("notes", None):
             self.script_version.notes = form.cleaned_data["notes"]
@@ -555,6 +558,19 @@ class ScriptUploadView(BaseScriptUploadView):
                 ):
                     current_tags.remove(tag)
             self.script_version.tags.add(*current_tags.all())
+
+        if homebrewiness == models.Homebrewiness.HYBRID:
+            try:
+                hybrid_tag = models.ScriptTag.objects.get(name="Hybrid Script")
+                self.script_version.tags.add(hybrid_tag)
+            except models.ScriptTag.DoesNotExist:
+                pass           
+        elif homebrewiness == models.Homebrewiness.HOMEBREW:
+            try:
+                homebrew_tag = models.ScriptTag.objects.get(name="Homebrew Script")
+                self.script_version.tags.add(homebrew_tag)
+            except models.ScriptTag.DoesNotExist:
+                pass           
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -1051,8 +1067,6 @@ class CommentCreateView(LoginRequiredMixin, generic.View):
             return HttpResponseRedirect("/")
 
         redirect_url = f"/script/{script.pk}"
-        if "/homebrew/" in request.get_full_path():
-            redirect_url = "/homebrew" + redirect_url
 
         if request.POST.get("parent"):
             try:
@@ -1094,8 +1108,6 @@ class CommentEditView(LoginRequiredMixin, generic.View):
         messages.success(request, "comments-tab")
 
         success_url = f"/script/{comment.script.pk}"
-        if "/homebrew/" in request.get_full_path():
-            success_url = "/homebrew" + success_url
         return HttpResponseRedirect(success_url)
 
 
@@ -1118,8 +1130,6 @@ class CommentDeleteView(LoginRequiredMixin, generic.View):
                 child.save()
 
         success_url = f"/script/{comment.script.pk}"
-        if "/homebrew/" in request.get_full_path():
-            success_url = "/homebrew" + success_url
         comment.delete()
         messages.success(request, "comments-tab")
         return HttpResponseRedirect(success_url)
@@ -1358,28 +1368,42 @@ def get_character_type_from_team(team):
             return models.CharacterType.UNKNOWN
         
 
-def create_characters_and_determine_homebrew_status(json):
-    homebrewiness = models.Homebrewiness.HOMEBREW
-    for item in json:
-        if isinstance(item, str):
-            homebrewiness = models.Homebrewiness.HYBRID
-        elif isinstance(item, dict):
-            if item.get("id", "") == "_meta":
-                continue
+def create_characters_and_determine_homebrew_status(script_content):
+    homebrewiness = models.Homebrewiness.CLOCKTOWER
+    non_clocktower_characters = 0
+    includes_meta = False
+    for item in script_content:
+        if item.get("id", "") == "_meta":
+            includes_meta = True
+            continue
 
+        try:
+            char = item.get("id", "")
+            models.ClocktowerCharacter.objects.get(character_id=item.get("id",""))
+        except models.ClocktowerCharacter.DoesNotExist:
+            non_clocktower_characters += 1
+
+            image_url = item.get("image")
+            if isinstance(image_url, list):
+                image_url = ",".join(image_url)
             models.HomebrewCharacter.objects.update_or_create(
                 character_id=item.get("id"),
                 character_name=item.get("name"),
-                image_url=" ".join(item.get("image")),
-                character_type=get_character_type_from_team(item.get("team")),
+                image_url=image_url,
+                character_type=get_character_type_from_team(item.get("team")).value,
                 ability=item.get("ability"),
                 first_night_position=item.get("firstNight", None),
                 other_night_position=item.get("otherNight", None),
                 first_night_reminder=item.get("firstNightReminder", None),
                 other_night_reminder=item.get("otherNightReminder", None),
-                global_reminder=" ".join(item.get("remindersGlobal")),
-                reminders=" ".join(item.get("reminders")),
+                global_reminders=",".join(item.get("remindersGlobal", [])),
+                reminders=",".join(item.get("reminders", [])),
                 modifies_setup=item.get("setup", False),
             )
+
+    if non_clocktower_characters == len(script_content) - 1 if includes_meta else 0:
+        homebrewiness = models.Homebrewiness.HOMEBREW
+    elif non_clocktower_characters > 0:
+        homebrewiness = models.Homebrewiness.HYBRID
 
     return homebrewiness

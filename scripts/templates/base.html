@@ -26,11 +26,7 @@
 </head>
 
 <body class="d-flex flex-column h-100">
-    {% if "homebrew/" in request.path %}
-        {% include 'homebrew/navbar.html' %}
-    {% else %}
-        {% include 'navbar.html' %}
-    {% endif %}
+    {% include 'navbar.html' %}
 
     {% if BANNER %}
         <div class="alert alert-danger">
@@ -48,15 +44,9 @@
 
     <footer class="footer mt-auto">
         <div class="container">
-            {% if "homebrew/" in request.path %}
-                <span class="text-muted">This project is not affiliated with The Pandemonium Institute.
-                    All roles, content are the property of their respective owners.
-                </span>
-            {% else %}
-                <span class="text-muted">This project is not affiliated with The Pandemonium Institute.
-                    All roles, content are the property of Steven Medway and The Pandemonium Institute.
-                </span>
-            {% endif %}
+            <span class="text-muted">This project is not affiliated with The Pandemonium Institute.
+                All roles, content are the property of Steven Medway and The Pandemonium Institute.
+            </span>
         </div>
     </footer>
 </body>
