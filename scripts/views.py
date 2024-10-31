@@ -87,52 +87,6 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
         return kwargs
 
 
-def get_json_additions(old_json, new_json):
-    for old_id in old_json:
-        if old_id["id"] == "_meta":
-            continue
-        for new_id in new_json:
-            if new_id["id"] == "_meta":
-                continue
-
-            if old_id == new_id:
-                new_json.remove(new_id)
-
-    for new_id in new_json:
-        if new_id["id"] == "_meta":
-            new_json.remove(new_id)
-            break
-
-    return new_json
-
-
-def get_similarity(json1: List, json2: List, same_type: bool) -> int:
-    similarity = 0
-    similarity_max = max(len(json1), len(json2))
-    similarity_min = min(len(json1), len(json2))
-    id2_meta = 0
-    for id in json1:
-        if id.get("id", "") == "_meta":
-            similarity_max = min(similarity_max, len(json1) - 1)
-            similarity_min = min(similarity_min, len(json1) - 1)
-            continue
-        for id2 in json2:
-            if id2.get("id", "") == "_meta":
-                similarity_max = min(similarity_max, len(json2) - 1)
-                similarity_min = min(similarity_min, len(json2) - 1)
-                id2_meta = 1
-                continue
-            if id.get("id", "id1") == id2.get("id", "id2"):
-                similarity += 1
-                break
-
-    similarity_comp = similarity_max if same_type else similarity_min
-    if similarity_comp == 0:
-        return 0
-
-    return round((similarity / similarity_comp) * 100)
-
-
 def get_comment_data(comment: models.Comment, indent: int) -> List:
     data = []
     comment_data = {}
@@ -215,10 +169,10 @@ class ScriptView(generic.DetailView):
 
             if diff_script_version:
                 changes[diff_script_version.version] = {}
-                changes[diff_script_version.version]["additions"] = get_json_additions(
+                changes[diff_script_version.version]["additions"] = script_json.get_json_additions(
                     script_version.content.copy(), diff_script_version.content.copy()
                 )
-                changes[diff_script_version.version]["deletions"] = get_json_additions(
+                changes[diff_script_version.version]["deletions"] = script_json.get_json_additions(
                     diff_script_version.content.copy(), script_version.content.copy()
                 )
                 changes[diff_script_version.version][
@@ -754,7 +708,7 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
         if current_script == script_version:
             continue
 
-        similarity[script_version.script_type][script_version] = get_similarity(
+        similarity[script_version.script_type][script_version] = script_json.get_similarity(
             current_script.content,
             script_version.content,
             current_script.script_type == script_version.script_type,
