@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import json as js
-=======
 from typing import List
->>>>>>> c9bb5e2
 
 def get_author_from_json(json):
     return get_metadata_field_from_json(json, "author")
