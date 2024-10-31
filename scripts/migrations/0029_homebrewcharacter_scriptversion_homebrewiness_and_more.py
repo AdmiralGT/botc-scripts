@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
             model_name="scriptversion",
             name="homebrewiness",
             field=models.IntegerField(
-                choices=[(0, "Clocktower"), (1, "Hybrid"), (2, "Homebrew")], default=2
+                choices=[(0, "Clocktower"), (1, "Hybrid"), (2, "Homebrew")], default=0
             ),
         ),
         migrations.AlterField(

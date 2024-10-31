@@ -626,6 +626,7 @@ class StatisticsView(generic.ListView, FilterView):
             queryset = models.ScriptVersion.objects.all()
         else:
             queryset = models.ScriptVersion.objects.filter(latest=True)
+        queryset = queryset.filter(homebrewiness=models.Homebrewiness.CLOCKTOWER)
 
         if self.request.user.is_authenticated:
             context["filter"] = self.get_filterset(self.get_filterset_class())
@@ -799,7 +800,7 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
     similarity = {}
     similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
     similarity[models.ScriptTypes.FULL.value] = {}
-    for script_version in models.ScriptVersion.objects.filter(latest=True).order_by(
+    for script_version in models.ScriptVersion.objects.filter(latest=True,homebrewiness=models.Homebrewiness.CLOCKTOWER).order_by(
         "pk"
     ):
         if current_script == script_version:
@@ -1219,6 +1220,14 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
         else:
             queryset = models.ScriptVersion.objects.filter(latest=True)
 
+        include_hybrid = form.cleaned_data.get("include_hybrid", False)
+        if not include_hybrid:
+            queryset = queryset.exclude(homebrewiness=models.Homebrewiness.HYBRID)
+
+        include_homebrew = form.cleaned_data.get("include_homebrew", False)
+        if not include_homebrew:
+            queryset = queryset.exclude(homebrewiness=models.Homebrewiness.HOMEBREW)
+
         if form.cleaned_data.get("name"):
             queryset = queryset.annotate(
                 name_similarity=TrigramSimilarity(
@@ -1368,19 +1377,41 @@ def get_character_type_from_team(team):
             return models.CharacterType.UNKNOWN
         
 
+def character_missing_from_database(character_id, roles):
+    for role in roles:
+        if character_id == role.get("id", "UNKNOWN CHARACTER"):
+            return True
+    return False
+        
+
 def create_characters_and_determine_homebrew_status(script_content):
     homebrewiness = models.Homebrewiness.CLOCKTOWER
     non_clocktower_characters = 0
     includes_meta = False
+    roles = []
+    try:
+        roles = requests.get("https://script.bloodontheclocktower.com/data/roles.json", timeout=2)
+    except requests.exceptions.Timeout:
+        pass
+
     for item in script_content:
         if item.get("id", "") == "_meta":
             includes_meta = True
             continue
 
         try:
-            char = item.get("id", "")
             models.ClocktowerCharacter.objects.get(character_id=item.get("id",""))
         except models.ClocktowerCharacter.DoesNotExist:
+            if len(item.keys()) == 1:
+                # It's possible we don't know about this character because it has just been released
+                # and it's not been added to the database. In this case check the script tool for roles
+                # and if it present, don't mark this as a homebrew character.
+
+                # If the character element has more than 1 key then it is almost certainly an attempt at a
+                # homebrew/hybrid character.
+                if character_missing_from_database(item.get("id", ""), js.loads(roles.content)):
+                    continue
+
             non_clocktower_characters += 1
 
             image_url = item.get("image")

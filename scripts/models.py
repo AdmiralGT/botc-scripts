@@ -114,7 +114,7 @@ class ScriptVersion(models.Model):
     num_travellers = models.IntegerField()
     tags = models.ManyToManyField(ScriptTag, blank=True)
     edition = models.IntegerField(choices=Edition.choices, default=Edition.BASE)
-    homebrewiness = models.IntegerField(choices=Homebrewiness.choices, default=Homebrewiness.HOMEBREW)
+    homebrewiness = models.IntegerField(choices=Homebrewiness.choices, default=Homebrewiness.CLOCKTOWER)
 
     objects = ScriptViewManager()
 

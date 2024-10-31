@@ -66,6 +66,16 @@ class BaseScriptVersionFilter(filters.FilterSet):
         widget=forms.CheckboxInput,
         label="Mono-Demon Scripts Only",
     )
+    include_hybrid = django_filters.filters.BooleanFilter(
+        method="filter_hybrid_scripts",
+        widget=forms.CheckboxInput,
+        label="Include Hybrid",
+    )
+    include_homebrew = django_filters.filters.BooleanFilter(
+        method="filter_homebrew_scripts",
+        widget=forms.CheckboxInput,
+        label="Include Homebrew",
+    )
 
     def display_all_scripts(self, queryset, name, value):
         if not value:
@@ -76,6 +86,16 @@ class BaseScriptVersionFilter(filters.FilterSet):
         if value:
             return queryset.filter(num_demons=1)
         return queryset
+    
+    def filter_hybrid_scripts(self, queryset, name, value):
+        if not value:
+            return queryset.exclude(homebrewiness=models.Homebrewiness.HYBRID)
+        return queryset
+
+    def filter_homebrew_scripts(self, queryset, name, value):
+        if not value:
+            return queryset.exclude(homebrewiness=models.Homebrewiness.HOMEBREW)
+        return queryset 
 
     def filter_my_scripts(self, queryset, name, value):
         if value:
@@ -135,6 +155,8 @@ class ScriptVersionFilter(BaseScriptVersionFilter):
             "tags",
             "mono_demon",
             "all_scripts",
+            "include_hybrid",
+            "include_homebrew",
         ]
 
 
@@ -167,6 +189,8 @@ class FavouriteScriptVersionFilter(ScriptVersionFilter):
             "favourites",
             "my_scripts",
             "all_scripts",
+            "include_hybrid",
+            "include_homebrew",
         ]
 
 

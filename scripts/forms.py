@@ -62,19 +62,28 @@ class ScriptForm(forms.Form):
             pass
 
         try:
-            schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.33.2"))
+            schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.34.0"))
             schema_url = f"https://raw.githubusercontent.com/ThePandemoniumInstitute/botc-release/refs/tags/{schema_version}/script-schema.json"
             schema = requests.get(schema_url, timeout=2)
             try:
-                jsonschema.validate(json, js.loads(schema.content))
+                schema = js.loads(schema.content)
+                # Update the additionalProperties field on the Script Character object. The app doesn't enforce this and bloodstar
+                # adds additional properties here.
+                schema["items"]["oneOf"][0]["additionalProperties"] = True
+                jsonschema.validate(json, schema)
             except jsonschema.exceptions.ValidationError as e:
                 raise ValidationError(
                     f"This is not a valid script JSON. It does not conform to the schema at {schema_url}. \
                     Error message: {e.message}"
                 )
             except jsonschema.exceptions.SchemaError as e:
+                # The schema is invalid, just continue and assume it's valid
+                pass
+            except KeyError as e:
+                # Our attempt to edit the schema has failed, just continue and assume it's valid
                 pass
         except requests.exceptions.Timeout:
+            # We couldn't fetch the schema, just continue and assume it's valid
             pass
 
         if not isinstance(json, list):
@@ -86,34 +95,23 @@ class ScriptForm(forms.Form):
         json_author = script_json.get_author_from_json(json)
 
         entered_name = cleaned_data.get("name", None)
+        json_name = script_json.get_name_from_json(json)
         if not entered_name:
             raise ValidationError(
                 f"No script name provided. A name must be entered."
             )
+        if json_name and entered_name:
+            if json_name != entered_name:
+                raise ValidationError(
+                    f"Entered Name {entered_name} does not match script JSON name {json_name}"
+                )
 
-        # The script tool currently removes spaces from name and author fields. As such people either
-        # need to manually update the JSON manually or upload with weird names. Temporarily remove
-        # said validation.
-        # if entered_author and json_author:
-        #    if entered_author != json_author:
-        #        raise ValidationError(
-        #            f"Entered Author {entered_author} does not match script JSON author {json_author}."
-        #        )
+        if entered_author and json_author:
+           if entered_author != json_author:
+               raise ValidationError(
+                   f"Entered Author {entered_author} does not match script JSON author {json_author}."
+               )
 
-        # entered_name = cleaned_data.get("name", None)
-        # json_name = script_json.get_name_from_json(json)
-        # if not entered_name and not json_name:
-        #     raise ValidationError(
-        #         f"No script name provided. A name must be entered or provided in the script JSON"
-        #     )
-
-        # if json_name and entered_name:
-        #     if json_name != entered_name:
-        #         raise ValidationError(
-        #             f"Entered Name {entered_name} does not match script JSON name {json_name}"
-        #         )
-
-        # script_name = json_name if json_name else entered_name
         script_name = entered_name
 
         try:
@@ -171,7 +169,13 @@ class AdvancedSearchForm(forms.Form):
     minimum_number_of_favourites = forms.IntegerField(required=False)
     minimum_number_of_comments = forms.IntegerField(required=False)
     all_scripts = forms.BooleanField(
-        initial=False, label="Display All Versions", required=False
+        initial=False, label="Include all Script Versions", required=False
+    )
+    include_hybrid = forms.BooleanField(
+        initial=False, label="Include Hybrid", required=False
+    )
+    include_homebrew = forms.BooleanField(
+        initial=False, label="Include Homebrew", required=False
     )
     tag_combinations = forms.ChoiceField(
         choices=[("AND", "AND"), ("OR", "OR")], initial="AND", widget=forms.RadioSelect
