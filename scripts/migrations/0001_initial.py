@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('author', models.CharField(blank=True, max_length=100, null=True)),
                 ('version', versionfield.fields.VersionField()),
                 ('content', models.JSONField()),
-                ('pdf', models.FileField(blank=True, null=True, upload_to=scripts.models.determine_script_location)),
+                ('pdf', models.FileField(blank=True, null=True, upload_to=scripts.models.ScriptVersion.determine_script_location)),
                 ('created', models.DateTimeField(auto_now=True)),
                 ('script', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='versions', to='scripts.script')),
                 ('tags', models.ManyToManyField(to='scripts.ScriptTag')),

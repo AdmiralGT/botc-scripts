@@ -41,6 +41,13 @@ class CharacterType(models.TextChoices):
     DEMON = "Demon"
     TRAVELLER = "Traveller"
     FABLED = "Fabled"
+    UNKNOWN = "Unknown"
+
+
+class Homebrewiness(models.IntegerChoices):
+    CLOCKTOWER = 0, "Clocktower"
+    HYBRID = 1, "Hybrid"
+    HOMEBREW = 2, "Homebrew"
 
 
 class ScriptTag(models.Model):
@@ -58,37 +65,36 @@ class ScriptTag(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-
+    
 
 class Script(models.Model):
     """
-    A named script that can have multiple ScriptVersions
+    A named Clocktower script that can have multiple ScriptVersions
     """
-
     name = models.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH)
     owner = models.ForeignKey(
         User, blank=True, null=True, on_delete=models.SET_NULL, related_name="+"
     )
 
-    def latest_version(self):
-        return self.versions.order_by("-version").first()
-
     def __str__(self):
         return f"{self.pk}. {self.name}"
 
+    def latest_version(self):
+        return self.versions.order_by("-version").first()
 
-def determine_script_location(instance, filename):
-    return f"{instance.script.pk}/{instance.version}/{filename}"
 
 
 class ScriptVersion(models.Model):
     """
     Actual script model, tracking type, author, JSON, PDF etc.
     """
+    def determine_script_location(instance, filename):
+        return f"{instance.script.pk}/{instance.version}/{filename}"
 
     script = models.ForeignKey(
         Script, on_delete=models.CASCADE, related_name="versions"
     )
+    pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     latest = models.BooleanField(default=True)
     script_type = models.CharField(
         max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.FULL
@@ -98,8 +104,6 @@ class ScriptVersion(models.Model):
     )
     version = VersionField()
     content = models.JSONField()
-    pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
-    tags = models.ManyToManyField(ScriptTag, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True)
     num_townsfolk = models.IntegerField()
@@ -108,13 +112,15 @@ class ScriptVersion(models.Model):
     num_demons = models.IntegerField()
     num_fabled = models.IntegerField()
     num_travellers = models.IntegerField()
+    tags = models.ManyToManyField(ScriptTag, blank=True)
     edition = models.IntegerField(choices=Edition.choices, default=Edition.BASE)
+    homebrewiness = models.IntegerField(choices=Homebrewiness.choices, default=Homebrewiness.CLOCKTOWER)
 
     objects = ScriptViewManager()
 
     def __str__(self):
         return f"{self.pk}. {self.script.name} - v{self.version}"
-
+    
     class Meta:
         permissions = [
             (
@@ -177,18 +183,6 @@ class Favourite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favourites")
 
 
-class Play(models.Model):
-    """
-    Model for a user to track plays on a script.
-    """
-
-    script = models.ForeignKey(
-        ScriptVersion, on_delete=models.CASCADE, related_name="plays"
-    )
-    playtime = models.DateField(blank=True, auto_now_add=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="plays")
-
-
 class WorldCup(models.Model):
     """
     Model for displaying World Cup data.
@@ -239,32 +233,24 @@ class BaseCharacterInfo(models.Model):
     Abstract model used to describe a character and translation information.
     """
 
-    character_id = models.CharField(max_length=30)
-    character_name = models.CharField(max_length=30)
+    character_id = models.CharField(max_length=50)
+    character_name = models.CharField(max_length=20)
     ability = models.TextField()
     first_night_reminder = models.TextField(blank=True, null=True)
     other_night_reminder = models.TextField(blank=True, null=True)
-    global_reminders = models.CharField(max_length=30, blank=True, null=True)
+    global_reminders = models.CharField(max_length=60, blank=True, null=True)
     reminders = models.TextField(blank=True, null=True)
 
     class Meta:
         abstract = True
 
 
-class Character(BaseCharacterInfo):
-    """
-    Model for characters.
-    """
-
+class BaseCharacter(BaseCharacterInfo):
     character_type = models.CharField(max_length=30, choices=CharacterType.choices)
-    edition = models.IntegerField(choices=Edition.choices)
-    first_night_position = models.IntegerField(blank=True, null=True)
-    other_night_position = models.IntegerField(blank=True, null=True)
+    first_night_position = models.FloatField(blank=True, null=True)
+    other_night_position = models.FloatField(blank=True, null=True)
     image_url = models.CharField(blank=True, null=True, max_length=100)
     modifies_setup = models.BooleanField(default=False)
-
-    class Meta:
-        permissions = [("update_characters", "Can update character information")]
 
     def full_character_json(self) -> Dict:
         character_json = {}
@@ -286,6 +272,26 @@ class Character(BaseCharacterInfo):
     def __str__(self):
         return f"{self.character_name}"
 
+    class Meta:
+        abstract = True
+
+class ClocktowerCharacter(BaseCharacter):
+    """
+    Model for characters.
+    """
+    edition = models.IntegerField(choices=Edition.choices)
+
+    class Meta:
+        permissions = [("update_characters", "Can update character information")]
+
+
+class HomebrewCharacter(BaseCharacter):
+    """
+    Model for characters.
+    """
+    class Meta:
+        permissions = [("update_characters", "Can update character information")]
+
 
 class Translation(BaseCharacterInfo):
     """
@@ -293,6 +299,7 @@ class Translation(BaseCharacterInfo):
     """
 
     language = models.CharField(max_length=10)
+    character_name = models.CharField(max_length=30)
 
     class Meta:
         constraints = [

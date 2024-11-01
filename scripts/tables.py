@@ -18,7 +18,7 @@ script_table_class = {
     "th": {"class": "pl-1 p-0 pr-1 align-middle text-center", "style": "width:10%"},
 }
 
-excluded_script_version_fields = (
+excluded_clocktower_version_fields = (
     "id",
     "content",
     "script",
@@ -34,24 +34,10 @@ excluded_script_version_fields = (
     "edition",
     "version",
     "pdf",
+    "homebrewiness",
 )
 
-
 class ScriptTable(tables.Table):
-    class Meta:
-        model = ScriptVersion
-        exclude = excluded_script_version_fields
-        sequence = (
-            "name",
-            "author",
-            "script_type",
-            "score",
-            "num_favs",
-            "tags",
-            "actions",
-        )
-        orderable = True
-
     name = tables.Column(
         empty_values=(),
         order_by=("script.name", "-version"),
@@ -86,15 +72,6 @@ class ScriptTable(tables.Table):
         },
     )
 
-    tags = tables.TemplateColumn(
-        orderable=False,
-        template_name="tags.html",
-        attrs={
-            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
-            "th": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
-        },
-    )
-
     actions = tables.TemplateColumn(
         template_name="script_table/actions/default.html",
         orderable=False,
@@ -106,12 +83,21 @@ class ScriptTable(tables.Table):
         return "{name} ({version})".format(
             name=record.script.name, version=record.version
         )
+    
+class ClocktowerTable(ScriptTable):
+    tags = tables.TemplateColumn(
+        orderable=False,
+        template_name="tags.html",
+        attrs={
+            "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
+            "th": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
+        },
+    )
 
 
-class UserScriptTable(ScriptTable):
     class Meta:
         model = ScriptVersion
-        exclude = excluded_script_version_fields
+        exclude = excluded_clocktower_version_fields
         sequence = (
             "name",
             "author",
@@ -123,6 +109,8 @@ class UserScriptTable(ScriptTable):
         )
         orderable = True
 
+
+class UserClocktowerTable(ClocktowerTable):
     actions = tables.TemplateColumn(
         template_name="script_table/actions/authenticated.html",
         orderable=False,
@@ -130,11 +118,9 @@ class UserScriptTable(ScriptTable):
         attrs=script_table_actions_class,
     )
 
-
-class CollectionScriptTable(UserScriptTable):
     class Meta:
         model = ScriptVersion
-        exclude = excluded_script_version_fields
+        exclude = excluded_clocktower_version_fields
         sequence = (
             "name",
             "author",
@@ -144,7 +130,10 @@ class CollectionScriptTable(UserScriptTable):
             "tags",
             "actions",
         )
+        orderable = True
 
+
+class CollectionClocktowerTable(UserClocktowerTable):
     actions = tables.TemplateColumn(
         template_name="script_table/actions/collection.html",
         orderable=False,
@@ -152,8 +141,6 @@ class CollectionScriptTable(UserScriptTable):
         attrs=script_table_actions_class,
     )
 
-
-class CollectionTable(tables.Table):
     class Meta:
         model = Collection
         exclude = ("id", "owner", "scripts", "notes")
@@ -164,6 +151,8 @@ class CollectionTable(tables.Table):
         )
         orderable = True
 
+
+class CollectionTable(tables.Table):
     name = tables.Column(
         empty_values=(),
         linkify=(
@@ -178,3 +167,13 @@ class CollectionTable(tables.Table):
         verbose_name="Scripts",
         order_by="-scripts_in_collection",
     )
+
+    class Meta:
+        model = Collection
+        exclude = ("id", "owner", "scripts", "notes")
+        sequence = (
+            "name",
+            "description",
+            "scripts_in_collection",
+        )
+        orderable = True

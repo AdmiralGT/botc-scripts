@@ -1,15 +1,14 @@
-import json as js
-
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
+import jsonschema.exceptions
 from versionfield import Version
 
-from scripts import constants, models, script_json, validators, widgets
-
-
-class JSONError(Exception):
-    pass
+from scripts import constants, models, validators, widgets, script_json
+import json as js
+import requests
+import os
+import jsonschema
 
 
 def tagOptions():
@@ -18,6 +17,8 @@ def tagOptions():
 
 class ScriptForm(forms.Form):
     name = forms.CharField(
+        # Temporarily disable this constant until database migrations have occured
+        # max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False, label="Script name"
         max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False, label="Script name"
     )
     author = forms.CharField(
@@ -28,12 +29,6 @@ class ScriptForm(forms.Form):
     )
     version = forms.CharField(
         max_length=20, initial="1", validators=[validators.valid_version]
-    )
-    tags = forms.ModelMultipleChoiceField(
-        queryset=tagOptions(),
-        to_field_name="name",
-        required=False,
-        widget=forms.CheckboxSelectMultiple,
     )
     content = forms.FileField(
         label="JSON", validators=[FileExtensionValidator(["json"])]
@@ -50,6 +45,12 @@ class ScriptForm(forms.Form):
     anonymous = forms.BooleanField(
         required=False, initial=False, label="Upload without owning the script"
     )
+    tags = forms.ModelMultipleChoiceField(
+        queryset=tagOptions(),
+        to_field_name="name",
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
@@ -58,49 +59,64 @@ class ScriptForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         try:
-            json = get_json_content(cleaned_data)
+            json = script_json.get_json_content(cleaned_data)
+        except script_json.JSONError:
+            pass
 
-            if not isinstance(json, list):
+        try:
+            schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.35.0"))
+            schema_url = f"https://raw.githubusercontent.com/ThePandemoniumInstitute/botc-release/refs/tags/{schema_version}/script-schema.json"
+            schema = requests.get(schema_url, timeout=2)
+            try:
+                schema = js.loads(schema.content)
+                # Update the additionalProperties field on the Script Character object. The app doesn't enforce this and bloodstar
+                # adds additional properties here.
+                schema["items"]["oneOf"][0]["additionalProperties"] = True
+                jsonschema.validate(json, schema)
+            except jsonschema.exceptions.ValidationError as e:
                 raise ValidationError(
-                    f"This is not a valid script JSON. Script JSONs are lists of character objects."
+                    f"This is not a valid script JSON. It does not conform to the schema at {schema_url}. \
+                    Error message: {e.message}"
                 )
-            # Author is optional so may not be entered or in JSON
-            entered_author = cleaned_data.get("author", None)
-            json_author = script_json.get_author_from_json(json)
+            except jsonschema.exceptions.SchemaError:
+                # The schema is invalid, just continue and assume it's valid
+                pass
+            except KeyError:
+                # Our attempt to edit the schema has failed, just continue and assume it's valid
+                pass
+        except requests.exceptions.Timeout:
+            # We couldn't fetch the schema, just continue and assume it's valid
+            pass
 
-            entered_name = cleaned_data.get("name", None)
-            if not entered_name:
+        if not isinstance(json, list):
+            raise ValidationError(
+                "This is not a valid script JSON. Script JSONs are lists of character objects."
+            )
+        # Author is optional so may not be entered or in JSON
+        entered_author = cleaned_data.get("author", None)
+        json_author = script_json.get_author_from_json(json)
+
+        entered_name = cleaned_data.get("name", None)
+        json_name = script_json.get_name_from_json(json)
+        if not entered_name:
+            raise ValidationError(
+                "No script name provided. A name must be entered."
+            )
+        if json_name and entered_name:
+            if json_name != entered_name:
                 raise ValidationError(
-                    f"No script name provided. A name must be entered."
+                    f"Entered Name {entered_name} does not match script JSON name {json_name}"
                 )
 
-            # The script tool currently removes spaces from name and author fields. As such people either
-            # need to manually update the JSON manually or upload with weird names. Temporarily remove
-            # said validation.
-            # if entered_author and json_author:
-            #    if entered_author != json_author:
-            #        raise ValidationError(
-            #            f"Entered Author {entered_author} does not match script JSON author {json_author}."
-            #        )
+        if entered_author and json_author:
+           if entered_author != json_author:
+               raise ValidationError(
+                   f"Entered Author {entered_author} does not match script JSON author {json_author}."
+               )
 
-            # entered_name = cleaned_data.get("name", None)
-            # json_name = script_json.get_name_from_json(json)
-            # if not entered_name and not json_name:
-            #     raise ValidationError(
-            #         f"No script name provided. A name must be entered or provided in the script JSON"
-            #     )
+        script_name = entered_name
 
-            # if json_name and entered_name:
-            #     if json_name != entered_name:
-            #         raise ValidationError(
-            #             f"Entered Name {entered_name} does not match script JSON name {json_name}"
-            #         )
-
-            validators.validate_json(json)
-
-            # script_name = json_name if json_name else entered_name
-            script_name = entered_name
-
+        try:
             script = models.Script.objects.get(name=script_name)
 
             if script.owner and (script.owner != self.user):
@@ -118,19 +134,10 @@ class ScriptForm(forms.Form):
 
         except models.Script.DoesNotExist:
             pass
-        except JSONError:
-            pass
 
+        validators.validate_json(json)
 
-def get_json_content(data):
-    json_content = data.get("content", None)
-    if not json_content:
-        raise JSONError("Could not read file type")
-    json = js.loads(json_content.read().decode("utf-8"))
-    json_content.seek(0)
-    json = script_json.revert_to_old_format(json)
-    json = script_json.strip_special_characters_from_json(json)
-    return json
+        return cleaned_data
 
 
 class CollectionForm(forms.ModelForm):
@@ -164,7 +171,13 @@ class AdvancedSearchForm(forms.Form):
     minimum_number_of_favourites = forms.IntegerField(required=False)
     minimum_number_of_comments = forms.IntegerField(required=False)
     all_scripts = forms.BooleanField(
-        initial=False, label="Display All Versions", required=False
+        initial=False, label="Include all Script Versions", required=False
+    )
+    include_hybrid = forms.BooleanField(
+        initial=False, label="Include Hybrid", required=False
+    )
+    include_homebrew = forms.BooleanField(
+        initial=False, label="Include Homebrew", required=False
     )
     tag_combinations = forms.ChoiceField(
         choices=[("AND", "AND"), ("OR", "OR")], initial="AND", widget=forms.RadioSelect
@@ -227,11 +240,17 @@ class AdvancedSearchForm(forms.Form):
 
 
 class UpdateDatabaseForm(forms.Form):
+    # start = forms.IntegerField(
+    #     min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
+    # )
+    # end = forms.IntegerField(
+    #     min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
+    # )
     start = forms.IntegerField(
-        min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
+        min_value=0, max_value=10000, required=True
     )
     end = forms.IntegerField(
-        min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
+        min_value=0, max_value=10000, required=True
     )
 
     def clean(self):

@@ -25,7 +25,7 @@ class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     @action(methods=["get"], detail=True)
-    def json(self, request, pk=None):
+    def json(self, _, pk=None):
         return Response(models.ScriptVersion.objects.get(pk=pk).content)
 
 

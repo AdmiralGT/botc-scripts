@@ -15,11 +15,11 @@ edition_choices = (
 
 
 def get_characters_by_type(type: models.CharacterType):
-    return models.Character.objects.filter(character_type=type)
+    return models.ClocktowerCharacter.objects.filter(character_type=type)
 
 
 def get_characters_not_in_edition(edition: models.Edition):
-    return models.Character.objects.filter(edition__gt=edition)
+    return models.ClocktowerCharacter.objects.filter(edition__gt=edition)
 
 
 def annotate_queryset(queryset, field, value):
@@ -47,8 +47,7 @@ def exclude_characters(queryset, value):
 def name_to_id(name: str):
     return name.replace(" ", "_").replace("'", "").lower()
 
-
-class ScriptVersionFilter(filters.FilterSet):
+class BaseScriptVersionFilter(filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
         method="display_all_scripts",
         widget=forms.CheckboxInput,
@@ -62,19 +61,20 @@ class ScriptVersionFilter(filters.FilterSet):
     )
     author = django_filters.filters.CharFilter(method="search_authors", label="Author")
     search = django_filters.filters.CharFilter(method="search_scripts", label="Search")
-    tags = django_filters.filters.ModelMultipleChoiceFilter(
-        queryset=models.ScriptTag.objects.all().order_by("order"),
-        widget=widgets.BadgePillSelectMultiple,
-    )
-    edition = django_filters.filters.ChoiceFilter(
-        label="Edition",
-        method="filter_edition",
-        choices=edition_choices,
-    )
     mono_demon = django_filters.filters.BooleanFilter(
         method="filter_mono_demon_scripts",
         widget=forms.CheckboxInput,
         label="Mono-Demon Scripts Only",
+    )
+    include_hybrid = django_filters.filters.BooleanFilter(
+        method="filter_hybrid_scripts",
+        widget=forms.CheckboxInput,
+        label="Include Hybrid",
+    )
+    include_homebrew = django_filters.filters.BooleanFilter(
+        method="filter_homebrew_scripts",
+        widget=forms.CheckboxInput,
+        label="Include Homebrew",
     )
 
     def display_all_scripts(self, queryset, name, value):
@@ -86,6 +86,16 @@ class ScriptVersionFilter(filters.FilterSet):
         if value:
             return queryset.filter(num_demons=1)
         return queryset
+    
+    def filter_hybrid_scripts(self, queryset, name, value):
+        if not value:
+            return queryset.exclude(homebrewiness=models.Homebrewiness.HYBRID)
+        return queryset
+
+    def filter_homebrew_scripts(self, queryset, name, value):
+        if not value:
+            return queryset.exclude(homebrewiness=models.Homebrewiness.HOMEBREW)
+        return queryset 
 
     def filter_my_scripts(self, queryset, name, value):
         if value:
@@ -118,6 +128,18 @@ class ScriptVersionFilter(filters.FilterSet):
 
         return queryset.filter(similarity__gt=0.3).order_by("-similarity")
 
+
+class ScriptVersionFilter(BaseScriptVersionFilter):
+    tags = django_filters.filters.ModelMultipleChoiceFilter(
+        queryset=models.ScriptTag.objects.all().order_by("order"),
+        widget=widgets.BadgePillSelectMultiple,
+    )
+    edition = django_filters.filters.ChoiceFilter(
+        label="Edition",
+        method="filter_edition",
+        choices=edition_choices,
+    )
+
     def filter_edition(self, queryset, _, value):
         return queryset.filter(edition__lte=value)
 
@@ -133,6 +155,8 @@ class ScriptVersionFilter(filters.FilterSet):
             "tags",
             "mono_demon",
             "all_scripts",
+            "include_hybrid",
+            "include_homebrew",
         ]
 
 
@@ -165,6 +189,8 @@ class FavouriteScriptVersionFilter(ScriptVersionFilter):
             "favourites",
             "my_scripts",
             "all_scripts",
+            "include_hybrid",
+            "include_homebrew",
         ]
 
 

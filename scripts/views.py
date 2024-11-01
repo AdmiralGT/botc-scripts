@@ -57,13 +57,13 @@ class ScriptsListView(SingleTableMixin, FilterView):
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
-            return tables.UserScriptTable
-        return tables.ScriptTable
+            return tables.UserClocktowerTable
+        return tables.ClocktowerTable
 
 
 class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
-    table_class = tables.UserScriptTable
+    table_class = tables.UserClocktowerTable
     template_name = "scriptlist.html"
     script_view = None
     table_pagination = {"per_page": 20}
@@ -87,52 +87,6 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
         return kwargs
 
 
-def get_json_additions(old_json, new_json):
-    for old_id in old_json:
-        if old_id["id"] == "_meta":
-            continue
-        for new_id in new_json:
-            if new_id["id"] == "_meta":
-                continue
-
-            if old_id == new_id:
-                new_json.remove(new_id)
-
-    for new_id in new_json:
-        if new_id["id"] == "_meta":
-            new_json.remove(new_id)
-            break
-
-    return new_json
-
-
-def get_similarity(json1: List, json2: List, same_type: bool) -> int:
-    similarity = 0
-    similarity_max = max(len(json1), len(json2))
-    similarity_min = min(len(json1), len(json2))
-    id2_meta = 0
-    for id in json1:
-        if id.get("id", "") == "_meta":
-            similarity_max = min(similarity_max, len(json1) - 1)
-            similarity_min = min(similarity_min, len(json1) - 1)
-            continue
-        for id2 in json2:
-            if id2.get("id", "") == "_meta":
-                similarity_max = min(similarity_max, len(json2) - 1)
-                similarity_min = min(similarity_min, len(json2) - 1)
-                id2_meta = 1
-                continue
-            if id.get("id", "id1") == id2.get("id", "id2"):
-                similarity += 1
-                break
-
-    similarity_comp = similarity_max if same_type else similarity_min
-    if similarity_comp == 0:
-        return 0
-
-    return round((similarity / similarity_comp) * 100)
-
-
 def get_comment_data(comment: models.Comment, indent: int) -> List:
     data = []
     comment_data = {}
@@ -151,15 +105,26 @@ def get_comments(script: models.Script) -> Dict:
     return comments
 
 
-def count_character(script_content: Dict, character_type: models.CharacterType) -> int:
+def count_character(script_content, character_type: models.CharacterType) -> int:
     count = 0
     for json_entry in script_content:
-        try:
-            character = models.Character.objects.get(character_id=json_entry.get("id"))
-        except models.Character.DoesNotExist:
-            continue
-        if character and character.character_type == character_type:
-            count += 1
+        if isinstance(json_entry, str):
+            try:
+                character = models.ClocktowerCharacter.objects.get(character_id=json_entry)
+            except models.ClocktowerCharacter.DoesNotExist:
+                continue
+        elif isinstance(json_entry, dict):
+            try:
+                character = models.ClocktowerCharacter.objects.get(character_id=json_entry.get("id"))
+                if character and character.character_type == character_type:
+                    count += 1
+            except models.ClocktowerCharacter.DoesNotExist:
+                try:
+                    homebrew = models.HomebrewCharacter.objects.get(character_id=json_entry.get("id"))
+                    if homebrew and homebrew.character_type == character_type:
+                        count += 1
+                except models.HomebrewCharacter.DoesNotExist:
+                    continue
     return count
 
 
@@ -167,8 +132,8 @@ def calculate_edition(script_content: Dict) -> int:
     edition = models.Edition.BASE
     for json_entry in script_content:
         try:
-            character = models.Character.objects.get(character_id=json_entry.get("id"))
-        except models.Character.DoesNotExist:
+            character = models.ClocktowerCharacter.objects.get(character_id=json_entry.get("id"))
+        except models.ClocktowerCharacter.DoesNotExist:
             continue
 
         if character and character.edition > edition:
@@ -215,10 +180,10 @@ class ScriptView(generic.DetailView):
 
             if diff_script_version:
                 changes[diff_script_version.version] = {}
-                changes[diff_script_version.version]["additions"] = get_json_additions(
+                changes[diff_script_version.version]["additions"] = script_json.get_json_additions(
                     script_version.content.copy(), diff_script_version.content.copy()
                 )
-                changes[diff_script_version.version]["deletions"] = get_json_additions(
+                changes[diff_script_version.version]["deletions"] = script_json.get_json_additions(
                     diff_script_version.content.copy(), script_version.content.copy()
                 )
                 changes[diff_script_version.version][
@@ -248,7 +213,7 @@ def get_all_roles(edition: models.Edition):
         ordering = r.json()
     except requests.RequestException:
         pass
-    for character in models.Character.objects.all().filter(edition__lte=edition):
+    for character in models.ClocktowerCharacter.objects.all().filter(edition__lte=edition):
         roles.append(
             Role(character.character_id, ordering.get(character.character_id, "7"))
         )
@@ -315,34 +280,26 @@ def update_script(script_version: models.ScriptVersion, cleaned_data, author, us
         script_version.tags.set(cleaned_data["tags"] | current_tags)
     script_version.save()
 
-
-class ScriptUploadView(generic.FormView):
+class BaseScriptUploadView(generic.FormView):
     template_name = "upload.html"
-    form_class = forms.ScriptForm
     script_version = None
+
+    def get_script(self, script_pk):
+        if script_pk:
+            script = models.Script.objects.get(pk=script_pk)
+            return script
 
     def get_initial(self):
         initial = super().get_initial()
-        initial["tags"] = []
         script_pk = self.request.GET.get("script", None)
-        if script_pk:
-            script = models.Script.objects.get(pk=script_pk)
-            if script:
-                script_version = script.latest_version()
-                initial["name"] = script.name
-                initial["author"] = script_version.author
-                initial["version"] = script_version.version
-                if script_version.notes:
-                    initial["notes"] = script_version.notes
-                if script_version.tags:
-                    initial["tags"] = script_version.tags.all()
-
-        tags = self.request.GET.getlist("tags", [])
-        for tag in tags:
-            try:
-                initial["tags"].append(models.ScriptTag.objects.get(pk=tag))
-            except models.ScriptTag.DoesNotExist:
-                continue
+        script = self.get_script(script_pk)
+        if script:
+            script_version = script.latest_version()
+            initial["name"] = script.name
+            initial["author"] = script_version.author
+            initial["version"] = script_version.version
+            if script_version.notes:
+                initial["notes"] = script_version.notes
 
         return initial
 
@@ -351,7 +308,7 @@ class ScriptUploadView(generic.FormView):
         We want to provide the user to the Form's clean method so the user
         can't overwrite scripts owned by someone else.
         """
-        kwargs = super(ScriptUploadView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs.update({"user": self.request.user})
         return kwargs
 
@@ -381,20 +338,49 @@ class ScriptUploadView(generic.FormView):
                     form.fields.pop("anonymous")
                     form.fields.get("name").disabled = True
 
+        return form
+
+
+
+
+class ScriptUploadView(BaseScriptUploadView):
+    form_class = forms.ScriptForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["tags"] = []
+        script_pk = self.request.GET.get("script", None)
+        script = self.get_script(script_pk)
+        if script:
+            script_version = script.latest_version()
+            if script_version.tags:
+                initial["tags"] = script_version.tags.all()
+
+        tags = self.request.GET.getlist("tags", [])
+        for tag in tags:
+            try:
+                initial["tags"].append(models.ScriptTag.objects.get(pk=tag))
+            except models.ScriptTag.DoesNotExist:
+                continue
+
+        return initial
+    
+    def get_form(self):
+        form = super().get_form()
         if self.request.user.is_staff:
             if form.fields.get("tags"):
                 form.fields.get("tags").queryset = (
                     models.ScriptTag.objects.all().order_by("order")
                 )
-
         return form
+
 
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)
 
     def form_valid(self, form):
         user = self.request.user
-        json = forms.get_json_content(form.cleaned_data)
+        json = script_json.get_json_content(form.cleaned_data)
         is_latest = True
         current_tags = None
 
@@ -478,6 +464,8 @@ class ScriptUploadView(generic.FormView):
                         # as the latest, that's still the current latest.
                         is_latest = False
 
+        homebrewiness = create_characters_and_determine_homebrew_status(json)
+
         num_townsfolk = count_character(json, models.CharacterType.TOWNSFOLK)
         num_outsiders = count_character(json, models.CharacterType.OUTSIDER)
         num_minions = count_character(json, models.CharacterType.MINION)
@@ -502,6 +490,7 @@ class ScriptUploadView(generic.FormView):
             num_fabled=num_fabled,
             num_travellers=num_travellers,
             edition=edition,
+            homebrewiness=homebrewiness,
         )
         if form.cleaned_data.get("notes", None):
             self.script_version.notes = form.cleaned_data["notes"]
@@ -523,6 +512,19 @@ class ScriptUploadView(generic.FormView):
                 ):
                     current_tags.remove(tag)
             self.script_version.tags.add(*current_tags.all())
+
+        if homebrewiness == models.Homebrewiness.HYBRID:
+            try:
+                hybrid_tag = models.ScriptTag.objects.get(name="Hybrid Script")
+                self.script_version.tags.add(hybrid_tag)
+            except models.ScriptTag.DoesNotExist:
+                pass           
+        elif homebrewiness == models.Homebrewiness.HOMEBREW:
+            try:
+                homebrew_tag = models.ScriptTag.objects.get(name="Homebrew Script")
+                self.script_version.tags.add(homebrew_tag)
+            except models.ScriptTag.DoesNotExist:
+                pass           
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -552,12 +554,15 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
             latest_version = script.latest_version()
             latest_version.latest = True
             latest_version.save()
-            self.success_url = f"/script/{script.pk}"
+            self.success_url = self.determine_success_url(script)
         else:
             script.delete()
             self.success_url = "/"
 
         return HttpResponseRedirect(self.get_success_url())
+    
+    def determine_success_url(self, script):
+        return f"/script/{script.pk}"
 
 
 class StatisticsView(generic.ListView, FilterView):
@@ -575,6 +580,7 @@ class StatisticsView(generic.ListView, FilterView):
             queryset = models.ScriptVersion.objects.all()
         else:
             queryset = models.ScriptVersion.objects.filter(latest=True)
+        queryset = queryset.filter(homebrewiness=models.Homebrewiness.CLOCKTOWER)
 
         if self.request.user.is_authenticated:
             context["filter"] = self.get_filterset(self.get_filterset_class())
@@ -583,13 +589,13 @@ class StatisticsView(generic.ListView, FilterView):
 
         if "character" in self.kwargs:
             try:
-                stats_character = models.Character.objects.get(
+                stats_character = models.ClocktowerCharacter.objects.get(
                     character_id=self.kwargs.get("character")
                 )
                 queryset = queryset.filter(
                     content__contains=[{"id": stats_character.character_id}]
                 )
-            except models.Character.DoesNotExist:
+            except models.ClocktowerCharacter.DoesNotExist:
                 raise Http404()
         elif "tags" in self.kwargs:
             tags = models.ScriptTag.objects.get(pk=self.kwargs.get("tags"))
@@ -630,7 +636,7 @@ class StatisticsView(generic.ListView, FilterView):
             character_count[type.value] = Counter()
             num_count[type.value] = Counter()
 
-        for character in models.Character.objects.all():
+        for character in models.ClocktowerCharacter.objects.all():
             # If we're on a Character Statistics page, don't include this character in the count.
             if character == stats_character:
                 continue
@@ -748,13 +754,13 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
     similarity = {}
     similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
     similarity[models.ScriptTypes.FULL.value] = {}
-    for script_version in models.ScriptVersion.objects.filter(latest=True).order_by(
+    for script_version in models.ScriptVersion.objects.filter(latest=True,homebrewiness=models.Homebrewiness.CLOCKTOWER).order_by(
         "pk"
     ):
         if current_script == script_version:
             continue
 
-        similarity[script_version.script_type][script_version] = get_similarity(
+        similarity[script_version.script_type][script_version] = script_json.get_similarity(
             current_script.content,
             script_version.content,
             current_script.script_type == script_version.script_type,
@@ -792,8 +798,8 @@ def favourite_script(request, pk: int, version: str) -> None:
 
 def translate_character(character_id: str, language: str) -> Dict:
     try:
-        character = models.Character.objects.get(character_id=character_id)
-    except models.Character.DoesNotExist:
+        character = models.ClocktowerCharacter.objects.get(character_id=character_id)
+    except models.ClocktowerCharacter.DoesNotExist:
         return {}
 
     original_character = character.full_character_json()
@@ -857,14 +863,14 @@ def download_unsupported_json(request, pk: int, version: str) -> FileResponse:
             continue
 
         try:
-            character = models.Character.objects.get(
+            character = models.ClocktowerCharacter.objects.get(
                 character_id=character_json.get("id")
             )
             if character.edition == models.Edition.CLOCKTOWER_APP:
                 content.append(character.full_character_json())
             else:
                 content.append(character_json)
-        except models.Character.DoesNotExist:
+        except models.ClocktowerCharacter.DoesNotExist:
             content.append(character_json)
 
     return json_file_response(script.name, content)
@@ -893,10 +899,10 @@ class CollectionScriptListView(SingleTableView):
     def get_table_class(self):
         collection = models.Collection.objects.get(pk=self.kwargs["pk"])
         if self.request.user == collection.owner:
-            return tables.CollectionScriptTable
+            return tables.CollectionClocktowerTable
         elif self.request.user.is_authenticated:
-            return tables.UserScriptTable
-        return tables.ScriptTable
+            return tables.UserClocktowerTable
+        return tables.ClocktowerTable
 
     def get_queryset(self):
         collection = models.Collection.objects.get(pk=self.kwargs["pk"])
@@ -1015,11 +1021,13 @@ class CommentCreateView(LoginRequiredMixin, generic.View):
         except models.Script.DoesNotExist:
             return HttpResponseRedirect("/")
 
+        redirect_url = f"/script/{script.pk}"
+
         if request.POST.get("parent"):
             try:
                 parent = models.Comment.objects.get(pk=request.POST["parent"])
             except models.Comment.DoesNotExist:
-                return HttpResponseRedirect(f"/script/{script.pk}")
+                return HttpResponseRedirect(redirect_url)
 
         if request.POST["comment"]:
             if parent:
@@ -1034,7 +1042,7 @@ class CommentCreateView(LoginRequiredMixin, generic.View):
                     user=request.user, comment=request.POST["comment"], script=script
                 )
         messages.success(request, "comments-tab")
-        return HttpResponseRedirect(f"/script/{script.pk}")
+        return HttpResponseRedirect(redirect_url)
 
 
 class CommentEditView(LoginRequiredMixin, generic.View):
@@ -1053,6 +1061,7 @@ class CommentEditView(LoginRequiredMixin, generic.View):
             comment.save()
 
         messages.success(request, "comments-tab")
+
         success_url = f"/script/{comment.script.pk}"
         return HttpResponseRedirect(success_url)
 
@@ -1101,8 +1110,8 @@ class AdvancedSearchResultsView(SingleTableView):
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
-            return tables.UserScriptTable
-        return tables.ScriptTable
+            return tables.UserClocktowerTable
+        return tables.ClocktowerTable
 
 
 class AdvancedSearchView(generic.FormView, SingleTableMixin):
@@ -1164,6 +1173,14 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
             queryset = models.ScriptVersion.objects.all()
         else:
             queryset = models.ScriptVersion.objects.filter(latest=True)
+
+        include_hybrid = form.cleaned_data.get("include_hybrid", False)
+        if not include_hybrid:
+            queryset = queryset.exclude(homebrewiness=models.Homebrewiness.HYBRID)
+
+        include_homebrew = form.cleaned_data.get("include_homebrew", False)
+        if not include_homebrew:
+            queryset = queryset.exclude(homebrewiness=models.Homebrewiness.HOMEBREW)
 
         if form.cleaned_data.get("name"):
             queryset = queryset.annotate(
@@ -1294,3 +1311,84 @@ class UpdateDatabaseView(LoginRequiredMixin, generic.FormView):
                 continue
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+def get_character_type_from_team(team):
+    match team:
+        case "townsfolk":
+            return models.CharacterType.TOWNSFOLK
+        case "outsider":
+            return models.CharacterType.OUTSIDER
+        case "minion":
+            return models.CharacterType.MINION
+        case "demon":
+            return models.CharacterType.DEMON
+        case "traveler" | "traveller":
+            return models.CharacterType.TRAVELLER
+        case "fabled":
+            return models.CharacterType.FABLED
+        case _:
+            return models.CharacterType.UNKNOWN
+        
+
+def character_missing_from_database(character_id, roles):
+    for role in roles:
+        if character_id == role.get("id", "UNKNOWN CHARACTER"):
+            return True
+    return False
+        
+
+def create_characters_and_determine_homebrew_status(script_content):
+    homebrewiness = models.Homebrewiness.CLOCKTOWER
+    non_clocktower_characters = 0
+    includes_meta = False
+    roles = []
+    try:
+        roles = requests.get("https://script.bloodontheclocktower.com/data/roles.json", timeout=2)
+    except requests.exceptions.Timeout:
+        pass
+
+    for item in script_content:
+        if item.get("id", "") == "_meta":
+            includes_meta = True
+            continue
+
+        try:
+            models.ClocktowerCharacter.objects.get(character_id=item.get("id",""))
+        except models.ClocktowerCharacter.DoesNotExist:
+            if len(item.keys()) == 1:
+                # It's possible we don't know about this character because it has just been released
+                # and it's not been added to the database. In this case check the script tool for roles
+                # and if it present, don't mark this as a homebrew character.
+
+                # If the character element has more than 1 key then it is almost certainly an attempt at a
+                # homebrew/hybrid character.
+                if character_missing_from_database(item.get("id", ""), js.loads(roles.content)):
+                    continue
+
+            non_clocktower_characters += 1
+
+            image_url = item.get("image")
+            if isinstance(image_url, list):
+                image_url = ",".join(image_url)
+            models.HomebrewCharacter.objects.update_or_create(
+                character_id=item.get("id"),
+                character_name=item.get("name"),
+                image_url=image_url,
+                character_type=get_character_type_from_team(item.get("team")).value,
+                ability=item.get("ability"),
+                first_night_position=item.get("firstNight", None),
+                other_night_position=item.get("otherNight", None),
+                first_night_reminder=item.get("firstNightReminder", None),
+                other_night_reminder=item.get("otherNightReminder", None),
+                global_reminders=",".join(item.get("remindersGlobal", [])),
+                reminders=",".join(item.get("reminders", [])),
+                modifies_setup=item.get("setup", False),
+            )
+
+    if non_clocktower_characters == len(script_content) - 1 if includes_meta else 0:
+        homebrewiness = models.Homebrewiness.HOMEBREW
+    elif non_clocktower_characters > 0:
+        homebrewiness = models.Homebrewiness.HYBRID
+
+    return homebrewiness

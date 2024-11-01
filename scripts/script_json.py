@@ -1,3 +1,6 @@
+import json as js
+from typing import List
+
 def get_author_from_json(json):
     return get_metadata_field_from_json(json, "author")
 
@@ -46,6 +49,64 @@ def strip_special_characters_from_json(json):
         if character == "_meta":
             new_json.append(item)
             continue
-        new_json.append({"id": strip_special_characters(character)})
+        item["id"] = strip_special_characters(character)
+        new_json.append(item)
 
     return new_json
+
+
+def get_json_content(data):
+    json_content = data.get("content", None)
+    if not json_content:
+        raise JSONError("Could not read file type")
+    json = js.loads(json_content.read().decode("utf-8"))
+    json_content.seek(0)
+    json = revert_to_old_format(json)
+    json = strip_special_characters_from_json(json)
+    return json
+
+
+def get_json_additions(old_json, new_json):
+    for old_id in old_json:
+        if old_id["id"] == "_meta":
+            continue
+        for new_id in new_json:
+            if new_id["id"] == "_meta":
+                continue
+
+            if old_id == new_id:
+                new_json.remove(new_id)
+
+    for new_id in new_json:
+        if new_id["id"] == "_meta":
+            new_json.remove(new_id)
+            break
+
+    return new_json
+
+
+def get_similarity(json1: List, json2: List, same_type: bool) -> int:
+    similarity = 0
+    similarity_max = max(len(json1), len(json2))
+    similarity_min = min(len(json1), len(json2))
+    for id in json1:
+        if id.get("id", "") == "_meta":
+            similarity_max = min(similarity_max, len(json1) - 1)
+            similarity_min = min(similarity_min, len(json1) - 1)
+            continue
+        for id2 in json2:
+            if id2.get("id", "") == "_meta":
+                similarity_max = min(similarity_max, len(json2) - 1)
+                similarity_min = min(similarity_min, len(json2) - 1)
+                continue
+            if id.get("id", "id1") == id2.get("id", "id2"):
+                similarity += 1
+                break
+
+    similarity_comp = similarity_max if same_type else similarity_min
+    if similarity_comp == 0:
+        return 0
+
+    return round((similarity / similarity_comp) * 100)
+
+
