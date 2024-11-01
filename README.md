@@ -9,41 +9,6 @@ This is a database for hosting Blood on the Clocktower custom scripts. You can v
 - Filter scripts based on required characters or characters to exclude.
 - Option to vote for your favourite scripts
 
-## Local Setup
-
-### Setting up Virtualenv
-
-You can install without virtualenv but it's recommended to use this method. 
-
-    python3 -m venv ./venv
-    source ./venv/bin/activate
-
-To install your dependencies, you'll be using `poetry`:
-
-    pip3 install poetry
-    poetry install
-
-Note: I was getting stuck in the install and running `export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring` seemed to fix it.
-
-### Setting the Config
-
-By default, `manage.py` looks for the file `botc/local.py`. You'll need to duplicate the `botc/settings.py` file and add your local settings there.
-
-Be sure to add `SECRET_KEY=<random_string>` with your own random string to the file. [You can generate one here](https://randomkeygen.com/). 
-
-You'll also need to set `DATABASES` to the values that match your database. 
-
-### Running and Migration
-
-Run this command to get the app to run on your local browser at `localhost:8000`:
-
-    python3 manage.py migrate
-    python3 manage.py runserver
-
-To create an admin account, run the following command and you can login at `localhost:8000/admin`
-
-    python3 manage.py createsuperuser
-
 ## Acknowledgements
 
 This site is not affiliated with The Pandemonium Institute. All roles and characters are the property of Steven Medway and The Pandemonium Institute.

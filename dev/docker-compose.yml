@@ -1,0 +1,9 @@
+services:
+  db.postgres:
+    build: .
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres@db
+    ports:
+     - 5432:5432
