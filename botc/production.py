@@ -1,6 +1,6 @@
 import os
 
-from .settings import *
+from .settings import * # noqa
 
 # Configure the domain name using the environment variable
 # that Azure automatically creates for us.
@@ -55,7 +55,7 @@ MEDIA_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_MEDIA_CONTAINER}/"
 AZURE_STATIC_CONTAINER = os.environ.get("AZURE_STATIC_CONTAINER", "static")
 STATIC_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/"
 
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles") # noqa
 BS_ICONS_CACHE = os.path.join(STATIC_ROOT, "icon_cache")
 
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"

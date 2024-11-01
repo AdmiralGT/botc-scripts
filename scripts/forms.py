@@ -76,10 +76,10 @@ class ScriptForm(forms.Form):
                     f"This is not a valid script JSON. It does not conform to the schema at {schema_url}. \
                     Error message: {e.message}"
                 )
-            except jsonschema.exceptions.SchemaError as e:
+            except jsonschema.exceptions.SchemaError:
                 # The schema is invalid, just continue and assume it's valid
                 pass
-            except KeyError as e:
+            except KeyError:
                 # Our attempt to edit the schema has failed, just continue and assume it's valid
                 pass
         except requests.exceptions.Timeout:
@@ -88,7 +88,7 @@ class ScriptForm(forms.Form):
 
         if not isinstance(json, list):
             raise ValidationError(
-                f"This is not a valid script JSON. Script JSONs are lists of character objects."
+                "This is not a valid script JSON. Script JSONs are lists of character objects."
             )
         # Author is optional so may not be entered or in JSON
         entered_author = cleaned_data.get("author", None)
@@ -98,7 +98,7 @@ class ScriptForm(forms.Form):
         json_name = script_json.get_name_from_json(json)
         if not entered_name:
             raise ValidationError(
-                f"No script name provided. A name must be entered."
+                "No script name provided. A name must be entered."
             )
         if json_name and entered_name:
             if json_name != entered_name:

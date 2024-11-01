@@ -1,7 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from versionfield.forms import VersionField
-from scripts import models
 
 
 def check_for_homebrew(item):
@@ -11,7 +10,7 @@ def check_for_homebrew(item):
     if item.get("id", "") != "_meta":
         if len(item) > 1:
             raise ValidationError(
-                f"Only officially supported characters from https://bloodontheclocktower.com/script/ are supported"
+                "Only officially supported characters from https://bloodontheclocktower.com/script/ are supported"
             )
 
 
@@ -21,7 +20,7 @@ def prevent_fishbucket(json):
     """
     if len(json) > 50:
         raise ValidationError(
-            f'The script database limits scripts to 50 characters. If you\'re trying to upload a "Fishbucket" script,'
+            "The script database limits scripts to 50 characters. If you\'re trying to upload a \"Fishbucket\" script,"
             " this is automatically generated at https://botcscripts.com/script/all_roles"
         )
 
