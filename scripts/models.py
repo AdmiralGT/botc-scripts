@@ -233,8 +233,8 @@ class BaseCharacterInfo(models.Model):
     Abstract model used to describe a character and translation information.
     """
 
-    character_id = models.CharField(max_length=30)
-    character_name = models.CharField(max_length=30)
+    character_id = models.CharField(max_length=50)
+    character_name = models.CharField(max_length=20)
     ability = models.TextField()
     first_night_reminder = models.TextField(blank=True, null=True)
     other_night_reminder = models.TextField(blank=True, null=True)
@@ -299,6 +299,7 @@ class Translation(BaseCharacterInfo):
     """
 
     language = models.CharField(max_length=10)
+    character_name = models.CharField(max_length=30)
 
     class Meta:
         constraints = [
