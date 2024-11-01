@@ -101,3 +101,7 @@ If you use VSCode for as your IDE, you can use the following `settings.json` to 
     ]
 }
 ```
+
+## Linting
+
+This project uses [Ruff](https://docs.astral.sh/ruff/#ruff) for linting. The GitHub workflow includes a lint using ruff, but before submitting any code for review, please ensure that ruff passes by running `poetry run ruff check`
