@@ -233,12 +233,12 @@ class BaseCharacterInfo(models.Model):
     Abstract model used to describe a character and translation information.
     """
 
-    character_id = models.CharField(max_length=50)
+    character_id = models.CharField(max_length=50, primary_key=True)
     character_name = models.CharField(max_length=20)
     ability = models.TextField()
     first_night_reminder = models.TextField(blank=True, null=True)
     other_night_reminder = models.TextField(blank=True, null=True)
-    global_reminders = models.CharField(max_length=60, blank=True, null=True)
+    global_reminders = models.TextField(blank=True, null=True)
     reminders = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -249,7 +249,7 @@ class BaseCharacter(BaseCharacterInfo):
     character_type = models.CharField(max_length=30, choices=CharacterType.choices)
     first_night_position = models.FloatField(blank=True, null=True)
     other_night_position = models.FloatField(blank=True, null=True)
-    image_url = models.CharField(blank=True, null=True, max_length=100)
+    image_url = models.TextField(blank=True, null=True)
     modifies_setup = models.BooleanField(default=False)
 
     def full_character_json(self) -> Dict:
@@ -298,6 +298,7 @@ class Translation(BaseCharacterInfo):
     Model for translations of characters.
     """
 
+    character_id = models.CharField(max_length=50, primary_key=False)
     language = models.CharField(max_length=10)
     character_name = models.CharField(max_length=30)
 
