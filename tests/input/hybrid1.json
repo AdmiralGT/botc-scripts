@@ -1,0 +1,81 @@
+[
+    {
+        "id": "washerwoman"
+    },
+    {
+        "id": "librarian"
+    },
+    {
+        "id": "investigator"
+    },
+    {
+        "id": "chef"
+    },
+    {
+        "id": "empath"
+    },
+    {
+        "id": "fortuneteller"
+    },
+    {
+        "id": "undertaker"
+    },
+    {
+        "id": "monk"
+    },
+    {
+        "id": "ravenkeeper"
+    },
+    {
+        "id": "virgin"
+    },
+    {
+        "id": "slayer"
+    },
+    {
+        "id": "soldier"
+    },
+    {
+        "id": "mayor"
+    },
+    {
+        "id": "butler"
+    },
+    {
+        "id": "drunk"
+    },
+    {
+        "id": "recluse"
+    },
+    {
+        "id": "saint"
+    },
+    {
+        "id": "poisoner"
+    },
+    {
+        "id": "spy"
+    },
+    {
+        "id": "scarletwoman"
+    },
+    {
+        "id": "baron"
+    },
+    {
+        "id": "custom_imp",
+        "name": "Imp",
+        "image": [
+            "https://example.com/assets/imp_g.webp",
+            "https://example.com/assets/imp_e.webp"
+        ],
+        "team": "demon",
+        "otherNight": 30,
+        "otherNightReminder": "The Imp chooses a player.",
+        "reminders": [
+            "Dead"
+        ],
+        "setup": false,
+        "ability": "Each night*, choose a player: they die. If you kill yourself this way, a Minion becomes the Imp."
+    }
+]

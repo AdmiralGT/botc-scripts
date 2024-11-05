@@ -66,6 +66,8 @@ def get_json_content(data):
     return json
 
 
+# Determine the characters that are in the new JSON but not in the old JSON
+# This 
 def get_json_additions(old_json, new_json):
     for old_id in old_json:
         if old_id["id"] == "_meta":
@@ -74,15 +76,37 @@ def get_json_additions(old_json, new_json):
             if new_id["id"] == "_meta":
                 continue
 
-            if old_id == new_id:
+            # Check if the IDs are unchanged.
+            # This is imperfect because this will detect a change from an Official
+            # to a Homebrew character of the same name, but we only have the JSON to do this check
+            # and official characters have limited information in the JSON.
+            if old_id["id"] == new_id["id"]:
                 new_json.remove(new_id)
-
+                continue
+            
     for new_id in new_json:
         if new_id["id"] == "_meta":
             new_json.remove(new_id)
-            break
+            continue
 
     return new_json
+
+# Determine changes to character abilities where the character ID is unchanged
+def get_json_changes(old_json, new_json):
+    changed_json = []
+    for old_id in old_json:
+        if old_id["id"] == "_meta":
+            continue
+        for new_id in new_json:
+            if new_id["id"] == "_meta":
+                continue
+
+            if old_id["id"] == new_id["id"]:
+                if old_id.get("ability", "UNKNOWN_ABILITY") != new_id.get("ability", "UNKNOWN_ABILITY"):
+                    changed_json.append({"id": new_id["id"]})
+                    continue
+    
+    return changed_json
 
 
 def get_similarity(json1: List, json2: List, same_type: bool) -> int:
