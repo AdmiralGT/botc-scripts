@@ -87,7 +87,7 @@ def get_json_additions(old_json, new_json):
     for new_id in new_json:
         if new_id["id"] == "_meta":
             new_json.remove(new_id)
-            continue
+            break
 
     return new_json
 
