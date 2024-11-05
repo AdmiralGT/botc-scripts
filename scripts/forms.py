@@ -19,32 +19,20 @@ class ScriptForm(forms.Form):
     name = forms.CharField(
         # Temporarily disable this constant until database migrations have occured
         # max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False, label="Script name"
-        max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False, label="Script name"
+        max_length=constants.MAX_SCRIPT_NAME_LENGTH,
+        required=False,
+        label="Script name",
     )
-    author = forms.CharField(
-        max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False
-    )
-    script_type = forms.ChoiceField(
-        choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
-    )
-    version = forms.CharField(
-        max_length=20, initial="1", validators=[validators.valid_version]
-    )
-    content = forms.FileField(
-        label="JSON", validators=[FileExtensionValidator(["json"])]
-    )
-    pdf = forms.FileField(
-        label="PDF", required=False, validators=[FileExtensionValidator(["pdf"])]
-    )
+    author = forms.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False)
+    script_type = forms.ChoiceField(choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL)
+    version = forms.CharField(max_length=20, initial="1", validators=[validators.valid_version])
+    content = forms.FileField(label="JSON", validators=[FileExtensionValidator(["json"])])
+    pdf = forms.FileField(label="PDF", required=False, validators=[FileExtensionValidator(["pdf"])])
     notes = forms.CharField(
         required=False,
-        widget=forms.Textarea(
-            attrs={"rows": 17, "placeholder": "Notes (enter using Markdown formatting)"}
-        ),
+        widget=forms.Textarea(attrs={"rows": 17, "placeholder": "Notes (enter using Markdown formatting)"}),
     )
-    anonymous = forms.BooleanField(
-        required=False, initial=False, label="Upload without owning the script"
-    )
+    anonymous = forms.BooleanField(required=False, initial=False, label="Upload without owning the script")
     tags = forms.ModelMultipleChoiceField(
         queryset=tagOptions(),
         to_field_name="name",
@@ -89,9 +77,7 @@ class ScriptForm(forms.Form):
             pass
 
         if not isinstance(json, list):
-            raise ValidationError(
-                "This is not a valid script JSON. Script JSONs are lists of character objects."
-            )
+            raise ValidationError("This is not a valid script JSON. Script JSONs are lists of character objects.")
         # Author is optional so may not be entered or in JSON
         entered_author = cleaned_data.get("author", None)
         json_author = script_json.get_author_from_json(json)
@@ -99,20 +85,16 @@ class ScriptForm(forms.Form):
         entered_name = cleaned_data.get("name", None)
         json_name = script_json.get_name_from_json(json)
         if not entered_name:
-            raise ValidationError(
-                "No script name provided. A name must be entered."
-            )
+            raise ValidationError("No script name provided. A name must be entered.")
         if json_name and entered_name:
             if json_name != entered_name:
-                raise ValidationError(
-                    f"Entered Name {entered_name} does not match script JSON name {json_name}"
-                )
+                raise ValidationError(f"Entered Name {entered_name} does not match script JSON name {json_name}")
 
         if entered_author and json_author:
-           if entered_author != json_author:
-               raise ValidationError(
-                   f"Entered Author {entered_author} does not match script JSON author {json_author}."
-               )
+            if entered_author != json_author:
+                raise ValidationError(
+                    f"Entered Author {entered_author} does not match script JSON author {json_author}."
+                )
 
         script_name = entered_name
 
@@ -120,9 +102,7 @@ class ScriptForm(forms.Form):
             script = models.Script.objects.get(name=script_name)
 
             if script.owner and (script.owner != self.user):
-                raise ValidationError(
-                    "You are not the owner of this script and cannot upload a new version"
-                )
+                raise ValidationError("You are not the owner of this script and cannot upload a new version")
 
             new_version = cleaned_data["version"]
             for script_version in script.versions.all():
@@ -156,29 +136,17 @@ class CollectionForm(forms.ModelForm):
 
 class AdvancedSearchForm(forms.Form):
     name = forms.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False)
-    author = forms.CharField(
-        max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False
-    )
-    script_type = forms.ChoiceField(
-        choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL
-    )
+    author = forms.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False)
+    script_type = forms.ChoiceField(choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL)
     includes_characters = forms.CharField(required=False)
     excludes_characters = forms.CharField(required=False)
-    edition = forms.ChoiceField(
-        choices=models.Edition.choices, initial=models.Edition.CLOCKTOWER_APP
-    )
+    edition = forms.ChoiceField(choices=models.Edition.choices, initial=models.Edition.CLOCKTOWER_APP)
     minimum_number_of_likes = forms.IntegerField(required=False)
     minimum_number_of_favourites = forms.IntegerField(required=False)
     minimum_number_of_comments = forms.IntegerField(required=False)
-    all_scripts = forms.BooleanField(
-        initial=False, label="Include all Script Versions", required=False
-    )
-    include_hybrid = forms.BooleanField(
-        initial=False, label="Include Hybrid", required=False
-    )
-    include_homebrew = forms.BooleanField(
-        initial=False, label="Include Homebrew", required=False
-    )
+    all_scripts = forms.BooleanField(initial=False, label="Include all Script Versions", required=False)
+    include_hybrid = forms.BooleanField(initial=False, label="Include Hybrid", required=False)
+    include_homebrew = forms.BooleanField(initial=False, label="Include Homebrew", required=False)
     tag_combinations = forms.ChoiceField(
         choices=[("AND", "AND"), ("OR", "OR")], initial="AND", widget=forms.RadioSelect
     )
@@ -246,12 +214,8 @@ class UpdateDatabaseForm(forms.Form):
     # end = forms.IntegerField(
     #     min_value=0, max_value=models.ScriptVersion.objects.latest('pk').pk, required=True
     # )
-    start = forms.IntegerField(
-        min_value=0, max_value=10000, required=True
-    )
-    end = forms.IntegerField(
-        min_value=0, max_value=10000, required=True
-    )
+    start = forms.IntegerField(min_value=0, max_value=10000, required=True)
+    end = forms.IntegerField(min_value=0, max_value=10000, required=True)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -261,10 +225,7 @@ class UpdateDatabaseForm(forms.Form):
         if start > end:
             raise ValidationError(f"Start {start} must be less than End {end}")
 
-        if (
-            start > models.ScriptVersion.objects.latest('pk').pk
-            or end > models.ScriptVersion.objects.latest('pk').pk
-        ):
+        if start > models.ScriptVersion.objects.latest("pk").pk or end > models.ScriptVersion.objects.latest("pk").pk:
             raise ValidationError(
                 f"Trying to update database entries that don't exist. There are {models.ScriptVersion.objects.count()} scripts in the database"
             )

@@ -5,12 +5,19 @@ from scripts.script_json import get_similarity
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
-@pytest.mark.parametrize("orig, new", [
-    ("input/trouble_brewing.json", "input/trouble_brewing.json"),
-    ("input/trouble_brewing_with_meta.json", "input/trouble_brewing.json"),
-    ("input/trouble_brewing.json", "input/trouble_brewing_with_meta.json"),
-    ("input/trouble_brewing_with_meta.json", "input/trouble_brewing_with_meta.json"),
-])
+
+@pytest.mark.parametrize(
+    "orig, new",
+    [
+        ("input/trouble_brewing.json", "input/trouble_brewing.json"),
+        ("input/trouble_brewing_with_meta.json", "input/trouble_brewing.json"),
+        ("input/trouble_brewing.json", "input/trouble_brewing_with_meta.json"),
+        (
+            "input/trouble_brewing_with_meta.json",
+            "input/trouble_brewing_with_meta.json",
+        ),
+    ],
+)
 def test_same(orig, new):
     with open(os.path.join(current_dir, orig), "r") as f:
         v1 = js.load(f)
@@ -19,13 +26,19 @@ def test_same(orig, new):
     similarity = get_similarity(v1, v2, True)
     assert similarity == 100
 
-@pytest.mark.parametrize("orig, new", [
-    ("input/trouble_brewing.json", "input/strings_pulling.json"),
-    ("input/trouble_brewing_with_meta.json", "input/strings_pulling.json"),
-    ("input/trouble_brewing.json", "input/strings_pulling_with_meta.json"),
-    ("input/trouble_brewing_with_meta.json", "input/strings_pulling_with_meta.json"),
 
-])
+@pytest.mark.parametrize(
+    "orig, new",
+    [
+        ("input/trouble_brewing.json", "input/strings_pulling.json"),
+        ("input/trouble_brewing_with_meta.json", "input/strings_pulling.json"),
+        ("input/trouble_brewing.json", "input/strings_pulling_with_meta.json"),
+        (
+            "input/trouble_brewing_with_meta.json",
+            "input/strings_pulling_with_meta.json",
+        ),
+    ],
+)
 def test_minimal_diff(orig, new):
     with open(os.path.join(current_dir, orig), "r") as f:
         v1 = js.load(f)
@@ -56,6 +69,7 @@ def test_two_changes():
     assert reverse == 92
     reverse = get_similarity(v2, v1, False)
     assert reverse == 100
+
 
 def test_differences_both_ways():
     with open(os.path.join(current_dir, "input/trouble_brewing.json"), "r") as f:

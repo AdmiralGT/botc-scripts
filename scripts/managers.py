@@ -16,9 +16,5 @@ class ScriptViewManager(models.Manager):
 
 class CollectionManager(models.Manager):
     def get_queryset(self):
-        qs = (
-            super(CollectionManager, self)
-            .get_queryset()
-            .annotate(scripts_in_collection=models.Count("scripts"))
-        )
+        qs = super(CollectionManager, self).get_queryset().annotate(scripts_in_collection=models.Count("scripts"))
         return qs

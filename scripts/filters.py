@@ -47,18 +47,15 @@ def exclude_characters(queryset, value):
 def name_to_id(name: str):
     return name.replace(" ", "_").replace("'", "").lower()
 
+
 class BaseScriptVersionFilter(filters.FilterSet):
     all_scripts = django_filters.filters.BooleanFilter(
         method="display_all_scripts",
         widget=forms.CheckboxInput,
         label="Display All Versions",
     )
-    include = django_filters.filters.CharFilter(
-        method="include_characters", label="Includes characters"
-    )
-    exclude = django_filters.filters.CharFilter(
-        method="exclude_characters", label="Excludes characters"
-    )
+    include = django_filters.filters.CharFilter(method="include_characters", label="Includes characters")
+    exclude = django_filters.filters.CharFilter(method="exclude_characters", label="Excludes characters")
     author = django_filters.filters.CharFilter(method="search_authors", label="Author")
     search = django_filters.filters.CharFilter(method="search_scripts", label="Search")
     mono_demon = django_filters.filters.BooleanFilter(
@@ -86,7 +83,7 @@ class BaseScriptVersionFilter(filters.FilterSet):
         if value:
             return queryset.filter(num_demons=1)
         return queryset
-    
+
     def filter_hybrid_scripts(self, queryset, name, value):
         if not value:
             return queryset.exclude(homebrewiness=models.Homebrewiness.HYBRID)
@@ -95,7 +92,7 @@ class BaseScriptVersionFilter(filters.FilterSet):
     def filter_homebrew_scripts(self, queryset, name, value):
         if not value:
             return queryset.exclude(homebrewiness=models.Homebrewiness.HOMEBREW)
-        return queryset 
+        return queryset
 
     def filter_my_scripts(self, queryset, name, value):
         if value:
@@ -194,9 +191,7 @@ class FavouriteScriptVersionFilter(ScriptVersionFilter):
         ]
 
 
-class CollectionFilter(
-    django_filters.FilterSet, django_filters.filters.QuerySetRequestMixin
-):
+class CollectionFilter(django_filters.FilterSet, django_filters.filters.QuerySetRequestMixin):
     is_owner = django_filters.filters.BooleanFilter(
         widget=forms.CheckboxInput, label="My Collections", method="is_owner_function"
     )
@@ -220,9 +215,7 @@ class CollectionFilter(
         return queryset
 
 
-class StatisticsFilter(
-    django_filters.FilterSet, django_filters.filters.QuerySetRequestMixin
-):
+class StatisticsFilter(django_filters.FilterSet, django_filters.filters.QuerySetRequestMixin):
     is_owner = django_filters.filters.BooleanFilter(
         widget=forms.CheckboxInput, label="My Scripts only", method="is_owner_function"
     )
@@ -236,9 +229,7 @@ class StatisticsFilter(
     def __init__(self, *args, **kwargs):
         super(django_filters.FilterSet, self).__init__(*args, **kwargs)
         if kwargs.get("data") and kwargs.get("data").get("is_owner") == "on":
-            self.queryset = models.ScriptVersion.objects.filter(
-                script__owner=self.request.user
-            )
+            self.queryset = models.ScriptVersion.objects.filter(script__owner=self.request.user)
 
     def is_owner_function(self, queryset, name, value):
         """

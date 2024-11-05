@@ -57,24 +57,21 @@ class ScriptTag(models.Model):
 
     name = models.CharField(max_length=100)
     public = models.BooleanField(default=False)
-    style = models.CharField(
-        max_length=20, choices=TagStyles.choices, default=TagStyles.BLUE
-    )
+    style = models.CharField(max_length=20, choices=TagStyles.choices, default=TagStyles.BLUE)
     order = models.IntegerField(unique=True)
     inheritable = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name}"
-    
+
 
 class Script(models.Model):
     """
     A named Clocktower script that can have multiple ScriptVersions
     """
+
     name = models.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH)
-    owner = models.ForeignKey(
-        User, blank=True, null=True, on_delete=models.SET_NULL, related_name="+"
-    )
+    owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name="+")
 
     def __str__(self):
         return f"{self.pk}. {self.name}"
@@ -83,25 +80,19 @@ class Script(models.Model):
         return self.versions.order_by("-version").first()
 
 
-
 class ScriptVersion(models.Model):
     """
     Actual script model, tracking type, author, JSON, PDF etc.
     """
+
     def determine_script_location(instance, filename):
         return f"{instance.script.pk}/{instance.version}/{filename}"
 
-    script = models.ForeignKey(
-        Script, on_delete=models.CASCADE, related_name="versions"
-    )
+    script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="versions")
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
     latest = models.BooleanField(default=True)
-    script_type = models.CharField(
-        max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.FULL
-    )
-    author = models.CharField(
-        max_length=constants.MAX_AUTHOR_NAME_LENGTH, null=True, blank=True
-    )
+    script_type = models.CharField(max_length=20, choices=ScriptTypes.choices, default=ScriptTypes.FULL)
+    author = models.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, null=True, blank=True)
     version = VersionField()
     content = models.JSONField()
     created = models.DateTimeField(auto_now_add=True)
@@ -120,7 +111,7 @@ class ScriptVersion(models.Model):
 
     def __str__(self):
         return f"{self.pk}. {self.script.name} - v{self.version}"
-    
+
     class Meta:
         permissions = [
             (
@@ -136,9 +127,7 @@ class Comment(models.Model):
     """
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
-    script = models.ForeignKey(
-        Script, on_delete=models.CASCADE, related_name="comments"
-    )
+    script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="comments")
     comment = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
     parent = models.ForeignKey(
@@ -158,13 +147,9 @@ class Vote(models.Model):
     Only authenticated users may vote for scripts.
     """
 
-    script = models.ForeignKey(
-        ScriptVersion, on_delete=models.CASCADE, related_name="votes"
-    )
+    script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="votes")
     created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.CASCADE, related_name="votes"
-    )
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name="votes")
 
     def __str__(self):
         return f"{self.pk}. Vote on {self.script.script.name} version {self.script.version}"
@@ -177,9 +162,7 @@ class Favourite(models.Model):
     Only authenticated users may have favourite scripts.
     """
 
-    script = models.ForeignKey(
-        ScriptVersion, on_delete=models.CASCADE, related_name="favourites"
-    )
+    script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="favourites")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favourites")
 
 
@@ -215,12 +198,8 @@ class Collection(models.Model):
     Model for collections, a shareable set of scripts.
     """
 
-    owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="collections"
-    )
-    scripts = models.ManyToManyField(
-        ScriptVersion, blank=True, related_name="collections"
-    )
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="collections")
+    scripts = models.ManyToManyField(ScriptVersion, blank=True, related_name="collections")
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True, max_length=255)
     notes = models.TextField(null=True, blank=True)
@@ -260,9 +239,7 @@ class BaseCharacter(BaseCharacterInfo):
         character_json["firstNight"] = self.first_night_position
         character_json["firstNightReminder"] = self.first_night_reminder
         character_json["otherNight"] = self.other_night_position
-        character_json["otherNightReminder"] = (
-            self.other_night_reminder if self.other_night_reminder else ""
-        )
+        character_json["otherNightReminder"] = self.other_night_reminder if self.other_night_reminder else ""
         character_json["reminders"] = self.reminders.split(",")
         character_json["setup"] = self.modifies_setup
         character_json["ability"] = self.ability
@@ -275,10 +252,12 @@ class BaseCharacter(BaseCharacterInfo):
     class Meta:
         abstract = True
 
+
 class ClocktowerCharacter(BaseCharacter):
     """
     Model for characters.
     """
+
     edition = models.IntegerField(choices=Edition.choices)
 
     class Meta:
@@ -289,6 +268,7 @@ class HomebrewCharacter(BaseCharacter):
     """
     Model for characters.
     """
+
     class Meta:
         permissions = [("update_characters", "Can update character information")]
 
@@ -303,11 +283,7 @@ class Translation(BaseCharacterInfo):
     character_name = models.CharField(max_length=30)
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["language", "character_id"], name="character_language"
-            )
-        ]
+        constraints = [models.UniqueConstraint(fields=["language", "character_id"], name="character_language")]
         indexes = [
             models.Index(fields=["language", "character_id"]),
         ]
@@ -318,12 +294,8 @@ class Translation(BaseCharacterInfo):
         character_json["id"] = f"{self.language}_{self.character_id}"
         character_json["name"] = self.character_name
         character_json["firstNightReminder"] = self.first_night_reminder
-        character_json["otherNightReminder"] = (
-            self.other_night_reminder if self.other_night_reminder else ""
-        )
-        character_json["reminders"] = (
-            self.reminders.split(",") if self.reminders else []
-        )
+        character_json["otherNightReminder"] = self.other_night_reminder if self.other_night_reminder else ""
+        character_json["reminders"] = self.reminders.split(",") if self.reminders else []
         character_json["ability"] = self.ability
         return character_json
 

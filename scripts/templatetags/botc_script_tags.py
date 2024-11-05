@@ -51,6 +51,7 @@ def script_not_in_user_collection(user, script_version):
             return True
     return False
 
+
 def get_colour_from_character_type(character_type):
     match character_type:
         case models.CharacterType.TOWNSFOLK:
@@ -67,7 +68,6 @@ def get_colour_from_character_type(character_type):
             return "style=color:#996600"
         case _:
             return "style=color:#000000"
-        
 
 
 @register.simple_tag()
@@ -89,26 +89,18 @@ def character_type_change(content, counter):
         prev_character_id = content[counter - 1].get("id", None)
         curr_character_id = content[counter].get("id", None)
         try:
-            prev_character = models.ClocktowerCharacter.objects.get(
-                character_id=prev_character_id
-            )
+            prev_character = models.ClocktowerCharacter.objects.get(character_id=prev_character_id)
         except models.ClocktowerCharacter.DoesNotExist:
             try:
-                prev_character = models.HomebrewCharacter.objects.get(
-                    character_id=prev_character_id
-                )
+                prev_character = models.HomebrewCharacter.objects.get(character_id=prev_character_id)
             except models.HomebrewCharacter.DoesNotExist:
                 return False
 
         try:
-            curr_character = models.ClocktowerCharacter.objects.get(
-                character_id=curr_character_id
-            )
+            curr_character = models.ClocktowerCharacter.objects.get(character_id=curr_character_id)
         except models.ClocktowerCharacter.DoesNotExist:
             try:
-                curr_character = models.HomebrewCharacter.objects.get(
-                    character_id=curr_character_id
-                )
+                curr_character = models.HomebrewCharacter.objects.get(character_id=curr_character_id)
             except models.HomebrewCharacter.DoesNotExist:
                 return False
 

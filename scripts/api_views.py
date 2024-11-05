@@ -19,9 +19,7 @@ class StatisticsAPI(APIView):
                 for character in param[1]:
                     try:
                         character = models.ClocktowerCharacter.objects.get(character_id=character)
-                        queryset = queryset.filter(
-                            content__contains=[{"id": character.character_id}]
-                        )
+                        queryset = queryset.filter(content__contains=[{"id": character.character_id}])
                     except models.ClocktowerCharacter.DoesNotExist:
                         continue
             elif param[0] == "character_or":
@@ -30,18 +28,14 @@ class StatisticsAPI(APIView):
                 for character in param[1]:
                     try:
                         character = models.ClocktowerCharacter.objects.get(character_id=character)
-                        queryset = queryset | orig_queryset.filter(
-                            content__contains=[{"id": character.character_id}]
-                        )
+                        queryset = queryset | orig_queryset.filter(content__contains=[{"id": character.character_id}])
                     except models.ClocktowerCharacter.DoesNotExist:
                         continue
             elif param[0] == "exclude":
                 for character in param[1]:
                     try:
                         character = models.ClocktowerCharacter.objects.get(character_id=character)
-                        queryset = queryset.exclude(
-                            content__contains=[{"id": character.character_id}]
-                        )
+                        queryset = queryset.exclude(content__contains=[{"id": character.character_id}])
                     except models.ClocktowerCharacter.DoesNotExist:
                         continue
 
