@@ -279,6 +279,17 @@
                     </ul>
                 </div>
             </div>
+            {% if diffs.changes %}
+            <div class="row">
+                <div class="col-sm-10">
+                    <ul class="p-0">
+                        {% for role in diffs.changes %}
+                            <li class="list-group-item p-0 border-0">~ {% convert_id_to_friendly_text role.id %} (Changed ability)</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
         {% endfor %}
     </div>
     {% endif %}

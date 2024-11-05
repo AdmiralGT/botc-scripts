@@ -186,6 +186,9 @@ class ScriptView(generic.DetailView):
                 changes[diff_script_version.version]["deletions"] = script_json.get_json_additions(
                     diff_script_version.content.copy(), script_version.content.copy()
                 )
+                changes[diff_script_version.version]["changes"] = script_json.get_json_changes(
+                    script_version.content.copy(), diff_script_version.content.copy()
+                )
                 changes[diff_script_version.version][
                     "previous_version"
                 ] = script_version.version
@@ -1341,7 +1344,7 @@ def character_missing_from_database(character_id, roles):
 def create_characters_and_determine_homebrew_status(script_content):
     homebrewiness = models.Homebrewiness.CLOCKTOWER
     non_clocktower_characters = 0
-    includes_meta = False
+    entries_to_ignore = 0
     roles = []
     try:
         roles = requests.get("https://script.bloodontheclocktower.com/data/roles.json", timeout=2)
@@ -1350,11 +1353,15 @@ def create_characters_and_determine_homebrew_status(script_content):
 
     for item in script_content:
         if item.get("id", "") == "_meta":
-            includes_meta = True
+            entries_to_ignore += 1
             continue
 
         try:
-            models.ClocktowerCharacter.objects.get(character_id=item.get("id",""))
+            character = models.ClocktowerCharacter.objects.get(character_id=item.get("id",""))
+            # Ignore the use of the official Bootlegger character, this indicates the script
+            # hybrid/homebrew already but shouldn't count against homebrew status.
+            if character.character_id == "bootlegger":
+                entries_to_ignore += 1
         except models.ClocktowerCharacter.DoesNotExist:
             if len(item.keys()) == 1:
                 # It's possible we don't know about this character because it has just been released
@@ -1386,7 +1393,7 @@ def create_characters_and_determine_homebrew_status(script_content):
                 modifies_setup=item.get("setup", False),
             )
 
-    if non_clocktower_characters == len(script_content) - 1 if includes_meta else 0:
+    if non_clocktower_characters == len(script_content) - entries_to_ignore:
         homebrewiness = models.Homebrewiness.HOMEBREW
     elif non_clocktower_characters > 0:
         homebrewiness = models.Homebrewiness.HYBRID
