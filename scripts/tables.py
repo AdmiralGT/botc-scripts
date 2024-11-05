@@ -142,12 +142,16 @@ class CollectionClocktowerTable(UserClocktowerTable):
     )
 
     class Meta:
-        model = Collection
-        exclude = ("id", "owner", "scripts", "notes")
+        model = ScriptVersion
+        exclude = excluded_clocktower_version_fields
         sequence = (
             "name",
-            "description",
-            "scripts_in_collection",
+            "author",
+            "script_type",
+            "score",
+            "num_favs",
+            "tags",
+            "actions",
         )
         orderable = True
 
@@ -177,3 +181,4 @@ class CollectionTable(tables.Table):
             "scripts_in_collection",
         )
         orderable = True
+
