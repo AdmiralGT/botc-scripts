@@ -65,56 +65,38 @@ class WorldCupStatisticsView(generic.TemplateView):
             previous_version = None
             for version in versions:
                 if previous_version:
-                    additions = views.get_json_additions(
-                        version.content.copy(), previous_version.content.copy()
-                    )
+                    additions = views.get_json_additions(version.content.copy(), previous_version.content.copy())
                     for addition in additions:
                         if addition.get("id", "_meta") == "_meta":
                             pass
                         try:
-                            character = models.ClocktowerCharacter.objects.get(
-                                character_id=addition.get("id")
-                            )
+                            character = models.ClocktowerCharacter.objects.get(character_id=addition.get("id"))
                         except models.ClocktowerCharacter.DoesNotExist:
                             continue
 
-                        character_count["additions"][character.character_type][
-                            character
-                        ] = (
-                            character_count["additions"][character.character_type][
-                                character
-                            ]
-                            + 1
+                        character_count["additions"][character.character_type][character] = (
+                            character_count["additions"][character.character_type][character] + 1
                         )
-                    deletions = views.get_json_additions(
-                        previous_version.content.copy(), version.content.copy()
-                    )
+                    deletions = views.get_json_additions(previous_version.content.copy(), version.content.copy())
                     for deletion in deletions:
                         if deletion.get("id", "_meta") == "_meta":
                             pass
                         try:
-                            character = models.ClocktowerCharacter.objects.get(
-                                character_id=deletion.get("id")
-                            )
+                            character = models.ClocktowerCharacter.objects.get(character_id=deletion.get("id"))
                         except models.ClocktowerCharacter.DoesNotExist:
                             continue
 
-                        character_count["deletions"][character.character_type][
-                            character
-                        ] = (
-                            character_count["deletions"][character.character_type][
-                                character
-                            ]
-                            + 1
+                        character_count["deletions"][character.character_type][character] = (
+                            character_count["deletions"][character.character_type][character] + 1
                         )
                 previous_version = version
 
         for type in models.CharacterType:
-            context[type.value + "addition"] = character_count["additions"][
-                type.value
-            ].most_common(characters_to_display)
-            context[type.value + "deletion"] = character_count["deletions"][
-                type.value
-            ].most_common(characters_to_display)
+            context[type.value + "addition"] = character_count["additions"][type.value].most_common(
+                characters_to_display
+            )
+            context[type.value + "deletion"] = character_count["deletions"][type.value].most_common(
+                characters_to_display
+            )
 
         return context

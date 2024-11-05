@@ -36,8 +36,9 @@ ruff = "*"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.black]
-exclude = 'scripts/migrations'
+[tool.ruff]
+exclude = ["scripts/migrations","botc/", "manage.py"]
+line-length = 120
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"

@@ -10,9 +10,7 @@ from django.views.generic.base import TemplateView
 router = routers.DefaultRouter()
 router.register(r"scripts", viewsets.ScriptViewSet)
 
-translation_detail = viewsets.TranslationViewSet.as_view(
-    {"get": "retrieve", "put": "update", "post": "create"}
-)
+translation_detail = viewsets.TranslationViewSet.as_view({"get": "retrieve", "put": "update", "post": "create"})
 
 
 urlpatterns = [

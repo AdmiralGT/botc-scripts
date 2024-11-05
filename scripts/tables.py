@@ -37,6 +37,7 @@ excluded_clocktower_version_fields = (
     "homebrewiness",
 )
 
+
 class ScriptTable(tables.Table):
     name = tables.Column(
         empty_values=(),
@@ -80,10 +81,9 @@ class ScriptTable(tables.Table):
     )
 
     def render_name(self, value, record):
-        return "{name} ({version})".format(
-            name=record.script.name, version=record.version
-        )
-    
+        return "{name} ({version})".format(name=record.script.name, version=record.version)
+
+
 class ClocktowerTable(ScriptTable):
     tags = tables.TemplateColumn(
         orderable=False,
@@ -93,7 +93,6 @@ class ClocktowerTable(ScriptTable):
             "th": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
         },
     )
-
 
     class Meta:
         model = ScriptVersion
@@ -181,4 +180,3 @@ class CollectionTable(tables.Table):
             "scripts_in_collection",
         )
         orderable = True
-

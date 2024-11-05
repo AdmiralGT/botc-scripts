@@ -1,6 +1,7 @@
 import json as js
 from typing import List
 
+
 def get_author_from_json(json):
     return get_metadata_field_from_json(json, "author")
 
@@ -67,7 +68,7 @@ def get_json_content(data):
 
 
 # Determine the characters that are in the new JSON but not in the old JSON
-# This 
+# This
 def get_json_additions(old_json, new_json):
     for old_id in old_json:
         if old_id["id"] == "_meta":
@@ -83,13 +84,14 @@ def get_json_additions(old_json, new_json):
             if old_id["id"] == new_id["id"]:
                 new_json.remove(new_id)
                 continue
-            
+
     for new_id in new_json:
         if new_id["id"] == "_meta":
             new_json.remove(new_id)
             break
 
     return new_json
+
 
 # Determine changes to character abilities where the character ID is unchanged
 def get_json_changes(old_json, new_json):
@@ -105,7 +107,7 @@ def get_json_changes(old_json, new_json):
                 if old_id.get("ability", "UNKNOWN_ABILITY") != new_id.get("ability", "UNKNOWN_ABILITY"):
                     changed_json.append({"id": new_id["id"]})
                     continue
-    
+
     return changed_json
 
 
@@ -132,5 +134,3 @@ def get_similarity(json1: List, json2: List, same_type: bool) -> int:
         return 0
 
     return round((similarity / similarity_comp) * 100)
-
-

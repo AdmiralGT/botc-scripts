@@ -20,7 +20,7 @@ def prevent_fishbucket(json):
     """
     if len(json) > 50:
         raise ValidationError(
-            "The script database limits scripts to 50 characters. If you\'re trying to upload a \"Fishbucket\" script,"
+            'The script database limits scripts to 50 characters. If you\'re trying to upload a "Fishbucket" script,'
             " this is automatically generated at https://botcscripts.com/script/all_roles"
         )
 
