@@ -11,7 +11,7 @@ import os
 
 
 class ScriptPagination(PageNumberPagination):
-    page_size = os.environ.get("SCRIPTS_API_DEFAULT_PAGE_SIZE", 100)
+    page_size = os.environ.get("SCRIPTS_API_DEFAULT_PAGE_SIZE", 10)
     page_size_query_param = "page_size"
     max_page_size = os.environ.get("SCRIPTS_API_MAX_PAGE_SIZE", 200)
 
