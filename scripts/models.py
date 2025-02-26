@@ -268,6 +268,7 @@ class HomebrewCharacter(BaseCharacter):
     """
     Model for characters.
     """
+    script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="+", null=True)
 
     class Meta:
         permissions = [("update_characters", "Can update character information")]

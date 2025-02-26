@@ -111,7 +111,9 @@ class ScriptForm(forms.Form):
                         raise ValidationError(
                             f"Version {new_version} already exists. You cannot upload a different script with the same version number."
                         )
-
+                    
+            validators.validate_homebrew_character(json, script)
+            
         except models.Script.DoesNotExist:
             pass
 

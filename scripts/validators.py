@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from versionfield.forms import VersionField
-
+from scripts import models
 
 def check_for_homebrew(item):
     """
@@ -31,6 +31,21 @@ def validate_json(json):
 
     prevent_fishbucket(json)
     return
+
+
+def validate_homebrew_character(json, script):
+    for item in json:
+        if item.get("id", "") == "_meta":
+            continue
+    
+        try:
+            homebrew_character = models.HomebrewCharacter.objects.get(character_id=item.get("id"))
+            if homebrew_character.script and homebrew_character.script != script:
+                raise ValidationError(
+                    f"Character {item.get('id')} is already in the database with a different script ({homebrew_character.script.name}). Please choose another character ID"
+                )
+        except models.HomebrewCharacter.DoesNotExist:
+            pass
 
 
 def valid_version(value):
