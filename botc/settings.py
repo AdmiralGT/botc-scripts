@@ -140,7 +140,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MARKDOWNIFY = {"default": {"BLEACH": False}}
 
 # django-allauth configuration
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+LOGIN_METHODS = "email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_AUTO_SIGNUP = True
