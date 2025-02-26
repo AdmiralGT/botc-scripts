@@ -1261,7 +1261,7 @@ def create_characters_and_determine_homebrew_status(script_content: Dict, script
                 image_url = ",".join(image_url)
             try:
                 homebrew_character = models.HomebrewCharacter.objects.get(character_id=item.get("id"))
-                if homebrew_character.script:
+                if homebrew_character.script and homebrew_character.script == script:
                     models.HomebrewCharacter.objects.update_or_create(
                         character_id=item.get("id"),
                         script=script,
@@ -1280,22 +1280,20 @@ def create_characters_and_determine_homebrew_status(script_content: Dict, script
                         }
                     )
                 else:
-                    models.HomebrewCharacter.objects.update_or_create(
+                    models.HomebrewCharacter.objects.create(
                         character_id=item.get("id"),
-                        defaults= {
-                            "script": script,
-                            "character_name": item.get("name"),
-                            "image_url" : image_url,
-                            "character_type" : get_character_type_from_team(item.get("team")).value,
-                            "ability" : item.get("ability"),
-                            "first_night_position" : item.get("firstNight", None),
-                            "other_night_position" : item.get("otherNight", None),
-                            "first_night_reminder" : item.get("firstNightReminder", None),
-                            "other_night_reminder" : item.get("otherNightReminder", None),
-                            "global_reminders" : ",".join(item.get("remindersGlobal", [])),
-                            "reminders" : ",".join(item.get("reminders", [])),
-                            "modifies_setup" : item.get("setup", False),
-                        }
+                        script=script,
+                        character_name=item.get("name"),
+                        image_url=image_url,
+                        character_type=get_character_type_from_team(item.get("team")).value,
+                        ability= item.get("ability"),
+                        first_night_position=item.get("firstNight", None),
+                        other_night_position=item.get("otherNight", None),
+                        first_night_reminder=item.get("firstNightReminder", None),
+                        other_night_reminder=item.get("otherNightReminder", None),
+                        global_reminders=",".join(item.get("remindersGlobal", [])),
+                        reminders=",".join(item.get("reminders", [])),
+                        modifies_setup=item.get("setup", False),
                     )
             except models.HomebrewCharacter.DoesNotExist:
                 models.HomebrewCharacter.objects.update_or_create(
