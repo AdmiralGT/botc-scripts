@@ -18,11 +18,9 @@ class Migration(migrations.Migration):
 
 ## Python environment
 
-This project uses `poetry` to manage python dependencies. Follow the [Poetry installation instructions](https://python-poetry.org/docs/#installation) to install poetry.
+This project uses [`uv`](https://docs.astral.sh/uv/) to manage python dependencies. Follow the [Installing uv](https://docs.astral.sh/uv/getting-started/installation/) guide to install uv.
 
-Note: Users have reported getting stuck in the install, running `export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring` may fix this.
-
-You can then install python environment using `poetry install`
+You can then install python environment using `uv sync`
 
 ### Creating the Config
 
@@ -62,17 +60,17 @@ If you are not using the docker compose PostgreSQL database then you'll need to 
 
 Per the usual Django development instructions, you need to apply the migrations to the database before running, create the static files and admin account. Run 
 
-1. `poetry run python manage.py migrate`
-1. `poetry run python manage.py collectstatic`
-1. `poetry run python manage.py createsuperuser`
+1. `uv run python manage.py migrate`
+1. `uv run python manage.py collectstatic`
+1. `uv run python manage.py createsuperuser`
 
 You can also populate the database with all the characters (this is useful for testing some function), but you will need to upload your own scripts (some script data may come at a later date)
 
-`poetry run python manage.py loaddata dev/characters`
+`uv run python manage.py loaddata dev/characters`
 
 The site can be run using:
 
-`poetry run python manage.py runserver`
+`uv run python manage.py runserver`
 
 The site will be accessible at `http://localhost:8000`. You can access the Django admin panel, logging in with the credentials you used to create the super user at `http://localhost:8000/admin`
 
@@ -104,4 +102,4 @@ If you use VSCode for as your IDE, you can use the following `settings.json` to 
 
 ## Linting
 
-This project uses [Ruff](https://docs.astral.sh/ruff/#ruff) for linting. The GitHub workflow includes a lint using ruff, but before submitting any code for review, please ensure that ruff passes by running `poetry run ruff check`
+This project uses [Ruff](https://docs.astral.sh/ruff/#ruff) for linting. The GitHub workflow includes a lint using ruff, but before submitting any code for review, please ensure that ruff passes by running `uv run ruff check`
