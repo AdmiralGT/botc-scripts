@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from versionfield.forms import VersionField
 
-
 def check_for_homebrew(item):
     """
     Homebrew characters are not supported in the custom script database.

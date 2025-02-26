@@ -111,7 +111,7 @@ class ScriptForm(forms.Form):
                         raise ValidationError(
                             f"Version {new_version} already exists. You cannot upload a different script with the same version number."
                         )
-
+            
         except models.Script.DoesNotExist:
             pass
 
