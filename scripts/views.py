@@ -1280,38 +1280,38 @@ def create_characters_and_determine_homebrew_status(script_content: Dict, script
                         }
                     )
                 else:
-                    models.HomebrewCharacter.objects.create(
+                    models.HomebrewCharacter.objects.update_or_create(
                         character_id=item.get("id"),
-                        script=script,
-                        character_name=item.get("name"),
-                        image_url=image_url,
-                        character_type=get_character_type_from_team(item.get("team")).value,
-                        ability= item.get("ability"),
-                        first_night_position=item.get("firstNight", None),
-                        other_night_position=item.get("otherNight", None),
-                        first_night_reminder=item.get("firstNightReminder", None),
-                        other_night_reminder=item.get("otherNightReminder", None),
-                        global_reminders=",".join(item.get("remindersGlobal", [])),
-                        reminders=",".join(item.get("reminders", [])),
-                        modifies_setup=item.get("setup", False),
+                        defaults= {
+                            "script": script,
+                            "character_name": item.get("name"),
+                            "image_url" : image_url,
+                            "character_type" : get_character_type_from_team(item.get("team")).value,
+                            "ability" : item.get("ability"),
+                            "first_night_position" : item.get("firstNight", None),
+                            "other_night_position" : item.get("otherNight", None),
+                            "first_night_reminder" : item.get("firstNightReminder", None),
+                            "other_night_reminder" : item.get("otherNightReminder", None),
+                            "global_reminders" : ",".join(item.get("remindersGlobal", [])),
+                            "reminders" : ",".join(item.get("reminders", [])),
+                            "modifies_setup" : item.get("setup", False),
+                        }
                     )
             except models.HomebrewCharacter.DoesNotExist:
-                models.HomebrewCharacter.objects.update_or_create(
+                models.HomebrewCharacter.objects.create(
                     character_id=item.get("id"),
-                    defaults= {
-                        "script": script,
-                        "character_name": item.get("name"),
-                        "image_url" : image_url,
-                        "character_type" : get_character_type_from_team(item.get("team")).value,
-                        "ability" : item.get("ability"),
-                        "first_night_position" : item.get("firstNight", None),
-                        "other_night_position" : item.get("otherNight", None),
-                        "first_night_reminder" : item.get("firstNightReminder", None),
-                        "other_night_reminder" : item.get("otherNightReminder", None),
-                        "global_reminders" : ",".join(item.get("remindersGlobal", [])),
-                        "reminders" : ",".join(item.get("reminders", [])),
-                        "modifies_setup" : item.get("setup", False),
-                    }
+                    script=script,
+                    character_name=item.get("name"),
+                    image_url=image_url,
+                    character_type=get_character_type_from_team(item.get("team")).value,
+                    ability= item.get("ability"),
+                    first_night_position=item.get("firstNight", None),
+                    other_night_position=item.get("otherNight", None),
+                    first_night_reminder=item.get("firstNightReminder", None),
+                    other_night_reminder=item.get("otherNightReminder", None),
+                    global_reminders=",".join(item.get("remindersGlobal", [])),
+                    reminders=",".join(item.get("reminders", [])),
+                    modifies_setup=item.get("setup", False),
                 )
 
     if non_clocktower_characters == len(script_content) - entries_to_ignore:
