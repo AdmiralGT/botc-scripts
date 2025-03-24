@@ -86,3 +86,18 @@ def test_differences_both_ways():
     assert reverse == 87
     reverse = get_similarity(v2, v1, False)
     assert reverse == 91
+
+
+def test_large_vs_small_script():
+    with open(os.path.join(current_dir, "input/trouble_brewing.json"), "r") as f:
+        v1 = js.load(f)
+    with open(os.path.join(current_dir, "input/just_the_drunk.json"), "r") as f:
+        v2 = js.load(f)
+    similarity = get_similarity(v1, v2, True)
+    assert similarity == 5
+    similarity = get_similarity(v1, v2, False)
+    assert similarity == 8
+    reverse = get_similarity(v2, v1, True)
+    assert reverse == 5
+    reverse = get_similarity(v2, v1, False)
+    assert reverse == 8

@@ -1,4 +1,5 @@
 import json as js
+from scripts import constants
 from typing import List
 
 
@@ -113,21 +114,24 @@ def get_json_changes(old_json, new_json):
 
 def get_similarity(json1: List, json2: List, same_type: bool) -> int:
     similarity = 0
-    similarity_max = max(len(json1), len(json2))
-    similarity_min = min(len(json1), len(json2))
-    for id in json1:
+    json1_metadata_count = 0
+    json2_metadata_count = 0
+    for i, id in enumerate(json1):
         if id.get("id", "") == "_meta":
-            similarity_max = min(similarity_max, len(json1) - 1)
-            similarity_min = min(similarity_min, len(json1) - 1)
+            json1_metadata_count += 1
             continue
         for id2 in json2:
-            if id2.get("id", "") == "_meta":
-                similarity_max = min(similarity_max, len(json2) - 1)
-                similarity_min = min(similarity_min, len(json2) - 1)
+            if i == 0 and id2.get("id", "") == "_meta":
+                json2_metadata_count += 1
                 continue
             if id.get("id", "id1") == id2.get("id", "id2"):
                 similarity += 1
                 break
+
+    json1_len = len(json1) - json1_metadata_count
+    json2_len = len(json2) - json2_metadata_count
+    similarity_max = max(json1_len, json2_len)
+    similarity_min = max(min(json1_len, json2_len), constants.STANDARD_TEENSYVILLE_CHARACTER_COUNT)
 
     similarity_comp = similarity_max if same_type else similarity_min
     if similarity_comp == 0:
