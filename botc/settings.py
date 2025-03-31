@@ -137,8 +137,40 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MARKDOWNIFY = {"default": {"BLEACH": False}}
-
+MARKDOWNIFY = {
+    "default": {
+        "WHITELIST_TAGS": [
+            'a',
+            'abbr',
+            'acronym',
+            'b',
+            'blockquote',
+            'em',
+            'i',
+            'li',
+            'ol',
+            'p',
+            'strong',
+            'ul',
+            "h1",
+            "h2",
+            "h3",
+            "img",
+        ],
+        "WHITELIST_ATTRS": [
+            'href',
+            'src',
+            'alt',
+        ],   
+        "WHITELIST_STYLES": [
+            'color',
+            'font-weight',
+        ],
+        "WHITELIST_PROTOCOLS": [
+            'https',
+        ]        
+    }
+}
 # django-allauth configuration
 LOGIN_METHODS = "email"
 ACCOUNT_EMAIL_REQUIRED = True

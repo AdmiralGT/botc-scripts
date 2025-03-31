@@ -22,6 +22,7 @@ dependencies = [
     "requests<3.0.0,>=2.31.0",
     "django-cors-headers<5.0.0,>=4.3.0",
     "jsonschema<5.0.0,>=4.23.0",
+    "bleach>=6.2.0",
 ]
 requires-plugins = { poetry-plugin-export = ">=1.8" }
 package-mode = false
