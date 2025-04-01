@@ -144,18 +144,19 @@ MARKDOWNIFY = {
             'abbr',
             'acronym',
             'b',
+            "br",
             'blockquote',
             'em',
+            "h1",
+            "h2",
+            "h3",
             'i',
+            "img",
             'li',
             'ol',
             'p',
             'strong',
             'ul',
-            "h1",
-            "h2",
-            "h3",
-            "img",
         ],
         "WHITELIST_ATTRS": [
             'href',
@@ -171,6 +172,7 @@ MARKDOWNIFY = {
         ]        
     }
 }
+
 # django-allauth configuration
 LOGIN_METHODS = "email"
 ACCOUNT_EMAIL_REQUIRED = True
