@@ -1,12 +1,19 @@
-from rest_framework import filters, viewsets
+from rest_framework import filters, viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.schemas.openapi import AutoSchema
 from scripts import models, serializers
 from scripts import filters as filtersets
 from django_filters.rest_framework import DjangoFilterBackend
+import os
+
+
+class ScriptPagination(PageNumberPagination):
+    page_size = os.environ.get("SCRIPTS_API_DEFAULT_PAGE_SIZE", 10)
+    page_size_query_param = "page_size"
+    max_page_size = os.environ.get("SCRIPTS_API_MAX_PAGE_SIZE", 200)
 
 
 class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
@@ -14,6 +21,7 @@ class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.ScriptSerializer
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
     filterset_class = filtersets.ScriptVersionFilter
+    pagination_class = ScriptPagination
     ordering_fields = ["pk", "score"]
     ordering = ["-pk"]
 
