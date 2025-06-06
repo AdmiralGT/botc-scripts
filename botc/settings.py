@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.discord",
     "markdownify.apps.MarkdownifyConfig",
     "corsheaders",
+    "django_select2",
 ]
 
 MIDDLEWARE = [

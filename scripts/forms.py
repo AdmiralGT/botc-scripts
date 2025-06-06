@@ -1,4 +1,5 @@
 from django import forms
+from django_select2.forms import ModelSelect2MultipleWidget
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 import jsonschema.exceptions
@@ -140,8 +141,34 @@ class AdvancedSearchForm(forms.Form):
     name = forms.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False)
     author = forms.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False)
     script_type = forms.ChoiceField(choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL)
-    includes_characters = forms.CharField(required=False)
-    excludes_characters = forms.CharField(required=False)
+    includes_characters = forms.ModelMultipleChoiceField(
+        queryset=models.ClocktowerCharacter.objects.all().order_by("character_name"),
+        widget=ModelSelect2MultipleWidget(
+            model=models.ClocktowerCharacter,
+            search_fields=["character_name__icontains"],
+            attrs={
+                "data-placeholder": "Type to search characters...",
+                "data-minimum-input-length": 1,
+                "data-theme": "bootstrap4",
+            },
+        ),
+        required=False,
+        label="Includes Characters",
+    )
+    excludes_characters = forms.ModelMultipleChoiceField(
+        queryset=models.ClocktowerCharacter.objects.all().order_by("character_name"),
+        widget=ModelSelect2MultipleWidget(
+            model=models.ClocktowerCharacter,
+            search_fields=["character_name__icontains"],
+            attrs={
+                "data-placeholder": "Type to search characters...",
+                "data-minimum-input-length": 1,
+                "data-theme": "bootstrap4",
+            },
+        ),
+        required=False,
+        label="Excludes Characters",
+    )
     edition = forms.ChoiceField(choices=models.Edition.choices, initial=models.Edition.CLOCKTOWER_APP)
     minimum_number_of_likes = forms.IntegerField(required=False)
     minimum_number_of_favourites = forms.IntegerField(required=False)
