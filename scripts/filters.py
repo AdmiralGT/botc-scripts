@@ -1,11 +1,10 @@
-import re
-
 import django_filters
 from django_filters import rest_framework as filters
 from django import forms
+from django_select2.forms import ModelSelect2MultipleWidget
 from django.contrib.postgres.search import TrigramSimilarity
 
-from scripts import models, widgets, script_json
+from scripts import models, widgets
 
 edition_choices = (
     (models.Edition.BASE, models.Edition.BASE.label),
@@ -27,20 +26,14 @@ def annotate_queryset(queryset, field, value):
 
 
 def include_characters(queryset, value):
-    for character in re.split(",|;|:|/", value):
-        character = script_json.strip_special_characters(character.strip())
-        if character in ",;:/":
-            continue
-        queryset = queryset.filter(content__contains=[{"id": name_to_id(character)}])
+    for character in value.values_list("character_id", flat=True):
+        queryset = queryset.filter(content__contains=[{"id": character}])
     return queryset
 
 
 def exclude_characters(queryset, value):
-    for character in re.split(",|;|:|/", value):
-        character = script_json.strip_special_characters(character.strip())
-        if character in ",;:/":
-            continue
-        queryset = queryset.exclude(content__contains=[{"id": name_to_id(character)}])
+    for character in value.values_list("character_id", flat=True):
+        queryset = queryset.exclude(content__contains=[{"id": character}])
     return queryset
 
 
@@ -54,8 +47,38 @@ class BaseScriptVersionFilter(filters.FilterSet):
         widget=forms.CheckboxInput,
         label="Display All Versions",
     )
-    include = django_filters.filters.CharFilter(method="include_characters", label="Includes characters")
-    exclude = django_filters.filters.CharFilter(method="exclude_characters", label="Excludes characters")
+    include = django_filters.filters.ModelMultipleChoiceFilter(
+        queryset=models.ClocktowerCharacter.objects.all().order_by("character_name"),
+        method="include_characters",
+        widget=ModelSelect2MultipleWidget(
+            model=models.ClocktowerCharacter,
+            search_fields=["character_name__icontains"],
+            attrs={
+                "data-placeholder": "Include Characters",
+                "data-minimum-input-length": 1,
+                "data-theme": "bootstrap4",
+                "data-dropdown-auto-width": "true",
+                "data-width": "10em",
+            },
+        ),
+        label="Include Characters",
+    )
+    exclude = django_filters.filters.ModelMultipleChoiceFilter(
+        queryset=models.ClocktowerCharacter.objects.all().order_by("character_name"),
+        method="exclude_characters",
+        widget=ModelSelect2MultipleWidget(
+            model=models.ClocktowerCharacter,
+            search_fields=["character_name__icontains"],
+            attrs={
+                "data-placeholder": "Exclude Characters",
+                "data-minimum-input-length": 1,
+                "data-theme": "bootstrap4",
+                "data-dropdown-auto-width": "true",
+                "data-width": "10em",
+            },
+        ),
+        label="Exclude Characters",
+    )
     author = django_filters.filters.CharFilter(method="search_authors", label="Author")
     search = django_filters.filters.CharFilter(method="search_scripts", label="Search")
     mono_demon = django_filters.filters.BooleanFilter(
@@ -100,10 +123,14 @@ class BaseScriptVersionFilter(filters.FilterSet):
         return queryset
 
     def include_characters(self, queryset, name, value):
-        return include_characters(queryset, value)
+        for character in value:
+            queryset = queryset.filter(content__contains=[{"id": name_to_id(character.character_name)}])
+        return queryset
 
     def exclude_characters(self, queryset, name, value):
-        return exclude_characters(queryset, value)
+        for character in value:
+            queryset = queryset.exclude(content__contains=[{"id": name_to_id(character.character_name)}])
+        return queryset
 
     def search_scripts(self, queryset, name, value):
         queryset = annotate_queryset(queryset, "script__name", value)
