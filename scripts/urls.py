@@ -11,6 +11,7 @@ router = routers.DefaultRouter()
 router.register(r"scripts", viewsets.ScriptViewSet)
 
 translation_detail = viewsets.TranslationViewSet.as_view({"get": "retrieve", "put": "update", "post": "create"})
+translate = viewsets.TranslateScriptViewSet.as_view({"get": "retrieve"})
 
 
 urlpatterns = [
@@ -18,6 +19,7 @@ urlpatterns = [
     path("api/", include(router.urls)),
     path("api/statistics", api_views.StatisticsAPI.as_view()),
     path("api/translations/<str:language>/<str:character_id>/", translation_detail),
+    path("api/translate/<int:script_version>/<str:language>", translate),
     path("collections", views.CollectionListView.as_view()),
     path(
         "collection/<int:pk>",

@@ -6,7 +6,9 @@ from rest_framework import status
 from rest_framework.schemas.openapi import AutoSchema
 from scripts import models, serializers
 from scripts import filters as filtersets
+from scripts.views import translate_json_content
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import Http404
 
 
 class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
@@ -27,6 +29,38 @@ class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
     @action(methods=["get"], detail=True)
     def json(self, _, pk=None):
         return Response(models.ScriptVersion.objects.get(pk=pk).content)
+    
+
+class TranslateScriptViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = models.ScriptVersion.objects.all()
+    serializer_class = serializers.ScriptSerializer
+    filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
+    filterset_class = filtersets.ScriptVersionFilter
+    ordering_fields = ["pk", "score"]
+    ordering = ["-pk"]
+
+    def get_queryset(self):
+        queryset = models.ScriptVersion.objects.all()
+        latest = self.request.query_params.get("latest")
+        if latest:
+            queryset = models.ScriptVersion.objects.filter(latest=True)
+        return queryset
+
+    def get_object(self, pk: int):
+        try:
+            return models.ScriptVersion.objects.get(pk=pk)
+        except models.ScriptVersion.DoesNotExist:
+            raise Http404
+
+    def retrieve(self, request: Request, script_version: int, language: str):
+        if language not in models.Translation.objects.values_list("language", flat=True).distinct("language").order_by("language"):
+            return Response(
+                {"error": "Invalid language specified."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        instance = self.get_object(script_version)
+        translated_content = translate_json_content(instance.content, language)
+        return Response(translated_content)
 
 
 class TranslationViewSet(viewsets.ModelViewSet):
