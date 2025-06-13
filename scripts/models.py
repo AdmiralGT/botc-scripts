@@ -228,7 +228,6 @@ class BaseCharacter(BaseCharacterInfo):
     character_type = models.CharField(max_length=30, choices=CharacterType.choices)
     first_night_position = models.FloatField(blank=True, null=True)
     other_night_position = models.FloatField(blank=True, null=True)
-    image_url = models.TextField(blank=True, null=True)
     modifies_setup = models.BooleanField(default=False)
 
     def full_character_json(self) -> Dict:
@@ -243,7 +242,7 @@ class BaseCharacter(BaseCharacterInfo):
         character_json["reminders"] = self.reminders.split(",")
         character_json["setup"] = self.modifies_setup
         character_json["ability"] = self.ability
-        character_json["image"] = self.image_url
+        character_json["image"] = f"https://raw.githubusercontent.com/tomozbot/botc-icons/refs/heads/main/PNG/{self.character_id}.png" if not hasattr(self, 'image_url') else self.image_url
         return character_json
 
     def __str__(self):
@@ -269,6 +268,7 @@ class HomebrewCharacter(BaseCharacter):
     Model for characters.
     """
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="+", null=True)
+    image_url = models.TextField(blank=True, null=True)
 
     class Meta:
         permissions = [("update_characters", "Can update character information")]
