@@ -10,13 +10,13 @@
     {% user_favourite  record as starstyle %}
     {% user_voted_icon record as user_voted_icon %}
 
-    <form class='d-inline-block m-0 mb-1' action="{% url 'vote' record.script.pk record.version %}" method="post">
+    <form class='d-inline-block m-0 mb-1' action="{% url 'vote' record.script.pk %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <button type="submit" class="btn {% user_voted record %} btn-sm">{% bs_icon user_voted_icon %}</button>
     </form>
 
-    <form class='d-inline-block m-0 mb-1' action="{% url 'favourite' record.script.pk record.version %}" method="post">
+    <form class='d-inline-block m-0 mb-1' action="{% url 'favourite' record.script.pk %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <button type="submit" class="btn btn-warning btn-sm">{% bs_icon starstyle %}</button>

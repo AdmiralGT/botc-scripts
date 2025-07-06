@@ -3,9 +3,9 @@
 import django.db.models.deletion
 from django.db import migrations, models
 
-def change_parent():
-    from scripts.models import Favourite, Vote
-
+def change_parent(apps, _):
+    Favourite = apps.get_model("scripts", "favourite")
+    Vote = apps.get_model("scripts", "vote")
     # Update existing favourites and votes to have the parent field set to the script they belong to
     for favourite in Favourite.objects.all():
         favourite.parent = favourite.script.script
