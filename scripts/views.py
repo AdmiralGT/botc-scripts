@@ -664,7 +664,7 @@ class UserDeleteView(LoginRequiredMixin, generic.TemplateView):
 def get_script(request, pk: int) -> models.Script:
     try:
         script = models.Script.objects.get(pk=pk)
-    except (models.Script.DoesNotExist):
+    except models.Script.DoesNotExist:
         return redirect(request.POST["next"])
     return script
 
