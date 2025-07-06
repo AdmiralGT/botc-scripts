@@ -8,7 +8,7 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def user_voted(context, script_version):
     user = context["user"]
-    if user.votes.filter(script=script_version).exists():
+    if user.votes.filter(parent=script_version.script).exists():
         return "btn-danger"
     return "btn-success"
 
@@ -16,7 +16,7 @@ def user_voted(context, script_version):
 @register.simple_tag(takes_context=True)
 def user_voted_icon(context, script_version):
     user = context["user"]
-    if user.votes.filter(script=script_version).exists():
+    if user.votes.filter(parent=script_version.script).exists():
         return "hand-thumbs-down-fill"
     return "hand-thumbs-up-fill"
 
@@ -24,7 +24,7 @@ def user_voted_icon(context, script_version):
 @register.simple_tag(takes_context=True)
 def user_favourite(context, script_version):
     user = context["user"]
-    if user.favourites.filter(script=script_version).exists():
+    if user.favourites.filter(parent=script_version.script).exists():
         return "star-fill"
     return "star"
 

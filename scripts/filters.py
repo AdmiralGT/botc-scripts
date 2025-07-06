@@ -168,9 +168,9 @@ class FavouriteScriptVersionFilter(ScriptVersionFilter):
         label="My Scripts",
     )
 
-    def display_favourites(self, queryset, name, value):
+    def display_favourites(self, queryset, _, value):
         if value:
-            return queryset.filter(favourites__user=self.request.user)
+            return queryset.filter(script__favourites__user=self.request.user)
         return queryset
 
     class Meta:

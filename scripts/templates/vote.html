@@ -1,5 +1,5 @@
 {% load bootstrap4 %}
-<form class="mb-0" action="{% url 'vote' record.script.pk record.version %}" method="post">
+<form class="mb-0" action="{% url 'vote' record.script.pk %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
 

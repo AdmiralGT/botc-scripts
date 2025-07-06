@@ -75,7 +75,7 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     def get_queryset(self):
         queryset = super(UserScriptsListView, self).get_queryset()
         if self.script_view == "favourite":
-            queryset = queryset.filter(favourites__user=self.request.user)
+            queryset = queryset.filter(script__favourites__user=self.request.user)
         elif self.script_view == "owned":
             queryset = queryset.filter(script__owner=self.request.user)
         return queryset
@@ -661,16 +661,15 @@ class UserDeleteView(LoginRequiredMixin, generic.TemplateView):
         return HttpResponseRedirect("/")
 
 
-def get_script_version(request, pk: int, version: str) -> models.ScriptVersion:
+def get_script(request, pk: int) -> models.Script:
     try:
         script = models.Script.objects.get(pk=pk)
-        script_version = script.versions.get(version=version)
-    except (models.Script.DoesNotExist, models.ScriptVersion.DoesNotExist):
+    except models.Script.DoesNotExist:
         return redirect(request.POST["next"])
-    return script_version
+    return script
 
 
-def update_user_related_script(model, user: User, script: models.ScriptVersion) -> None:
+def update_user_related_script(model, user: User, script: models.Script) -> None:
     if user.is_authenticated:
         if model.objects.filter(user=user, script=script).exists():
             object = model.objects.get(user=user, script=script)
@@ -679,11 +678,11 @@ def update_user_related_script(model, user: User, script: models.ScriptVersion) 
             model.objects.create(user=user, script=script)
 
 
-def vote_for_script(request, pk: int, version: str) -> None:
+def vote_for_script(request, pk: int) -> None:
     if request.method != "POST":
         raise Http404()
-    script_version = get_script_version(request, pk, version)
-    update_user_related_script(models.Vote, request.user, script_version)
+    script = get_script(request, pk)
+    update_user_related_script(models.Vote, request.user, script)
     return redirect(request.POST["next"])
 
 
@@ -737,11 +736,11 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
     return JsonResponse({"full": list(full_scripts), "teensyville": list(teensville_scripts)})
 
 
-def favourite_script(request, pk: int, version: str) -> None:
+def favourite_script(request, pk: int) -> None:
     if request.method != "POST":
         raise Http404()
-    script_version = get_script_version(request, pk, version)
-    update_user_related_script(models.Favourite, request.user, script_version)
+    script = get_script(request, pk)
+    update_user_related_script(models.Favourite, request.user, script)
     return redirect(request.POST["next"])
 
 
@@ -1142,11 +1141,11 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
             queryset = queryset.filter(num_travellers__in=form.cleaned_data.get("number_of_travellers"))
 
         if form.cleaned_data.get("minimum_number_of_likes"):
-            queryset = queryset.annotate(score=Count("votes"))
+            queryset = queryset.annotate(score=Count("script__votes"))
             queryset = queryset.filter(score__gte=form.cleaned_data.get("minimum_number_of_likes"))
 
         if form.cleaned_data.get("minimum_number_of_favourites"):
-            queryset = queryset.annotate(num_favs=Count("favourites"))
+            queryset = queryset.annotate(num_favs=Count("script__favourites"))
             queryset = queryset.filter(num_favs__gte=form.cleaned_data.get("minimum_number_of_favourites"))
 
         if form.cleaned_data.get("minimum_number_of_comments"):
