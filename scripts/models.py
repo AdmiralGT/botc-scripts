@@ -148,7 +148,6 @@ class Vote(models.Model):
     """
 
     parent = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="votes", null=True, blank=True)
-    script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="votes")
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name="votes")
 
@@ -164,7 +163,6 @@ class Favourite(models.Model):
     """
 
     parent = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="favourites", null=True, blank=True)
-    script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="favourites")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favourites")
 
     def __str__(self):
