@@ -10,7 +10,8 @@ from scripts import models, widgets, script_json
 edition_choices = (
     (models.Edition.BASE, models.Edition.BASE.label),
     (models.Edition.KICKSTARTER, models.Edition.KICKSTARTER.label),
-    (models.Edition.UNRELEASED, models.Edition.UNRELEASED.label),
+    (models.Edition.CAROUSEL, models.Edition.CAROUSEL.label),
+    (models.Edition.ALL, models.Edition.ALL.label),
 )
 
 

@@ -12,8 +12,8 @@ from typing import Dict
 class Edition(models.IntegerChoices):
     BASE = 0, "Base"
     KICKSTARTER = 1, "Kickstarter"
-    UNRELEASED = 2, "clocktower.online"
-    CLOCKTOWER_APP = 3, "All"
+    CAROUSEL = 2, "Carousel"
+    ALL = 3, "All"
 
 
 class ScriptTypes(models.TextChoices):
@@ -104,7 +104,7 @@ class ScriptVersion(models.Model):
     num_fabled = models.IntegerField()
     num_travellers = models.IntegerField()
     tags = models.ManyToManyField(ScriptTag, blank=True)
-    edition = models.IntegerField(choices=Edition.choices, default=Edition.BASE)
+    edition = models.IntegerField(choices=Edition.choices, default=Edition.ALL)
     homebrewiness = models.IntegerField(choices=Homebrewiness.choices, default=Homebrewiness.CLOCKTOWER)
 
     objects = ScriptViewManager()
@@ -147,6 +147,7 @@ class Vote(models.Model):
     Only authenticated users may vote for scripts.
     """
 
+    parent = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="votes", null=True, blank=True)
     script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="votes")
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name="votes")
@@ -162,6 +163,7 @@ class Favourite(models.Model):
     Only authenticated users may have favourite scripts.
     """
 
+    parent = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="favourites", null=True, blank=True)
     script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="favourites")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favourites")
 
@@ -242,7 +244,11 @@ class BaseCharacter(BaseCharacterInfo):
         character_json["reminders"] = self.reminders.split(",")
         character_json["setup"] = self.modifies_setup
         character_json["ability"] = self.ability
-        character_json["image"] = f"https://raw.githubusercontent.com/tomozbot/botc-icons/refs/heads/main/PNG/{self.character_id}.png" if not hasattr(self, 'image_url') else self.image_url
+        character_json["image"] = (
+            f"https://raw.githubusercontent.com/tomozbot/botc-icons/refs/heads/main/PNG/{self.character_id}.png"
+            if not hasattr(self, "image_url")
+            else self.image_url
+        )
         return character_json
 
     def __str__(self):
@@ -267,6 +273,7 @@ class HomebrewCharacter(BaseCharacter):
     """
     Model for characters.
     """
+
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="+", null=True)
     image_url = models.TextField(blank=True, null=True)
 

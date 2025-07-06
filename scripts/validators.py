@@ -3,6 +3,7 @@ from django.conf import settings
 from versionfield.forms import VersionField
 from scripts import models
 
+
 def check_for_homebrew(item):
     """
     Homebrew characters are not supported in the custom script database.
@@ -37,7 +38,7 @@ def validate_homebrew_character(json, script):
     for item in json:
         if item.get("id", "") == "_meta":
             continue
-    
+
         try:
             homebrew_character = models.HomebrewCharacter.objects.get(character_id=item.get("id"))
             if homebrew_character.script and homebrew_character.script != script:

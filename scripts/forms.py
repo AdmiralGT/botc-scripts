@@ -111,9 +111,9 @@ class ScriptForm(forms.Form):
                         raise ValidationError(
                             f"Version {new_version} already exists. You cannot upload a different script with the same version number."
                         )
-                    
+
             validators.validate_homebrew_character(json, script)
-            
+
         except models.Script.DoesNotExist:
             pass
 
@@ -142,7 +142,7 @@ class AdvancedSearchForm(forms.Form):
     script_type = forms.ChoiceField(choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL)
     includes_characters = forms.CharField(required=False)
     excludes_characters = forms.CharField(required=False)
-    edition = forms.ChoiceField(choices=models.Edition.choices, initial=models.Edition.CLOCKTOWER_APP)
+    edition = forms.ChoiceField(choices=models.Edition.choices, initial=models.Edition.ALL)
     minimum_number_of_likes = forms.IntegerField(required=False)
     minimum_number_of_favourites = forms.IntegerField(required=False)
     minimum_number_of_comments = forms.IntegerField(required=False)

@@ -139,7 +139,7 @@ def calculate_edition(script_content: Dict) -> int:
         if character and character.edition > edition:
             edition = character.edition
 
-        if edition == models.Edition.CLOCKTOWER_APP:
+        if edition == models.Edition.ALL:
             return edition
 
     return edition
@@ -233,7 +233,7 @@ def get_edition_from_request(request):
         for possible_edition in models.Edition:
             if possible_edition.label == request.GET.get("selected_edition"):
                 return possible_edition
-    return models.Edition.CLOCKTOWER_APP
+    return models.Edition.ALL
 
 
 class AllRolesScriptView(generic.TemplateView):
@@ -809,7 +809,7 @@ def download_unsupported_json(request, pk: int, version: str) -> FileResponse:
 
         try:
             character = models.ClocktowerCharacter.objects.get(character_id=character_json.get("id"))
-            if character.edition == models.Edition.CLOCKTOWER_APP:
+            if character.edition == models.Edition.ALL:
                 content.append(character.full_character_json())
             else:
                 content.append(character_json)
@@ -1265,37 +1265,37 @@ def create_characters_and_determine_homebrew_status(script_content: Dict, script
                     models.HomebrewCharacter.objects.update_or_create(
                         character_id=item.get("id"),
                         script=script,
-                        defaults= {
+                        defaults={
                             "character_name": item.get("name"),
-                            "image_url" : image_url,
-                            "character_type" : get_character_type_from_team(item.get("team")).value,
-                            "ability" : item.get("ability"),
-                            "first_night_position" : item.get("firstNight", None),
-                            "other_night_position" : item.get("otherNight", None),
-                            "first_night_reminder" : item.get("firstNightReminder", None),
-                            "other_night_reminder" : item.get("otherNightReminder", None),
-                            "global_reminders" : ",".join(item.get("remindersGlobal", [])),
-                            "reminders" : ",".join(item.get("reminders", [])),
-                            "modifies_setup" : item.get("setup", False),
-                        }
+                            "image_url": image_url,
+                            "character_type": get_character_type_from_team(item.get("team")).value,
+                            "ability": item.get("ability"),
+                            "first_night_position": item.get("firstNight", None),
+                            "other_night_position": item.get("otherNight", None),
+                            "first_night_reminder": item.get("firstNightReminder", None),
+                            "other_night_reminder": item.get("otherNightReminder", None),
+                            "global_reminders": ",".join(item.get("remindersGlobal", [])),
+                            "reminders": ",".join(item.get("reminders", [])),
+                            "modifies_setup": item.get("setup", False),
+                        },
                     )
                 else:
                     models.HomebrewCharacter.objects.update_or_create(
                         character_id=item.get("id"),
-                        defaults= {
+                        defaults={
                             "script": script,
                             "character_name": item.get("name"),
-                            "image_url" : image_url,
-                            "character_type" : get_character_type_from_team(item.get("team")).value,
-                            "ability" : item.get("ability"),
-                            "first_night_position" : item.get("firstNight", None),
-                            "other_night_position" : item.get("otherNight", None),
-                            "first_night_reminder" : item.get("firstNightReminder", None),
-                            "other_night_reminder" : item.get("otherNightReminder", None),
-                            "global_reminders" : ",".join(item.get("remindersGlobal", [])),
-                            "reminders" : ",".join(item.get("reminders", [])),
-                            "modifies_setup" : item.get("setup", False),
-                        }
+                            "image_url": image_url,
+                            "character_type": get_character_type_from_team(item.get("team")).value,
+                            "ability": item.get("ability"),
+                            "first_night_position": item.get("firstNight", None),
+                            "other_night_position": item.get("otherNight", None),
+                            "first_night_reminder": item.get("firstNightReminder", None),
+                            "other_night_reminder": item.get("otherNightReminder", None),
+                            "global_reminders": ",".join(item.get("remindersGlobal", [])),
+                            "reminders": ",".join(item.get("reminders", [])),
+                            "modifies_setup": item.get("setup", False),
+                        },
                     )
             except models.HomebrewCharacter.DoesNotExist:
                 models.HomebrewCharacter.objects.create(
@@ -1304,7 +1304,7 @@ def create_characters_and_determine_homebrew_status(script_content: Dict, script
                     character_name=item.get("name"),
                     image_url=image_url,
                     character_type=get_character_type_from_team(item.get("team")).value,
-                    ability= item.get("ability"),
+                    ability=item.get("ability"),
                     first_night_position=item.get("firstNight", None),
                     other_night_position=item.get("otherNight", None),
                     first_night_reminder=item.get("firstNightReminder", None),
