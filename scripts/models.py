@@ -153,7 +153,7 @@ class Vote(models.Model):
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name="votes")
 
     def __str__(self):
-        return f"{self.pk}. Vote on {self.script.script.name} version {self.script.version}"
+        return f"{self.pk}. Vote on {self.script.script.name}"
 
 
 class Favourite(models.Model):
@@ -166,6 +166,9 @@ class Favourite(models.Model):
     parent = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="favourites", null=True, blank=True)
     script = models.ForeignKey(ScriptVersion, on_delete=models.CASCADE, related_name="favourites")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favourites")
+
+    def __str__(self):
+        return f"{self.pk}. Favourite on {self.script.script.name}"
 
 
 class WorldCup(models.Model):
