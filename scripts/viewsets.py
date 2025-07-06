@@ -29,7 +29,7 @@ class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
     @action(methods=["get"], detail=True)
     def json(self, _, pk=None):
         return Response(models.ScriptVersion.objects.get(pk=pk).content)
-    
+
 
 class TranslateScriptViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.ScriptVersion.objects.all()
@@ -53,7 +53,9 @@ class TranslateScriptViewSet(viewsets.ReadOnlyModelViewSet):
             raise Http404
 
     def retrieve(self, request: Request, script_version: int, language: str):
-        if language not in models.Translation.objects.values_list("language", flat=True).distinct("language").order_by("language"):
+        if language not in models.Translation.objects.values_list("language", flat=True).distinct("language").order_by(
+            "language"
+        ):
             return Response(
                 {"error": "Invalid language specified."},
                 status=status.HTTP_400_BAD_REQUEST,
