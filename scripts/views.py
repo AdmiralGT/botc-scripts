@@ -203,7 +203,7 @@ class ScriptView(generic.DetailView):
         context["can_delete"] = self.request.user == current_script.script.owner
 
         return context
-
+    
 
 def get_all_roles(edition: models.Edition):
     roles = []
@@ -671,11 +671,11 @@ def get_script(request, pk: int) -> models.Script:
 
 def update_user_related_script(model, user: User, script: models.Script) -> None:
     if user.is_authenticated:
-        if model.objects.filter(user=user, script=script).exists():
-            object = model.objects.get(user=user, script=script)
+        if model.objects.filter(user=user, parent=script).exists():
+            object = model.objects.get(user=user, parent=script)
             object.delete()
         else:
-            model.objects.create(user=user, script=script)
+            model.objects.create(user=user, parent=script)
 
 
 def vote_for_script(request, pk: int) -> None:
