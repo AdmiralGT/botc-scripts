@@ -203,7 +203,7 @@ class ScriptView(generic.DetailView):
         context["can_delete"] = self.request.user == current_script.script.owner
 
         return context
-    
+
 
 def get_all_roles(edition: models.Edition):
     roles = []
