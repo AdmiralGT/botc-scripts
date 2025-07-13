@@ -48,11 +48,11 @@ class ScriptForm(forms.Form):
         cleaned_data = super().clean()
         try:
             json = script_json.get_json_content(cleaned_data)
-        except script_json.JSONError:
-            pass
+        except script_json.JSONError as e:
+            raise ValidationError(f"Invalid JSON content: {e}")
 
         try:
-            schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.35.0"))
+            schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.45.0"))
             schema_url = f"https://raw.githubusercontent.com/ThePandemoniumInstitute/botc-release/refs/tags/{schema_version}/script-schema.json"
             schema = requests.get(schema_url, timeout=2)
             try:
