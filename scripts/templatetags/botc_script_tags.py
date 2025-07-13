@@ -157,6 +157,10 @@ def get_language_name(locale: str):
             return get_language_name("ja_JP")
         elif locale == "kw_KW":
             return get_language_name("ar_KW")
+        elif locale == "vi_VI":
+            return get_language_name("vi_VN")
+        elif locale == "cl_CL":
+            return get_language_name("es_CL")
 
         return locale
 
