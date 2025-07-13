@@ -61,7 +61,10 @@ def get_json_content(data):
     json_content = data.get("content", None)
     if not json_content:
         raise JSONError("Could not read file type")
-    json = js.loads(json_content.read().decode("utf-8"))
+    try:
+        json = js.loads(json_content.read().decode("utf-8"))
+    except js.JSONDecodeError as e:
+        raise JSONError(f"Invalid JSON content: {e}")
     json_content.seek(0)
     json = revert_to_old_format(json)
     json = strip_special_characters_from_json(json)
