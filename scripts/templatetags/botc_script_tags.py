@@ -169,3 +169,168 @@ def get_language_name(locale: str):
 def get_character_percentage(count: int, total: int):
     percentage = count * 100 / total
     return f"{percentage:.2f}%"
+
+
+# # scripts/templatetags/botc_script_tags.py
+# from django import template
+# from scripts import models
+# from babel.core import Locale, UnknownLocaleError
+# from django.core.cache import cache
+
+# register = template.Library()
+
+# # Cache character lookups to avoid N+1 queries
+# _character_cache = {}
+
+# def get_all_characters():
+#     """Get all characters and cache them to avoid repeated DB hits"""
+#     global _character_cache
+#     if not _character_cache:
+#         # Get all clocktower characters
+#         for char in models.ClocktowerCharacter.objects.all():
+#             _character_cache[char.character_id] = char
+        
+#         # Get all homebrew characters
+#         for char in models.HomebrewCharacter.objects.all():
+#             _character_cache[char.character_id] = char
+    
+#     return _character_cache
+
+# @register.simple_tag(takes_context=True)
+# def user_voted(context, script_version):
+#     user = context["user"]
+#     # Use the pre-computed values from view context instead of querying
+#     user_votes = context.get('user_votes', set())
+#     if script_version.script.id in user_votes:
+#         return "btn-danger"
+#     return "btn-success"
+
+# @register.simple_tag(takes_context=True)
+# def user_voted_icon(context, script_version):
+#     user = context["user"]
+#     user_votes = context.get('user_votes', set())
+#     if script_version.script.id in user_votes:
+#         return "hand-thumbs-down-fill"
+#     return "hand-thumbs-up-fill"
+
+# @register.simple_tag(takes_context=True)
+# def user_favourite(context, script_version):
+#     user = context["user"]
+#     user_favourites = context.get('user_favourites', set())
+#     if script_version.script.id in user_favourites:
+#         return "star-fill"
+#     return "star"
+
+# @register.simple_tag()
+# def character_colourisation(character_id):
+#     """Optimized character colourisation using cached lookup"""
+#     characters = get_all_characters()
+#     character = characters.get(character_id)
+    
+#     if character:
+#         return get_colour_from_character_type(character.character_type)
+#     return "style=color:#000000"
+
+# @register.simple_tag()
+# def character_type_change(content, counter):
+#     """Optimized character type change detection"""
+#     if counter > 0:
+#         characters = get_all_characters()
+        
+#         prev_character_id = content[counter - 1].get("id", None)
+#         curr_character_id = content[counter].get("id", None)
+        
+#         prev_character = characters.get(prev_character_id)
+#         curr_character = characters.get(curr_character_id)
+        
+#         if prev_character and curr_character:
+#             if prev_character.character_type != curr_character.character_type:
+#                 return True
+#     return False
+
+# @register.simple_tag()
+# def convert_id_to_friendly_text(character_id):
+#     """Optimized character name lookup"""
+#     characters = get_all_characters()
+#     character = characters.get(character_id)
+    
+#     if character:
+#         return character.character_name
+#     return character_id
+
+# def get_colour_from_character_type(character_type):
+#     """Optimized color lookup using dict instead of match/case"""
+#     color_map = {
+#         models.CharacterType.TOWNSFOLK: "style=color:#0000ff",
+#         models.CharacterType.OUTSIDER: "style=color:#00ccff",
+#         models.CharacterType.MINION: "style=color:#ff8000",
+#         models.CharacterType.DEMON: "style=color:#ff0000",
+#         models.CharacterType.TRAVELLER: "style=color:#cc0099",
+#         models.CharacterType.FABLED: "style=color:#996600",
+#     }
+#     return color_map.get(character_type, "style=color:#000000")
+
+# # Other template tags remain the same...
+# @register.simple_tag(takes_context=True)
+# def script_has_tag(context, tag, initial):
+#     tags = initial.get("tags", None)
+#     if tags and tag in tags:
+#         return True
+#     return False
+
+# @register.simple_tag()
+# def script_in_collection(collection, script_version):
+#     # Use prefetched data instead of querying
+#     return script_version in collection.scripts.all()
+
+# @register.simple_tag()
+# def script_not_in_user_collection(user, script_version):
+#     # Use prefetched data instead of querying
+#     for collection in user.collections.all():
+#         if script_version not in collection.scripts.all():
+#             return True
+#     return False
+
+# @register.filter
+# def split(string):
+#     return string.split(" ")
+
+# @register.simple_tag()
+# def active_tab_status(tab: str, active_tab: str):
+#     if tab in ["notes-tab", "characters-tab"]:
+#         if active_tab:
+#             return ""
+#         return "show active"
+#     if tab == active_tab:
+#         return "show active"
+#     return ""
+
+# @register.simple_tag()
+# def active_aria_status(aria: str, active_tab: str):
+#     if aria in ["notes-tab", "characters-tab"]:
+#         if active_tab:
+#             return ""
+#         return "active"
+#     if aria == active_tab:
+#         return "active"
+#     return ""
+
+# @register.simple_tag()
+# def get_language_name(locale: str):
+#     try:
+#         return Locale.parse(locale).display_name
+#     except UnknownLocaleError:
+#         if locale == "ja_JA":
+#             return get_language_name("ja_JP")
+#         elif locale == "kw_KW":
+#             return get_language_name("ar_KW")
+#         elif locale == "vi_VI":
+#             return get_language_name("vi_VN")
+#         elif locale == "cl_CL":
+#             return get_language_name("es_CL")
+#         return locale
+
+# @register.simple_tag()
+# def get_character_percentage(count: int, total: int):
+#     percentage = count * 100 / total
+#     return f"{percentage:.2f}%"

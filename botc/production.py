@@ -31,6 +31,12 @@ DATABASES = {
         "HOST": hostname + ".postgres.database.azure.com",
         "USER": os.environ.get("DBUSER"),
         "PASSWORD": os.environ.get("DBPASS"),
+        "OPTIONS": {
+            'MAX_CONNS': 20,
+            'KEEPALIVES_IDLE': 600,
+            'KEEPALIVES_INTERVAL': 30,
+            'KEEPALIVES_COUNT': 3,
+        }
     }
 }
 

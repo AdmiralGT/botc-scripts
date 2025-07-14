@@ -310,3 +310,26 @@ class Translation(BaseCharacterInfo):
 
     def __str__(self):
         return f"{self.language} - {self.character_id}"
+
+
+# class ScriptVersion(models.Model):
+#     # ... existing fields ...
+    
+#     class Meta:
+#         indexes = [
+#             models.Index(fields=['latest', 'homebrewiness']),
+#             models.Index(fields=['script_type', 'latest']),
+#             models.Index(fields=['author']),
+#             models.Index(fields=['created']),
+#             models.Index(fields=['num_townsfolk', 'num_outsiders', 'num_minions', 'num_demons']),
+#             models.Index(fields=['edition', 'latest']),
+#         ]
+
+# class Script(models.Model):
+#     # ... existing fields ...
+    
+#     class Meta:
+#         indexes = [
+#             models.Index(fields=['name']),
+#             models.Index(fields=['owner']),
+#         ]

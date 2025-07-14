@@ -6,10 +6,12 @@ class ScriptViewManager(models.Manager):
         qs = (
             super(ScriptViewManager, self)
             .get_queryset()
-            .annotate(num_tags=models.Count("tags", distinct=True))
-            .annotate(score=models.Count("script__votes", distinct=True))
-            .annotate(num_favs=models.Count("script__favourites", distinct=True))
-            .annotate(num_comments=models.Count("script__comments", distinct=True))
+            .annotate(
+                num_tags=models.Count("tags", distinct=True),
+                score=models.Count("script__votes", distinct=True),
+                num_favs=models.Count("script__favourites", distinct=True),
+                num_comments=models.Count("script__comments", distinct=True)
+            )
         )
         return qs
 

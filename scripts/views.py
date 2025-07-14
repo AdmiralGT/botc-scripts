@@ -1319,3 +1319,295 @@ def create_characters_and_determine_homebrew_status(script_content: Dict, script
         homebrewiness = models.Homebrewiness.HYBRID
 
     return homebrewiness
+
+# class ScriptView(generic.DetailView):
+#     def get_queryset(self):
+#         return (
+#             models.Script.objects
+#             .select_related('owner')
+#             .prefetch_related(
+#                 'versions__tags',
+#                 'comments__user',
+#                 'votes__user',
+#                 'favourites__user'
+#             )
+#         )
+
+
+
+
+
+# scripts/views.py - Optimized view methods
+
+# from django.core.cache import cache
+# from django.db.models import Prefetch
+
+# class ScriptsListView(SingleTableMixin, FilterView):
+#     model = models.ScriptVersion
+#     template_name = "scriptlist.html"
+#     table_pagination = {"per_page": 20}
+#     ordering = ["-pk"]
+#     script_view = None
+
+#     def get_queryset(self):
+#         # Use select_related and prefetch_related to avoid N+1 queries
+#         queryset = super().get_queryset()
+#         queryset = queryset.select_related(
+#             'script', 
+#             'script__owner'
+#         ).prefetch_related(
+#             'tags',
+#             'script__votes',
+#             'script__favourites',
+#             'script__comments',
+#             'collections'
+#         )
+#         return queryset
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+        
+#         # Pre-compute user-specific data to avoid template tag queries
+#         if self.request.user.is_authenticated:
+#             user_votes = set(
+#                 self.request.user.votes.values_list('parent_id', flat=True)
+#             )
+#             user_favourites = set(
+#                 self.request.user.favourites.values_list('parent_id', flat=True)
+#             )
+            
+#             context['user_votes'] = user_votes
+#             context['user_favourites'] = user_favourites
+            
+#             # Prefetch user collections
+#             context['user_collections'] = self.request.user.collections.prefetch_related('scripts')
+        
+#         return context
+
+# class ScriptView(generic.DetailView):
+#     template_name = "script.html"
+#     model = models.Script
+
+#     def get_queryset(self):
+#         return (
+#             models.Script.objects
+#             .select_related('owner')
+#             .prefetch_related(
+#                 Prefetch(
+#                     'versions',
+#                     queryset=models.ScriptVersion.objects.select_related().prefetch_related('tags', 'collections')
+#                 ),
+#                 'comments__user',
+#                 'comments__children__user',
+#                 'votes',
+#                 'favourites'
+#             )
+#         )
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         # Get script version with optimized query
+#         if "selected_version" in self.request.GET:
+#             current_script = self.object.versions.get(version=self.request.GET["selected_version"])
+#         elif "version" in self.kwargs:
+#             current_script = self.object.versions.get(version=self.kwargs["version"])
+#         else:
+#             current_script = self.object.versions.order_by("-version").first()
+        
+#         context["script_version"] = current_script
+
+#         # Pre-compute character data to avoid template tag queries
+#         character_data = self.get_character_data(current_script.content)
+#         context['character_data'] = character_data
+
+#         # Pre-compute changes more efficiently
+#         changes = self.get_script_changes(current_script)
+#         context["changes"] = changes
+
+#         # Pre-compute comments with optimized query
+#         comments = self.get_optimized_comments(current_script.script)
+#         context["comments"] = comments
+
+#         # Pre-compute user-specific data
+#         if self.request.user.is_authenticated:
+#             context['user_votes'] = set(
+#                 self.request.user.votes.values_list('parent_id', flat=True)
+#             )
+#             context['user_favourites'] = set(
+#                 self.request.user.favourites.values_list('parent_id', flat=True)
+#             )
+
+#         # Cache language list
+#         context["languages"] = cache.get_or_set(
+#             'translation_languages',
+#             lambda: list(models.Translation.objects.values_list("language", flat=True).distinct().order_by("language")),
+#             timeout=3600
+#         )
+
+#         context["can_delete"] = self.request.user == current_script.script.owner
+
+#         return context
+
+#     def get_character_data(self, content):
+#         """Pre-compute character data to avoid template tag queries"""
+#         # Get all characters in one query
+#         character_ids = [item.get('id') for item in content if item.get('id') != '_meta']
+        
+#         clocktower_chars = {
+#             char.character_id: char 
+#             for char in models.ClocktowerCharacter.objects.filter(character_id__in=character_ids)
+#         }
+        
+#         homebrew_chars = {
+#             char.character_id: char 
+#             for char in models.HomebrewCharacter.objects.filter(character_id__in=character_ids)
+#         }
+        
+#         # Combine both character types
+#         all_chars = {**clocktower_chars, **homebrew_chars}
+        
+#         return all_chars
+
+#     def get_script_changes(self, current_script):
+#         """Optimize script change calculation"""
+#         changes = {}
+#         diff_script_version = None
+        
+#         # Get all versions in one query
+#         versions = list(
+#             current_script.script.versions
+#             .filter(version__lte=current_script.version)
+#             .order_by("-version")
+#         )
+        
+#         for script_version in versions:
+#             if diff_script_version:
+#                 changes[diff_script_version.version] = {
+#                     'additions': script_json.get_json_additions(
+#                         script_version.content.copy(),
+#                         diff_script_version.content.copy(),
+#                     ),
+#                     'deletions': script_json.get_json_additions(
+#                         diff_script_version.content.copy(),
+#                         script_version.content.copy(),
+#                     ),
+#                     'changes': script_json.get_json_changes(
+#                         script_version.content.copy(),
+#                         diff_script_version.content.copy(),
+#                     ),
+#                     'previous_version': script_version.version
+#                 }
+#             diff_script_version = script_version
+        
+#         return changes
+
+#     def get_optimized_comments(self, script):
+#         """Get comments with optimized query structure"""
+#         # Get all comments in one query with user data
+#         all_comments = (
+#             script.comments
+#             .select_related('user')
+#             .prefetch_related('children__user')
+#             .order_by('created')
+#         )
+        
+#         # Build comment tree efficiently
+#         comment_tree = []
+#         comment_dict = {}
+        
+#         for comment in all_comments:
+#             comment_dict[comment.id] = comment
+#             if comment.parent_id is None:
+#                 comment_tree.append(comment)
+        
+#         # Build the nested structure
+#         def build_comment_data(comment, indent=0):
+#             data = []
+#             comment_data = {
+#                 'comment': comment,
+#                 'indent': indent
+#             }
+#             data.append(comment_data)
+            
+#             # Get children from the already loaded data
+#             children = [c for c in all_comments if c.parent_id == comment.id]
+#             for child in children:
+#                 data.extend(build_comment_data(child, min(indent + 1, 6)))
+            
+#             return data
+        
+#         comments = []
+#         for comment in comment_tree:
+#             comments.extend(build_comment_data(comment))
+        
+#         return comments
+
+# class StatisticsView(generic.ListView, FilterView):
+#     model = models.ScriptVersion
+#     template_name = "statistics.html"
+#     filterset_class = filters.StatisticsFilter
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+        
+#         # Use caching for expensive statistics calculations
+#         cache_key = f"statistics_{hash(str(self.request.GET))}"
+#         cached_stats = cache.get(cache_key)
+        
+#         if cached_stats:
+#             context.update(cached_stats)
+#             return context
+        
+#         # Compute statistics efficiently
+#         stats = self.compute_statistics()
+        
+#         # Cache the results
+#         cache.set(cache_key, stats, 900)  # 15 minutes
+#         context.update(stats)
+        
+#         return context
+
+#     def compute_statistics(self):
+#         """Compute statistics more efficiently"""
+#         # Get the base queryset
+#         queryset = self.get_base_queryset()
+        
+#         # Pre-compute character counts in a single pass
+#         character_counts = self.get_character_counts(queryset)
+        
+#         # Build the response
+#         stats = {
+#             'total': queryset.count(),
+#             'character_counts': character_counts,
+#             # Add other computed stats...
+#         }
+        
+#         return stats
+
+#     def get_character_counts(self, queryset):
+#         """Efficiently count character usage"""
+#         from collections import Counter
+        
+#         character_counts = {
+#             char_type.value: Counter() 
+#             for char_type in models.CharacterType
+#         }
+        
+#         # Get all characters in one query
+#         all_characters = {
+#             char.character_id: char 
+#             for char in models.ClocktowerCharacter.objects.all()
+#         }
+        
+#         # Process script contents efficiently
+#         for script in queryset.iterator():  # Use iterator for memory efficiency
+#             for role in script.content:
+#                 if role.get('id') != '_meta':
+#                     char_id = role.get('id')
+#                     character = all_characters.get(char_id)
+                    
+#                     if character:
+#                         character_counts[character.character_type][character] += 1
+        
+#         return character_counts
