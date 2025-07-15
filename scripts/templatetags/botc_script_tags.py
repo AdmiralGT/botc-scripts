@@ -75,7 +75,7 @@ def get_clocktower_characters() -> dict[str, models.ClocktowerCharacter]:
     characters = cache.get("clocktower_characters")
     if characters is None:
         characters = {character.character_id: character for character in models.ClocktowerCharacter.objects.all()}
-        cache.set("clocktower_characters", characters, timeout=86400)  # Cache for 1 hour
+        cache.set("clocktower_characters", characters, timeout=86400)  # Cache for 24 hours
     return characters
 
 
@@ -83,7 +83,7 @@ def get_homebrew_characters() -> dict[str, models.HomebrewCharacter]:
     characters = cache.get("homebrew_characters")
     if characters is None:
         characters = {character.character_id: character for character in models.HomebrewCharacter.objects.all()}
-        cache.set("homebrew_characters", characters, timeout=86400)  # Cache for 1 hour
+        cache.set("homebrew_characters", characters, timeout=86400)  # Cache for 24 hours
     return characters
 
 
