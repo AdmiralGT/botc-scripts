@@ -63,6 +63,14 @@ class ScriptTag(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+    
+    class Meta:
+        ordering = ["order"]
+        indexes = [
+            models.Index(fields=["name"], name="scripttag_name_idx"),
+            models.Index(fields=["public"], name="scripttag_public_idx"),
+            models.Index(fields=["inheritable"], name="scripttag_inheritable_idx"),
+        ]
 
 
 class Script(models.Model):
@@ -78,6 +86,12 @@ class Script(models.Model):
 
     def latest_version(self):
         return self.versions.order_by("-version").first()
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=["name"], name="script_name_idx"),
+            models.Index(fields=["owner"], name="script_owner_idx"),
+        ]
 
 
 class ScriptVersion(models.Model):
@@ -119,6 +133,15 @@ class ScriptVersion(models.Model):
                 "Can the request the download of a JSON that replaces unsupported characters",
             )
         ]
+        indexes = [
+            models.Index(fields=["script"], name="sv_script_idx"),
+            models.Index(fields=["latest"], name="sv_latest_idx"),
+            models.Index(fields=["homebrewiness"], name="sv_homebrewiness_idx"),
+            models.Index(fields=["edition"], name="sv_edition_idx"),
+            models.Index(fields=["num_demons"], name="sv_num_demons_idx"),
+            models.Index(fields=["script", "version"], name="sv_script_and_version_idx"),
+            models.Index(fields=["latest", "homebrewiness"], name="sv_latest_and_homebrew_idx"),
+        ]
 
 
 class Comment(models.Model):
@@ -153,6 +176,13 @@ class Vote(models.Model):
 
     def __str__(self):
         return f"{self.pk}. Vote on {self.parent.name}"
+    
+    class Meta:
+        unique_together = ("parent", "user")
+        indexes = [
+            models.Index(fields=["parent"], name="vote_parent_idx"),
+            models.Index(fields=["user"], name="vote_user_idx"),
+        ]
 
 
 class Favourite(models.Model):
@@ -167,6 +197,13 @@ class Favourite(models.Model):
 
     def __str__(self):
         return f"{self.pk}. Favourite on {self.parent.name}"
+    
+    class Meta:
+        unique_together = ("parent", "user")
+        indexes = [
+            models.Index(fields=["parent"], name="favourite_parent_idx"),
+            models.Index(fields=["user"], name="favourite_user_idx"),
+        ]
 
 
 class WorldCup(models.Model):
@@ -269,6 +306,12 @@ class ClocktowerCharacter(BaseCharacter):
     class Meta:
         permissions = [("update_characters", "Can update character information")]
 
+        indexes = [
+            models.Index(fields=["character_type"], name="cchar_character_type_idx"),
+            models.Index(fields=["character_id"], name="cchar_character_id_idx"),
+            models.Index(fields=["edition"], name="cchar_edition_idx"),
+        ]
+
 
 class HomebrewCharacter(BaseCharacter):
     """
@@ -280,6 +323,10 @@ class HomebrewCharacter(BaseCharacter):
 
     class Meta:
         permissions = [("update_characters", "Can update character information")]
+        indexes = [
+            models.Index(fields=["character_type"], name="hchar_character_type_idx"),
+            models.Index(fields=["character_id"], name="hchar_character_id_idx"),
+        ]
 
 
 class Translation(BaseCharacterInfo):
