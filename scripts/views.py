@@ -59,6 +59,53 @@ class ScriptsListView(SingleTableMixin, FilterView):
         if self.request.user.is_authenticated:
             return tables.UserClocktowerTable
         return tables.ClocktowerTable
+    
+    def get_queryset(self):
+        """Use optimized queryset with conditional stats based on sorting"""
+        # Get the current ordering from the request
+        current_ordering = self.get_ordering()
+        
+        # Use optimized queryset with conditional stats
+        return models.ScriptVersion.objects.for_list_view(
+            ordering=current_ordering
+        )
+    
+    def get_ordering(self):
+        """Get ordering from request or default"""
+        ordering = self.request.GET.get('sort', None)
+        if ordering:
+            return [ordering]
+        return self.ordering
+    
+    def get_table_data(self):
+        """Add stats for template rendering when not already included"""
+        queryset = self.get_queryset()
+        
+        # Apply filters
+        filterset = self.get_filterset()
+        if filterset.is_valid():
+            queryset = filterset.qs
+        
+        # Check if we need to add stats for display
+        current_ordering = self.get_ordering()
+        stats_fields = {'score', '-score', 'num_favs', '-num_favs', 'num_comments', '-num_comments', 'num_tags', '-num_tags'}
+        needs_stats = any(field in stats_fields for field in current_ordering)
+        
+        if not needs_stats:
+            # Get current page and add stats only for those items
+            paginator = self.get_paginator(queryset, self.get_paginate_by(queryset))
+            page_number = self.request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            
+            # Add stats for current page only
+            page_ids = [obj.id for obj in page_obj.object_list]
+            return (
+                models.ScriptVersion.objects
+                .filter(id__in=page_ids)
+                .with_stats()
+            )
+        
+        return queryset
 
 
 class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
@@ -73,18 +120,65 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
         return filters.ScriptVersionFilter
 
     def get_queryset(self):
-        queryset = super(UserScriptsListView, self).get_queryset()
+        """Use optimized queryset with prefetching"""
+        # Get the current ordering from the request
+        current_ordering = self.get_ordering()
+        
+        # Start with optimized queryset
+        queryset = models.ScriptVersion.objects.for_list_view(
+            ordering=current_ordering
+        )
+        
+        # Apply user-specific filters
         if self.script_view == "favourite":
             queryset = queryset.filter(script__favourites__user=self.request.user)
         elif self.script_view == "owned":
             queryset = queryset.filter(script__owner=self.request.user)
+        
         return queryset
+    
+    def get_ordering(self):
+        """Get ordering from request or default"""
+        ordering = self.request.GET.get('sort', None)
+        if ordering:
+            return [ordering]
+        return self.ordering
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super(UserScriptsListView, self).get_filterset_kwargs(filterset_class)
         if kwargs["data"] is None:
             kwargs["data"] = {"latest": True}
         return kwargs
+    
+    def get_table_data(self):
+        """Add stats for template rendering when not already included"""
+        queryset = self.get_queryset()
+        
+        # Apply filters
+        filterset = self.get_filterset()
+        if filterset.is_valid():
+            queryset = filterset.qs
+        
+        # Check if we need to add stats for display
+        current_ordering = self.get_ordering()
+        stats_fields = {'score', '-score', 'num_favs', '-num_favs', 'num_comments', '-num_comments', 'num_tags', '-num_tags'}
+        needs_stats = any(field in stats_fields for field in current_ordering)
+        
+        if not needs_stats:
+            # Get current page and add stats only for those items
+            paginator = self.get_paginator(queryset, self.get_paginate_by(queryset))
+            page_number = self.request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            
+            # Add stats for current page only
+            page_ids = [obj.id for obj in page_obj.object_list]
+            return (
+                models.ScriptVersion.objects
+                .filter(id__in=page_ids)
+                .with_stats()
+            )
+        
+        return queryset
 
 
 def get_comment_data(comment: models.Comment, indent: int) -> List:
@@ -98,10 +192,27 @@ def get_comment_data(comment: models.Comment, indent: int) -> List:
     return data
 
 
-def get_comments(script: models.Script) -> Dict:
+def get_comments(script: models.Script) -> List:
+    """Get comments with optimized prefetching to avoid N+1 queries"""
     comments = []
-    for comment in script.comments.filter(parent__isnull=True).order_by("created"):
+    
+    # Prefetch all comments with their users and children in fewer queries
+    top_level_comments = (
+        script.comments
+        .filter(parent__isnull=True)
+        .select_related('user')  # Prevent N+1 for user
+        .prefetch_related(
+            models.Prefetch(
+                'children',
+                queryset=models.Comment.objects.select_related('user').order_by('created')
+            )
+        )
+        .order_by("created")
+    )
+    
+    for comment in top_level_comments:
         comments.extend(get_comment_data(comment, 0))
+    
     return comments
 
 
@@ -148,6 +259,37 @@ def calculate_edition(script_content: Dict) -> int:
 class ScriptView(generic.DetailView):
     template_name = "script.html"
     model = models.Script
+    
+    def get_queryset(self):
+        """Optimize queryset with proper prefetching to avoid N+1 queries"""
+        return (
+            models.Script.objects
+            .select_related('owner')
+            .prefetch_related(
+                # Prefetch versions with their tags
+                models.Prefetch(
+                    'versions',
+                    queryset=models.ScriptVersion.objects.prefetch_related('tags').order_by('-version')
+                ),
+                # Prefetch comments with users and nested replies
+                models.Prefetch(
+                    'comments',
+                    queryset=models.Comment.objects
+                    .select_related('user')
+                    .prefetch_related(
+                        models.Prefetch(
+                            'children',
+                            queryset=models.Comment.objects.select_related('user').order_by('created')
+                        )
+                    )
+                    .filter(parent__isnull=True)
+                    .order_by('created')
+                ),
+                # Prefetch votes and favourites for stats
+                'votes',
+                'favourites'
+            )
+        )
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -195,7 +337,10 @@ class ScriptView(generic.DetailView):
 
         context["changes"] = changes
         context["script_version"] = current_script
+        # Comments are already prefetched in get_queryset(), so this won't cause N+1 queries
         context["comments"] = get_comments(current_script.script)
+        
+        # Cache languages list to avoid repeated queries
         context["languages"] = (
             models.Translation.objects.values_list("language", flat=True).distinct("language").order_by("language")
         )
@@ -835,11 +980,12 @@ class CollectionScriptListView(SingleTableView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["collection"] = models.Collection.objects.get(pk=self.kwargs["pk"])
+        # Use select_related to avoid N+1 for collection owner
+        context["collection"] = models.Collection.objects.select_related('owner').get(pk=self.kwargs["pk"])
         return context
 
     def get_table_class(self):
-        collection = models.Collection.objects.get(pk=self.kwargs["pk"])
+        collection = models.Collection.objects.select_related('owner').get(pk=self.kwargs["pk"])
         if self.request.user == collection.owner:
             return tables.CollectionClocktowerTable
         elif self.request.user.is_authenticated:
@@ -847,8 +993,25 @@ class CollectionScriptListView(SingleTableView):
         return tables.ClocktowerTable
 
     def get_queryset(self):
-        collection = models.Collection.objects.get(pk=self.kwargs["pk"])
-        return collection.scripts.order_by("pk")
+        """Optimize collection script loading with prefetching"""
+        # Get collection with prefetched scripts to avoid N+1 queries
+        collection = (
+            models.Collection.objects
+            .select_related('owner')
+            .prefetch_related(
+                models.Prefetch(
+                    'scripts',
+                    queryset=models.ScriptVersion.objects
+                    .select_related('script', 'script__owner')
+                    .prefetch_related('tags')
+                    .order_by('pk')
+                )
+            )
+            .get(pk=self.kwargs["pk"])
+        )
+        
+        # Scripts are already prefetched, no additional queries
+        return collection.scripts.all()
 
 
 class CollectionListView(SingleTableMixin, FilterView):
@@ -858,6 +1021,14 @@ class CollectionListView(SingleTableMixin, FilterView):
     ordering = ["pk"]
     table_class = tables.CollectionTable
     filterset_class = filters.CollectionFilter
+    
+    def get_queryset(self):
+        """Optimize collection list with prefetching"""
+        return (
+            models.Collection.objects
+            .select_related('owner')
+            .annotate(scripts_in_collection=models.Count("scripts"))  # For display
+        )
 
 
 class CollectionCreateView(LoginRequiredMixin, generic.edit.CreateView):

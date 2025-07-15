@@ -78,6 +78,14 @@ class Script(models.Model):
 
     def latest_version(self):
         return self.versions.order_by("-version").first()
+    
+    class Meta:
+        indexes = [
+            # For owner filtering (my scripts)
+            models.Index(fields=['owner'], name='idx_script_owner_id'),
+            # For name searching
+            models.Index(fields=['name'], name='idx_script_name'),
+        ]
 
 
 class ScriptVersion(models.Model):
@@ -119,6 +127,24 @@ class ScriptVersion(models.Model):
                 "Can the request the download of a JSON that replaces unsupported characters",
             )
         ]
+        # Add database indexes for performance
+        indexes = [
+            # Most common filter - latest scripts
+            models.Index(fields=['latest'], name='idx_scriptversion_latest'),
+            # Common filters
+            models.Index(fields=['homebrewiness'], name='idx_scriptversion_homebrewiness'),
+            models.Index(fields=['edition'], name='idx_scriptversion_edition'),
+            models.Index(fields=['script_type'], name='idx_scriptversion_script_type'),
+            models.Index(fields=['num_demons'], name='idx_scriptversion_num_demons'),
+            # Common ordering
+            models.Index(fields=['-created'], name='idx_scriptversion_created_desc'),
+            models.Index(fields=['-pk'], name='idx_scriptversion_pk_desc'),
+            # Composite indexes for common filter combinations
+            models.Index(fields=['latest', 'homebrewiness'], name='idx_scriptversion_latest_homebrew'),
+            models.Index(fields=['latest', 'edition'], name='idx_scriptversion_latest_edition'),
+            # Foreign key relationships
+            models.Index(fields=['script'], name='idx_scriptversion_script_id'),
+        ]
 
 
 class Comment(models.Model):
@@ -137,7 +163,18 @@ class Comment(models.Model):
         on_delete=models.SET_NULL,
         related_name="children",
     )
-    # Might want to have a parent field so can have threads
+    
+    class Meta:
+        indexes = [
+            # For counting comments per script
+            models.Index(fields=['script'], name='idx_comment_script_id'),
+            # For user comment tracking
+            models.Index(fields=['user'], name='idx_comment_user_id'),
+            # For nested comment queries
+            models.Index(fields=['parent'], name='idx_comment_parent_id'),
+            # For ordering comments
+            models.Index(fields=['created'], name='idx_comment_created'),
+        ]
 
 
 class Vote(models.Model):
@@ -153,6 +190,14 @@ class Vote(models.Model):
 
     def __str__(self):
         return f"{self.pk}. Vote on {self.parent.name}"
+    
+    class Meta:
+        indexes = [
+            # For counting votes per script
+            models.Index(fields=['parent'], name='idx_vote_parent_id'),
+            # For user vote tracking
+            models.Index(fields=['user'], name='idx_vote_user_id'),
+        ]
 
 
 class Favourite(models.Model):
@@ -167,6 +212,14 @@ class Favourite(models.Model):
 
     def __str__(self):
         return f"{self.pk}. Favourite on {self.parent.name}"
+    
+    class Meta:
+        indexes = [
+            # For counting favourites per script
+            models.Index(fields=['parent'], name='idx_favourite_parent_id'),
+            # For user favourite tracking
+            models.Index(fields=['user'], name='idx_favourite_user_id'),
+        ]
 
 
 class WorldCup(models.Model):
@@ -208,6 +261,14 @@ class Collection(models.Model):
     notes = models.TextField(null=True, blank=True)
 
     objects = CollectionManager()
+    
+    class Meta:
+        indexes = [
+            # For user collection filtering
+            models.Index(fields=['owner'], name='idx_collection_owner_id'),
+            # For collection name searching
+            models.Index(fields=['name'], name='idx_collection_name'),
+        ]
 
 
 class BaseCharacterInfo(models.Model):
