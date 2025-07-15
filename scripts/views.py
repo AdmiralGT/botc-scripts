@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import permission_required
-from django.db.models import Case, When, Count
+from django.db.models import Case, When, Count, Prefetch
 from django.http import (
     FileResponse,
     JsonResponse,
@@ -148,6 +148,22 @@ def calculate_edition(script_content: Dict) -> int:
 class ScriptView(generic.DetailView):
     template_name = "script.html"
     model = models.Script
+
+    def get_queryset(self):
+        return models.Script.objects.select_related("owner").prefetch_related(
+            Prefetch("versions", queryset=models.ScriptVersion.objects.prefetch_related("tags").order_by("-version")),
+            Prefetch(
+                "comments",
+                queryset=models.Comment.objects.select_related("user")
+                .prefetch_related(
+                    Prefetch("children", queryset=models.Comment.objects.select_related("user").order_by("created"))
+                )
+                .filter(parent__isnull=True)
+                .order_by("created"),
+            ),
+            "votes",
+            "favourites",
+        )
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()

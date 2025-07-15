@@ -1,8 +1,13 @@
 from django import template
+from django.core.cache import cache
 from scripts import models
 from babel.core import Locale, UnknownLocaleError
 
 register = template.Library()
+
+CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
+CLOCKTOWER_CHARACTERS_CACHE_KEY = "clocktower_characters"
+HOMEBREW_CHARACTERS_CACHE_KEY = "homebrew_characters"
 
 
 @register.simple_tag(takes_context=True)
@@ -29,8 +34,8 @@ def user_favourite(context, script_version):
     return "star"
 
 
-@register.simple_tag(takes_context=True)
-def script_has_tag(context, tag, initial):
+@register.simple_tag()
+def script_has_tag(tag, initial):
     tags = initial.get("tags", None)
     if tags and tag in tags:
         return True
@@ -70,17 +75,34 @@ def get_colour_from_character_type(character_type):
             return "style=color:#000000"
 
 
+def get_clocktower_characters() -> dict[str, models.ClocktowerCharacter]:
+    characters = cache.get(CLOCKTOWER_CHARACTERS_CACHE_KEY)
+    if characters is None:
+        characters = {character.character_id: character for character in models.ClocktowerCharacter.objects.all()}
+        cache.set(CLOCKTOWER_CHARACTERS_CACHE_KEY, characters, timeout=CACHE_TIMEOUT)  # Cache for 24 hours
+    return characters
+
+
+def get_homebrew_characters() -> dict[str, models.HomebrewCharacter]:
+    characters = cache.get(HOMEBREW_CHARACTERS_CACHE_KEY)
+    if characters is None:
+        characters = {character.character_id: character for character in models.HomebrewCharacter.objects.all()}
+        cache.set(HOMEBREW_CHARACTERS_CACHE_KEY, characters, timeout=CACHE_TIMEOUT)  # Cache for 24 hours
+    return characters
+
+
 @register.simple_tag()
 def character_colourisation(character_id):
-    try:
-        character = models.ClocktowerCharacter.objects.get(character_id=character_id)
+    clocktower_characters = get_clocktower_characters()
+    character = clocktower_characters.get(character_id)
+    if character:
         return get_colour_from_character_type(character.character_type)
-    except models.ClocktowerCharacter.DoesNotExist:
-        try:
-            character = models.HomebrewCharacter.objects.get(character_id=character_id)
-            return get_colour_from_character_type(character.character_type)
-        except models.HomebrewCharacter.DoesNotExist:
-            return "style=color:#000000"
+
+    homebrew_characters = get_homebrew_characters()
+    character = homebrew_characters.get(character_id)
+    if character:
+        return get_colour_from_character_type(character.character_type)
+    return "style=color:#000000"
 
 
 @register.simple_tag()
@@ -88,21 +110,21 @@ def character_type_change(content, counter):
     if counter > 0:
         prev_character_id = content[counter - 1].get("id", None)
         curr_character_id = content[counter].get("id", None)
-        try:
-            prev_character = models.ClocktowerCharacter.objects.get(character_id=prev_character_id)
-        except models.ClocktowerCharacter.DoesNotExist:
-            try:
-                prev_character = models.HomebrewCharacter.objects.get(character_id=prev_character_id)
-            except models.HomebrewCharacter.DoesNotExist:
-                return False
 
-        try:
-            curr_character = models.ClocktowerCharacter.objects.get(character_id=curr_character_id)
-        except models.ClocktowerCharacter.DoesNotExist:
-            try:
-                curr_character = models.HomebrewCharacter.objects.get(character_id=curr_character_id)
-            except models.HomebrewCharacter.DoesNotExist:
-                return False
+        clocktower_characters = get_clocktower_characters()
+
+        prev_character = clocktower_characters.get(prev_character_id)
+        curr_character = clocktower_characters.get(curr_character_id)
+
+        if not prev_character or not curr_character:
+            homebrew_characters = get_homebrew_characters()
+            if not prev_character:
+                prev_character = homebrew_characters.get(prev_character_id)
+            if not curr_character:
+                curr_character = homebrew_characters.get(curr_character_id)
+
+        if not prev_character or not curr_character:
+            return False
 
         if prev_character and curr_character:
             if prev_character.character_type != curr_character.character_type:
@@ -112,13 +134,17 @@ def character_type_change(content, counter):
 
 @register.simple_tag()
 def convert_id_to_friendly_text(character_id):
-    try:
-        return models.ClocktowerCharacter.objects.get(character_id=character_id).character_name
-    except models.ClocktowerCharacter.DoesNotExist:
-        try:
-            return models.HomebrewCharacter.objects.get(character_id=character_id).character_name
-        except models.HomebrewCharacter.DoesNotExist:
-            return character_id
+    clocktower_characters = get_clocktower_characters()
+    text = clocktower_characters.get(character_id)
+    if text:
+        return text.character_name
+
+    homebrew_characters = get_homebrew_characters()
+    text = homebrew_characters.get(character_id)
+    if text:
+        return text.character_name
+
+    return character_id
 
 
 @register.filter
