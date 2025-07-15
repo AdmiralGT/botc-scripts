@@ -24,6 +24,7 @@ from django_tables2.views import SingleTableMixin, SingleTableView
 from versionfield import Version
 
 from scripts import (
+    cache,
     filters,
     forms,
     models,
@@ -109,34 +110,31 @@ def count_character(script_content, character_type: models.CharacterType) -> int
     count = 0
     for json_entry in script_content:
         if isinstance(json_entry, str):
-            try:
-                character = models.ClocktowerCharacter.objects.get(character_id=json_entry)
-            except models.ClocktowerCharacter.DoesNotExist:
+            clocktower_characters = cache.get_clocktower_characters()
+            if not clocktower_characters.get(json_entry):
                 continue
         elif isinstance(json_entry, dict):
-            try:
-                character = models.ClocktowerCharacter.objects.get(character_id=json_entry.get("id"))
-                if character and character.character_type == character_type:
+            clocktower_characters = cache.get_clocktower_characters()
+            if clocktower_characters.get(json_entry):
+                count += 1
+            else:
+                homebrew_characters = cache.get_homebrew_characters()
+                if homebrew_characters.get(json_entry):
                     count += 1
-            except models.ClocktowerCharacter.DoesNotExist:
-                try:
-                    homebrew = models.HomebrewCharacter.objects.get(character_id=json_entry.get("id"))
-                    if homebrew and homebrew.character_type == character_type:
-                        count += 1
-                except models.HomebrewCharacter.DoesNotExist:
-                    continue
     return count
 
 
 def calculate_edition(script_content: Dict) -> int:
     edition = models.Edition.BASE
+    clocktower_characters = cache.get_clocktower_characters()
     for json_entry in script_content:
-        try:
-            character = models.ClocktowerCharacter.objects.get(character_id=json_entry.get("id"))
-        except models.ClocktowerCharacter.DoesNotExist:
-            continue
-
-        if character and character.edition > edition:
+        character = clocktower_characters.get(json_entry)
+        if not character:
+            character = cache.get_homebrew_characters().get(json_entry)
+            if not character:
+                continue
+        
+        if character.edition > edition:
             edition = character.edition
 
         if edition == models.Edition.ALL:
