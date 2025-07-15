@@ -63,7 +63,7 @@ class ScriptTag(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-    
+
     class Meta:
         ordering = ["order"]
         indexes = [
@@ -86,7 +86,7 @@ class Script(models.Model):
 
     def latest_version(self):
         return self.versions.order_by("-version").first()
-    
+
     class Meta:
         indexes = [
             models.Index(fields=["name"], name="script_name_idx"),
@@ -176,7 +176,7 @@ class Vote(models.Model):
 
     def __str__(self):
         return f"{self.pk}. Vote on {self.parent.name}"
-    
+
     class Meta:
         unique_together = ("parent", "user")
         indexes = [
@@ -197,7 +197,7 @@ class Favourite(models.Model):
 
     def __str__(self):
         return f"{self.pk}. Favourite on {self.parent.name}"
-    
+
     class Meta:
         unique_together = ("parent", "user")
         indexes = [

@@ -150,27 +150,20 @@ class ScriptView(generic.DetailView):
     model = models.Script
 
     def get_queryset(self):
-        return (
-            models.Script.objects
-            .select_related("owner")
-            .prefetch_related(
-                Prefetch(
-                    "versions",
-                    queryset=models.ScriptVersion.objects.prefetch_related('tags').order_by("-version")
-                ),
-                Prefetch(
-                    "comments",
-                    queryset=models.Comment.objects.select_related("user").prefetch_related(
-                        Prefetch("children", queryset=models.Comment.objects.select_related("user").order_by("created"))
-                    )
-                    .filter(parent__isnull=True)
-                    .order_by("created")
-                ),
-                "votes",
-                "favourites",
-            )
+        return models.Script.objects.select_related("owner").prefetch_related(
+            Prefetch("versions", queryset=models.ScriptVersion.objects.prefetch_related("tags").order_by("-version")),
+            Prefetch(
+                "comments",
+                queryset=models.Comment.objects.select_related("user")
+                .prefetch_related(
+                    Prefetch("children", queryset=models.Comment.objects.select_related("user").order_by("created"))
+                )
+                .filter(parent__isnull=True)
+                .order_by("created"),
+            ),
+            "votes",
+            "favourites",
         )
-
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()

@@ -72,24 +72,18 @@ def get_colour_from_character_type(character_type):
 
 
 def get_clocktower_characters() -> dict[str, models.ClocktowerCharacter]:
-    characters = cache.get('clocktower_characters')
+    characters = cache.get("clocktower_characters")
     if characters is None:
-        characters = {
-            character.character_id: character 
-            for character in models.ClocktowerCharacter.objects.all()
-        }
-        cache.set('clocktower_characters', characters, timeout=86400)  # Cache for 1 hour
+        characters = {character.character_id: character for character in models.ClocktowerCharacter.objects.all()}
+        cache.set("clocktower_characters", characters, timeout=86400)  # Cache for 1 hour
     return characters
 
 
 def get_homebrew_characters() -> dict[str, models.HomebrewCharacter]:
-    characters = cache.get('homebrew_characters')
+    characters = cache.get("homebrew_characters")
     if characters is None:
-        characters = {
-            character.character_id: character 
-            for character in models.HomebrewCharacter.objects.all()
-        }
-        cache.set('homebrew_characters', characters, timeout=86400)  # Cache for 1 hour
+        characters = {character.character_id: character for character in models.HomebrewCharacter.objects.all()}
+        cache.set("homebrew_characters", characters, timeout=86400)  # Cache for 1 hour
     return characters
 
 
@@ -140,12 +134,12 @@ def convert_id_to_friendly_text(character_id):
     text = clocktower_characters.get(character_id)
     if text:
         return text.character_name
-    
+
     homebrew_characters = get_homebrew_characters()
     text = homebrew_characters.get(character_id)
     if text:
         return text.character_name
-    
+
     return character_id
 
 
