@@ -135,3 +135,9 @@ dmypy.json
 
 # VSCode
 .vscode/
+
+# ruff
+.ruff_cache/
+
+# poetry
+.poetry
