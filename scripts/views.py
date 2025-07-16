@@ -121,7 +121,7 @@ def count_character(script_content, character_type: models.CharacterType) -> int
             character = clocktower_characters.get(character_id, None)
             if not character:
                 character = cache.get_homebrew_characters().get(character_id, None)
-        
+
         if character and character.character_type == character_type:
             count += 1
     return count
