@@ -133,7 +133,7 @@ def calculate_edition(script_content: Dict) -> int:
             character = cache.get_homebrew_characters().get(json_entry)
             if not character:
                 continue
-        
+
         if character.edition > edition:
             edition = character.edition
 
