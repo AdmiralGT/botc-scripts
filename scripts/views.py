@@ -130,9 +130,9 @@ def calculate_edition(script_content: Dict) -> int:
     for json_entry in script_content:
         character = clocktower_characters.get(json_entry)
         if not character:
-            character = cache.get_homebrew_characters().get(json_entry)
-            if not character:
-                continue
+            # We don't know what this character is, therefore this needs
+            # tokens we don't know about.
+            edition == models.Edition.ALL
 
         if character.edition > edition:
             edition = character.edition
