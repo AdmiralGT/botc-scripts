@@ -186,3 +186,10 @@ CORS_URLS_REGEX = r"^.*/api/.*$"
 CORS_ALLOW_METHODS = "GET"
 
 DISABLE_VALIDATORS = os.getenv("DISABLE_VALIDATORS", False) == "True"
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'local-cache',
+    }
+}
