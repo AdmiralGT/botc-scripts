@@ -108,19 +108,22 @@ def get_comments(script: models.Script) -> Dict:
 
 def count_character(script_content, character_type: models.CharacterType) -> int:
     count = 0
+    clocktower_characters = cache.get_clocktower_characters()
     for json_entry in script_content:
+        character = None
+        character_id = ""
         if isinstance(json_entry, str):
-            clocktower_characters = cache.get_clocktower_characters()
-            if not clocktower_characters.get(json_entry):
-                continue
+            character = clocktower_characters.get(json_entry, None)
         elif isinstance(json_entry, dict):
-            clocktower_characters = cache.get_clocktower_characters()
-            if clocktower_characters.get(json_entry):
-                count += 1
-            else:
-                homebrew_characters = cache.get_homebrew_characters()
-                if homebrew_characters.get(json_entry):
-                    count += 1
+            character_id = json_entry.get("id", "")
+            if character_id == "_meta":
+                continue
+            character = clocktower_characters.get(character_id, None)
+            if not character:
+                character = cache.get_homebrew_characters().get(character_id, None)
+
+        if character and character.character_type == character_type:
+            count += 1
     return count
 
 
@@ -128,13 +131,21 @@ def calculate_edition(script_content: Dict) -> int:
     edition = models.Edition.BASE
     clocktower_characters = cache.get_clocktower_characters()
     for json_entry in script_content:
-        character = clocktower_characters.get(json_entry)
+        character = None
+        character_id = ""
+        if isinstance(json_entry, str):
+            character = clocktower_characters.get(json_entry, None)
+        elif isinstance(json_entry, dict):
+            character_id = json_entry.get("id", "")
+            if character_id == "_meta":
+                continue
+            character = clocktower_characters.get(character_id, None)
+
         if not character:
             # We don't know what this character is, therefore this needs
             # tokens we don't know about.
-            edition == models.Edition.ALL
-
-        if character.edition > edition:
+            edition = models.Edition.ALL
+        elif character.edition > edition:
             edition = character.edition
 
         if edition == models.Edition.ALL:
