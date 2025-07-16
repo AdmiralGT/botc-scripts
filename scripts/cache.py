@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from scripts import models
 
-CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
+CACHE_TIMEOUT = 60 * 60 * 1 # 1 hour
 CLOCKTOWER_CHARACTERS_CACHE_KEY = "clocktower_characters"
 HOMEBREW_CHARACTERS_CACHE_KEY = "homebrew_characters"
 
