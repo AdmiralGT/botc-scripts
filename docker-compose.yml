@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+
+  migrations:
+    build: .
+    command: python manage.py migrate
+    environment:
+      - DJANGO_SETTINGS=botc.production
+      - DJANGO_HOST=localhost 127.0.0.1
+      - DBNAME=postgres
+      - DBHOST=db 
+      - DBUSER=postgres
+      - DBPASS=postgres
+      - SECRET_KEY=botc
+    depends_on:
+      - db.postgres.database.azure.com
+
+  app: 
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - DJANGO_SETTINGS=botc.production
+      - DJANGO_HOST=localhost 127.0.0.1
+      - DBNAME=postgres
+      - DBHOST=db 
+      - DBUSER=postgres
+      - DBPASS=postgres
+      - SECRET_KEY=botc
+    ports:
+     - 8000:8000
+    depends_on:
+      - migrations
+
+  db.postgres.database.azure.com:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres@db
+    ports:
+     - 5432:5432
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
