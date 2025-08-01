@@ -45,6 +45,14 @@ class ScriptsListView(SingleTableMixin, FilterView):
     ordering = ["-pk"]
     script_view = None
 
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related(
+            Prefetch(
+                "tags",
+                queryset=models.ScriptTag.objects.all().order_by("order"),
+            )
+        )
+
     def get_filterset_class(self):
         if self.request.user.is_authenticated:
             return filters.FavouriteScriptVersionFilter
