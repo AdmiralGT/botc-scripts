@@ -46,10 +46,14 @@ class ScriptsListView(SingleTableMixin, FilterView):
     script_view = None
 
     def get_queryset(self):
-        return super().get_queryset().prefetch_related(
-            Prefetch(
-                "tags",
-                queryset=models.ScriptTag.objects.all().order_by("order"),
+        return (
+            super()
+            .get_queryset()
+            .prefetch_related(
+                Prefetch(
+                    "tags",
+                    queryset=models.ScriptTag.objects.all().order_by("order"),
+                )
             )
         )
 
