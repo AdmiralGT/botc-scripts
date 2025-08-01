@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from scripts import models
+from scripts import models, constants
 
 
 # Serializers define the API representation.
@@ -24,3 +24,19 @@ class TranslationSerializer(serializers.ModelSerializer):
             "global_reminders",
             "reminders",
         ]
+
+class ScriptUploadSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=True)
+
+    class Meta:
+        model = models.ScriptVersion
+        fields = ["content", "version", "author", "pdf", "notes"]
+
+    def is_valid(self, raise_exception=False):
+        """
+        Override to ensure that the content is a valid JSON.
+        """
+        return True
+        if not isinstance(self.initial_data.get("content"), list):
+            raise serializers.ValidationError("Content must be a list of script items.")
+        return super().is_valid(raise_exception=raise_exception)

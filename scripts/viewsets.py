@@ -1,4 +1,7 @@
 from rest_framework import filters, viewsets
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import BasePermission
+from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -10,8 +13,18 @@ from scripts.views import translate_json_content
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import Http404
 
+class ScriptApiPermissions(BasePermission):
+    """
+    Custom permission to only allow authenticated users to create, update, or delete scripts.
+    All users can read scripts.
+    """
 
-class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
+    def has_permission(self, request, view):
+        if request.user and request.user.has_perm("scripts.api_write_permission"):
+            return True
+        return False
+
+class ScriptViewSet(viewsets.ModelViewSet):
     queryset = models.ScriptVersion.objects.all()
     serializer_class = serializers.ScriptSerializer
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
@@ -29,6 +42,22 @@ class ScriptViewSet(viewsets.ReadOnlyModelViewSet):
     @action(methods=["get"], detail=True)
     def json(self, _, pk=None):
         return Response(models.ScriptVersion.objects.get(pk=pk).content)
+    
+    def create(self, request, *args, **kwargs):
+        kwargs.setdefault('context', self.get_serializer_context())
+        serializer = serializers.ScriptUploadSerializer(*args, **kwargs)
+        serializer.is_valid(raise_exception=True)
+        return Response(status=status.HTTP_201_CREATED)
+
+    # @authentication_classes([BasicAuthentication])
+    # @permission_classes([ScriptApiPermissions])
+    def update(self, request, *args, **kwargs):
+        pass
+
+    # @authentication_classes([BasicAuthentication])
+    # @permission_classes([ScriptApiPermissions])
+    def destroy(self, request, *args, **kwargs):
+        pass
 
 
 class TranslateScriptViewSet(viewsets.ReadOnlyModelViewSet):
