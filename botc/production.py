@@ -86,3 +86,5 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     },
 }
+
+LOGIN_REDIRECT_URL = "https://www.botcscripts.com"
