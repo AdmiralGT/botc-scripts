@@ -9,6 +9,7 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_HOST", None).split(" ")
 CSRF_TRUSTED_ORIGINS = [
     "https://botcscripts.com",
     "https://botc-scripts.azurewebsites.net",
+    "https://www.botcscripts.com",
 ]
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
