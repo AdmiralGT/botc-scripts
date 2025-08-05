@@ -1,3 +1,13 @@
-{% extends "base.html" %}
+{% extends "socialaccount/base_entrance.html" %}
 
-{{ auth_error }}
+{% load i18n %}
+{% load bootstrap4 %}
+{% load allauth %}
+
+{% block content %}
+
+Auth Error: {{ auth_error }}
+Auth Error Code: {{ auth_error.code }}
+Auth Error Exception: {{ auth_error.exception }}
+
+{% endblock %}
