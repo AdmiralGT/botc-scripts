@@ -67,6 +67,7 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         "AUTH_PARAMS": {
             "access_type": "online",
+            "redirect_uri": "https://www.botcscripts.com/google/login/callback/",
         },
         "APP": {
             "client_id": os.getenv("GOOGLE_OAUTH2_CLIENT_ID", None),
@@ -79,6 +80,9 @@ SOCIALACCOUNT_PROVIDERS = {
             "email",
             "identify",
         ],
+        "AUTH_PARAMS": {
+            "redirect_uri": "https://www.botcscripts.com/discord/login/callback/",
+        },
         "APP": {
             "client_id": os.getenv("DISCORD_OAUTH2_CLIENT_ID", None),
             "secret": os.getenv("DISCORD_OAUTH2_SECRET", None),
