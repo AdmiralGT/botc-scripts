@@ -1,4 +1,4 @@
-# [Blood on the Clocktower Script Database](https://botc-scripts.azurewebsites.net/)
+# [Blood on the Clocktower Script Database](https://www.botcscripts.com/)
 
 This is a database for hosting Blood on the Clocktower custom scripts. You can visit the live deployment by clicking the link above.
 
