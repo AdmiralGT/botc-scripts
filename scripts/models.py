@@ -254,7 +254,7 @@ class BaseCharacterInfo(models.Model):
     """
 
     character_id = models.CharField(max_length=50, primary_key=True)
-    character_name = models.CharField(max_length=20)
+    character_name = models.CharField(max_length=30)
     ability = models.TextField()
     first_night_reminder = models.TextField(blank=True, null=True)
     other_night_reminder = models.TextField(blank=True, null=True)
