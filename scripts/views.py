@@ -25,6 +25,7 @@ from versionfield import Version
 
 from scripts import (
     cache,
+    constants,
     filters,
     forms,
     models,
@@ -1113,12 +1114,12 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
         # ]
 
         return forms.AdvancedSearchForm(
-            townsfolk_choices=[(i,i) for i in range(26)],
-            outsider_choices=[(i,i) for i in range(26)],
-            minion_choices=[(i,i) for i in range(26)],
-            demon_choices=[(i,i) for i in range(26)],
-            fabled_choices=[(i,i) for i in range(26)],
-            traveller_choices=[(i,i) for i in range(26)],
+            townsfolk_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            outsider_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            minion_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            demon_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            fabled_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            traveller_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
             **self.get_form_kwargs(),
         )
 
