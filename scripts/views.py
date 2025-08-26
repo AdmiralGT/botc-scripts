@@ -25,6 +25,7 @@ from versionfield import Version
 
 from scripts import (
     cache,
+    constants,
     filters,
     forms,
     models,
@@ -1095,29 +1096,30 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
     script_version = None
 
     def get_form(self):
-        townsfolk = models.ScriptVersion.objects.all().order_by("num_townsfolk")
-        townsfolk_choices = [(i, i) for i in range(townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1)]
-        outsider = models.ScriptVersion.objects.all().order_by("num_outsiders")
-        outsider_choices = [(i, i) for i in range(outsider.first().num_outsiders, outsider.last().num_outsiders + 1)]
-        minion = models.ScriptVersion.objects.all().order_by("num_minions")
-        minion_choices = [(i, i) for i in range(minion.first().num_minions, minion.last().num_minions + 1)]
-        demon = models.ScriptVersion.objects.all().order_by("num_demons")
-        demon_choices = [(i, i) for i in range(demon.first().num_demons, demon.last().num_demons + 1)]
-        fabled = models.ScriptVersion.objects.all().order_by("num_fabled")
-        fabled_choices = [(i, i) for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1)]
-        travellers = models.ScriptVersion.objects.all().order_by("num_travellers")
-        traveller_choices = [
-            (i, i) for i in range(travellers.first().num_travellers, travellers.last().num_travellers + 1)
-        ]
-        travellers = travellers.last()
+        # This dynamic calculation is very slow and probably isn't worth it, so instead we just use a fixed value of
+        # 0 to 25.
+        # townsfolk = models.ScriptVersion.objects.all().order_by("num_townsfolk")
+        # townsfolk_choices = [(i, i) for i in range(townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1)]
+        # outsider = models.ScriptVersion.objects.all().order_by("num_outsiders")
+        # outsider_choices = [(i, i) for i in range(outsider.first().num_outsiders, outsider.last().num_outsiders + 1)]
+        # minion = models.ScriptVersion.objects.all().order_by("num_minions")
+        # minion_choices = [(i, i) for i in range(minion.first().num_minions, minion.last().num_minions + 1)]
+        # demon = models.ScriptVersion.objects.all().order_by("num_demons")
+        # demon_choices = [(i, i) for i in range(demon.first().num_demons, demon.last().num_demons + 1)]
+        # fabled = models.ScriptVersion.objects.all().order_by("num_fabled")
+        # fabled_choices = [(i, i) for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1)]
+        # travellers = models.ScriptVersion.objects.all().order_by("num_travellers")
+        # traveller_choices = [
+        #     (i, i) for i in range(travellers.first().num_travellers, travellers.last().num_travellers + 1)
+        # ]
 
         return forms.AdvancedSearchForm(
-            townsfolk_choices=townsfolk_choices,
-            outsider_choices=outsider_choices,
-            minion_choices=minion_choices,
-            demon_choices=demon_choices,
-            fabled_choices=fabled_choices,
-            traveller_choices=traveller_choices,
+            townsfolk_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            outsider_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            minion_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            demon_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            fabled_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            traveller_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
             **self.get_form_kwargs(),
         )
 
