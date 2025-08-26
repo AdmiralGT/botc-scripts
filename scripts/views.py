@@ -36,7 +36,6 @@ from django.contrib.postgres.search import TrigramSimilarity
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 import requests
-import time
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
