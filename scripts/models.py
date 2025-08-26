@@ -71,6 +71,7 @@ class ScriptTag(models.Model):
             models.Index(fields=["name"], name="scripttag_name_idx"),
             models.Index(fields=["public"], name="scripttag_public_idx"),
             models.Index(fields=["inheritable"], name="scripttag_inheritable_idx"),
+            models.Index(fields=["order"], name="scripttag_order_idx")
         ]
 
 
