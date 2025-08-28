@@ -1,5 +1,5 @@
 from django.views import generic
-from scripts import models, views, script_json
+from scripts import models, script_json
 from typing import Dict, Any
 from collections import Counter
 
