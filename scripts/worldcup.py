@@ -1,5 +1,5 @@
 from django.views import generic
-from scripts import models, views
+from scripts import models, views, script_json
 from typing import Dict, Any
 from collections import Counter
 
@@ -65,7 +65,7 @@ class WorldCupStatisticsView(generic.TemplateView):
             previous_version = None
             for version in versions:
                 if previous_version:
-                    additions = views.get_json_additions(version.content.copy(), previous_version.content.copy())
+                    additions = script_json.get_json_additions(version.content.copy(), previous_version.content.copy())
                     for addition in additions:
                         if addition.get("id", "_meta") == "_meta":
                             pass
@@ -77,7 +77,7 @@ class WorldCupStatisticsView(generic.TemplateView):
                         character_count["additions"][character.character_type][character] = (
                             character_count["additions"][character.character_type][character] + 1
                         )
-                    deletions = views.get_json_additions(previous_version.content.copy(), version.content.copy())
+                    deletions = script_json.get_json_additions(previous_version.content.copy(), version.content.copy())
                     for deletion in deletions:
                         if deletion.get("id", "_meta") == "_meta":
                             pass
