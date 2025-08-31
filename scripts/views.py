@@ -1074,12 +1074,12 @@ class AdvancedSearchResultsView(SingleTableView):
     script_view = None
 
     def get_queryset(self):
-        if self.request.session.get("queryset"):
-            ids = self.request.session.get("queryset")
+        if self.request.session._session.get("queryset"):
+            ids = self.request.session._session.get("queryset")
             order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
             queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
             return queryset
-        elif self.request.session.get("num_results") == 0:
+        elif self.request.session._session.get("num_results") == 0:
             return models.ScriptVersion.objects.none()
         else:
             return models.ScriptVersion.objects.all()
@@ -1190,6 +1190,8 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
         if form.cleaned_data.get("minimum_number_of_comments"):
             queryset = queryset.annotate(num_comments=Count("script__comments"))
             queryset = queryset.filter(num_comments__gte=form.cleaned_data.get("minimum_number_of_comments"))
+
+        queryset = queryset.order_by("-pk")
 
         self.request.session["queryset"] = list(queryset.values_list("pk", flat=True))
         if len(self.request.session["queryset"]) == 0:
