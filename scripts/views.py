@@ -2,12 +2,12 @@ import json as js
 import os
 from tempfile import TemporaryFile
 
-# Create your views here.
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import permission_required
+from django.core.cache import cache
 from django.db.models import Case, When, Count, Prefetch
 from django.http import (
     FileResponse,
@@ -37,6 +37,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 import requests
+import uuid
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -1074,13 +1075,18 @@ class AdvancedSearchResultsView(SingleTableView):
     script_view = None
 
     def get_queryset(self):
-        if self.request.session.get("queryset"):
-            ids = self.request.session.get("queryset")
-            order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-            queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
-            return queryset
-        elif self.request.session.get("num_results") == 0:
-            return models.ScriptVersion.objects.none()
+        cache_key = self.request.GET.get('key')
+        if cache_key:
+            data = cache.get_cache_advanced_search_results(cache_key)
+            if data:
+                if data.get('num_results') == 0:
+                    return models.ScriptVersion.objects.none()        
+                ids = data.get('queryset_pks', [])
+                order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
+                queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
+                return queryset
+            else:
+                return models.ScriptVersion.objects.all()
         else:
             return models.ScriptVersion.objects.all()
 
@@ -1192,12 +1198,10 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
             queryset = queryset.filter(num_comments__gte=form.cleaned_data.get("minimum_number_of_comments"))
 
         queryset = queryset.order_by("-pk")
+        pk_list = list(queryset.values_list("pk", flat=True))
+        cache_key = cache.store_cache_advanced_search_results(pk_list)
 
-        self.request.session["queryset"] = list(queryset.values_list("pk", flat=True))
-        if len(self.request.session["queryset"]) == 0:
-            self.request.session["num_results"] = 0
-        self.request.session.modified = True
-        return redirect("/script/search/results")
+        return redirect(f"/script/search/results?key={cache_key}")
 
 
 class HealthCheckView(generic.View):

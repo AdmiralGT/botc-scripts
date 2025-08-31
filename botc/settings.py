@@ -133,6 +133,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
 }
 
+# Session Settings
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
