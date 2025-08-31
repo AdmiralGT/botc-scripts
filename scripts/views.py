@@ -1083,10 +1083,7 @@ class AdvancedSearchResultsView(SingleTableView):
                 order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
                 queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
                 return queryset
-            else:
-                return models.ScriptVersion.objects.all()
-        else:
-            return models.ScriptVersion.objects.all()
+        return models.ScriptVersion.objects.all()
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
