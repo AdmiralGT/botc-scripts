@@ -1074,12 +1074,12 @@ class AdvancedSearchResultsView(SingleTableView):
     script_view = None
 
     def get_queryset(self):
-        if self.request.session._session.get("queryset"):
-            ids = self.request.session._session.get("queryset")
+        if self.request.session.get("queryset"):
+            ids = self.request.session.get("queryset")
             order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
             queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
             return queryset
-        elif self.request.session._session.get("num_results") == 0:
+        elif self.request.session.get("num_results") == 0:
             return models.ScriptVersion.objects.none()
         else:
             return models.ScriptVersion.objects.all()
