@@ -1191,6 +1191,8 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
             queryset = queryset.annotate(num_comments=Count("script__comments"))
             queryset = queryset.filter(num_comments__gte=form.cleaned_data.get("minimum_number_of_comments"))
 
+        queryset = queryset.order_by("-pk")
+
         self.request.session["queryset"] = list(queryset.values_list("pk", flat=True))
         if len(self.request.session["queryset"]) == 0:
             self.request.session["num_results"] = 0
