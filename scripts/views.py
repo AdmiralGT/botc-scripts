@@ -1194,6 +1194,7 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
         queryset = queryset.order_by("-pk")
 
         self.request.session["queryset"] = list(queryset.values_list("pk", flat=True))
+        self.request.session.modified = True
         if len(self.request.session["queryset"]) == 0:
             self.request.session["num_results"] = 0
         return redirect("/script/search/results")
