@@ -1075,7 +1075,7 @@ class AdvancedSearchResultsView(SingleTableView):
     def get_queryset(self):
         cache_key = self.request.GET.get("key")
         if cache_key:
-            data = cache.get_cache_advanced_search_results(cache_key)
+            data = cache.get_advanced_search_results(cache_key)
             if data:
                 if data.get("num_results") == 0:
                     return models.ScriptVersion.objects.none()
@@ -1197,7 +1197,7 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
 
         queryset = queryset.order_by("-pk")
         pk_list = list(queryset.values_list("pk", flat=True))
-        cache_key = cache.store_cache_advanced_search_results(pk_list)
+        cache_key = cache.store_advanced_search_results(pk_list)
 
         return redirect(f"/script/search/results?key={cache_key}")
 

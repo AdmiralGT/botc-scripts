@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from scripts import models
 from typing import List
+import uuid
 
 CACHE_TIMEOUT = 60 * 60 * 1  # 1 hour
 CLOCKTOWER_CHARACTERS_CACHE_KEY = "clocktower_characters"
@@ -23,13 +24,11 @@ def get_homebrew_characters(force=False) -> dict[str, models.HomebrewCharacter]:
     return characters
 
 
-def store_cache_advanced_search_results(pk_list: List[int]) -> str:
-    import uuid
-
+def store_advanced_search_results(pk_list: List[int]) -> str:
     cache_key = f"temp_data_{uuid.uuid4().hex}"
     cache.set(cache_key, {"queryset_pks": pk_list, "num_results": len(pk_list)}, timeout=300)
     return cache_key
 
 
-def get_cache_advanced_search_results(cache_key: str) -> dict:
+def get_advanced_search_results(cache_key: str) -> dict:
     return cache.get(cache_key)
