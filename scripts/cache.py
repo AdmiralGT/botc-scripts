@@ -25,11 +25,9 @@ def get_homebrew_characters(force=False) -> dict[str, models.HomebrewCharacter]:
 
 def store_cache_advanced_search_results(pk_list: List[int]) -> str:
     import uuid
+
     cache_key = f"temp_data_{uuid.uuid4().hex}"
-    cache.set(cache_key, {
-        'queryset_pks': pk_list,
-        'num_results': len(pk_list)
-    }, timeout=300)
+    cache.set(cache_key, {"queryset_pks": pk_list, "num_results": len(pk_list)}, timeout=300)
     return cache_key
 
 

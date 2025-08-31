@@ -7,7 +7,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import permission_required
-from django.core.cache import cache
 from django.db.models import Case, When, Count, Prefetch
 from django.http import (
     FileResponse,
@@ -37,7 +36,6 @@ from django.contrib.postgres.search import TrigramSimilarity
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 import requests
-import uuid
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -1075,13 +1073,13 @@ class AdvancedSearchResultsView(SingleTableView):
     script_view = None
 
     def get_queryset(self):
-        cache_key = self.request.GET.get('key')
+        cache_key = self.request.GET.get("key")
         if cache_key:
             data = cache.get_cache_advanced_search_results(cache_key)
             if data:
-                if data.get('num_results') == 0:
-                    return models.ScriptVersion.objects.none()        
-                ids = data.get('queryset_pks', [])
+                if data.get("num_results") == 0:
+                    return models.ScriptVersion.objects.none()
+                ids = data.get("queryset_pks", [])
                 order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
                 queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
                 return queryset
