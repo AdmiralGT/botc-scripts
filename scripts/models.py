@@ -137,7 +137,7 @@ class ScriptVersion(models.Model):
             (
                 "api_write_permission",
                 "Can create, update or delete scripts via the API. This is not required for reading scripts.",
-            )
+            ),
         ]
         indexes = [
             models.Index(fields=["script"], name="sv_script_idx"),

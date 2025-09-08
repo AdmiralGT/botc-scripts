@@ -1,7 +1,6 @@
 from rest_framework import filters, viewsets
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import BasePermission, IsAuthenticated
-from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -9,10 +8,16 @@ from rest_framework import status
 from rest_framework.schemas.openapi import AutoSchema
 from scripts import models, serializers, script_json
 from scripts import filters as filtersets
-from scripts.views import translate_json_content, create_characters_and_determine_homebrew_status, count_character, calculate_edition
+from scripts.views import (
+    translate_json_content,
+    create_characters_and_determine_homebrew_status,
+    count_character,
+    calculate_edition,
+)
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import Http404
 from versionfield import Version
+
 
 class ScriptApiPermissions(BasePermission):
     """
@@ -25,6 +30,7 @@ class ScriptApiPermissions(BasePermission):
             return True
         return False
 
+
 class ScriptViewSet(viewsets.ModelViewSet):
     queryset = models.ScriptVersion.objects.all()
     serializer_class = serializers.ScriptSerializer
@@ -32,8 +38,8 @@ class ScriptViewSet(viewsets.ModelViewSet):
     filterset_class = filtersets.ScriptVersionFilter
     ordering_fields = ["pk", "score"]
     ordering = ["-pk"]
-    permission_classes = [IsAuthenticated]
     authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated, ScriptApiPermissions]
 
     def get_queryset(self):
         queryset = models.ScriptVersion.objects.all()
@@ -45,14 +51,16 @@ class ScriptViewSet(viewsets.ModelViewSet):
     @action(methods=["get"], detail=True)
     def json(self, _, pk=None):
         return Response(models.ScriptVersion.objects.get(pk=pk).content)
-    
+
     def create(self, request, *args, **kwargs):
-        kwargs.setdefault('context', self.get_serializer_context())
+        kwargs.setdefault("context", self.get_serializer_context())
         serializer = serializers.ScriptUploadSerializer(data=request.data, *args, **kwargs)
         if not serializer.is_valid(raise_exception=True):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         if not serializer.is_createable(raise_exception=True):
-            return Response({"error": "A script with this name and version already exists."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "A script with this name and version already exists."}, status=status.HTTP_400_BAD_REQUEST
+            )
         is_latest = True
         current_tags = None
 
@@ -64,7 +72,9 @@ class ScriptViewSet(viewsets.ModelViewSet):
             script.save()
         else:
             if script.owner and script.owner != user:
-                return Response({"error": "You do not have permission to update this script."}, status=status.HTTP_403_FORBIDDEN)
+                return Response(
+                    {"error": "You do not have permission to update this script."}, status=status.HTTP_403_FORBIDDEN
+                )
             if script.latest_version():
                 # We need to protect this code against instances where a script doesn't
                 # have a latest version.
@@ -133,41 +143,57 @@ class ScriptViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_201_CREATED, data={"pk": self.script_version.pk})
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        pk = kwargs.get('pk')
+        pk = kwargs.pop("pk")
         try:
             instance = models.ScriptVersion.objects.get(pk=pk)
         except models.ScriptVersion.DoesNotExist:
             return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = serializers.ScriptUploadSerializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        serializer.is_expected_script(raise_exception=True)
+        serializer = serializers.ScriptUploadSerializer(data=request.data, *args, **kwargs)
+        if not serializer.is_valid(raise_exception=True):
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_expected_script(instance, raise_exception=True):
+            return Response(
+                {"error": "You cannot change the name or version of an existing script."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if instance.script.owner and instance.script.owner != request.user:
-            return Response({"error": "You do not have permission to update this script."}, status=status.HTTP_403_FORBIDDEN)
-        if instance.content != serializer.data.get("content"):
-            return Response({"error": "You cannot modify the content of an existing script."}, status=status.HTTP_403_FORBIDDEN)
-        if serializer.data.get("author", None):
-            instance.author = serializer.data.get("author")
+            return Response(
+                {"error": "You do not have permission to update this script."}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        if serializer.validated_data.get("content", None):
+            json = script_json.get_json_content(serializer.validated_data)
+
+            if instance.content != json:
+                return Response(
+                    {"error": "You cannot modify the content of an existing script."}, status=status.HTTP_403_FORBIDDEN
+                )
+
+        if serializer.validated_data.get("author", None):
+            instance.author = serializer.validated_data.get("author")
             instance.save()
-        if serializer.data.get("pdf", None):
-            instance.pdf = serializer.data.get("pdf")
+        if serializer.validated_data.get("pdf", None):
+            instance.pdf = serializer.validated_data.get("pdf")
             instance.save()
-        if serializer.data.get("notes", None):
-            instance.notes = serializer.data.get("notes")
+        if serializer.validated_data.get("notes", None):
+            instance.notes = serializer.validated_data.get("notes")
             instance.save()
 
         return Response(status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        pk = kwargs.get('pk')
+        pk = kwargs.get("pk")
         try:
             instance = models.ScriptVersion.objects.get(pk=pk)
         except models.ScriptVersion.DoesNotExist:
             return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
 
         if instance.script.owner != self.request.user:
-            return Response({"error": "You do not have permission to delete this script."}, status=status.HTTP_403_FORBIDDEN)
-        
+            return Response(
+                {"error": "You do not have permission to delete this script."}, status=status.HTTP_403_FORBIDDEN
+            )
+
         script = instance.script
         instance.delete()
 
