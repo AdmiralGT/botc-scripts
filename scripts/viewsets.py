@@ -3,7 +3,7 @@ from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, authentication_classes, permission_classes
 from rest_framework import status
 from rest_framework.schemas.openapi import AutoSchema
 from scripts import models, serializers, script_json
@@ -38,8 +38,6 @@ class ScriptViewSet(viewsets.ModelViewSet):
     filterset_class = filtersets.ScriptVersionFilter
     ordering_fields = ["pk", "score"]
     ordering = ["-pk"]
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated, ScriptApiPermissions]
 
     def get_queryset(self):
         queryset = models.ScriptVersion.objects.all()
@@ -52,6 +50,8 @@ class ScriptViewSet(viewsets.ModelViewSet):
     def json(self, _, pk=None):
         return Response(models.ScriptVersion.objects.get(pk=pk).content)
 
+    @authentication_classes([BasicAuthentication])
+    @permission_classes([IsAuthenticated, ScriptApiPermissions])
     def create(self, request, *args, **kwargs):
         kwargs.setdefault("context", self.get_serializer_context())
         serializer = serializers.ScriptUploadSerializer(data=request.data, *args, **kwargs)
@@ -142,6 +142,8 @@ class ScriptViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_201_CREATED, data={"pk": self.script_version.pk})
 
+    @authentication_classes([BasicAuthentication])
+    @permission_classes([IsAuthenticated, ScriptApiPermissions])
     def update(self, request, *args, **kwargs):
         pk = kwargs.pop("pk")
         try:
@@ -182,6 +184,8 @@ class ScriptViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_200_OK)
 
+    @authentication_classes([BasicAuthentication])
+    @permission_classes([IsAuthenticated, ScriptApiPermissions])
     def destroy(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
         try:
