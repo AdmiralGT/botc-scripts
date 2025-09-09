@@ -1,6 +1,7 @@
 import json as js
 from scripts import constants
 from typing import List
+from django.core.files.base import File
 
 
 def get_author_from_json(json):
@@ -61,11 +62,19 @@ def get_json_content(data):
     json_content = data.get("content", None)
     if not json_content:
         raise JSONError("Could not read file type")
-    try:
-        json = js.loads(json_content.read().decode("utf-8"))
-    except js.JSONDecodeError as e:
-        raise JSONError(f"Invalid JSON content: {e}")
-    json_content.seek(0)
+    if isinstance(json_content, File):
+        try:
+            json = js.loads(json_content.read().decode("utf-8"))
+        except js.JSONDecodeError as e:
+            raise JSONError(f"Invalid JSON content: {e}")
+        json_content.seek(0)
+    elif isinstance(json_content, (str, bytes, bytearray)):
+        try:
+            json = js.loads(json_content)
+        except js.JSONDecodeError as e:
+            raise JSONError(f"Invalid JSON content: {e}")
+    else:
+        json = json_content
     json = revert_to_old_format(json)
     json = strip_special_characters_from_json(json)
     return json

@@ -133,7 +133,11 @@ class ScriptVersion(models.Model):
             (
                 "download_unsupported_json",
                 "Can the request the download of a JSON that replaces unsupported characters",
-            )
+            ),
+            (
+                "api_write_permission",
+                "Can create, update or delete scripts via the API. This is not required for reading scripts.",
+            ),
         ]
         indexes = [
             models.Index(fields=["script"], name="sv_script_idx"),

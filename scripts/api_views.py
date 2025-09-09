@@ -2,8 +2,20 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from scripts import models
 from collections import Counter
+from drf_spectacular.utils import extend_schema
 
 
+@extend_schema(
+    responses={
+        200: {
+            "type": "object",
+            "additionalProperties": {"type": "integer"},
+            "description": "Character statistics with total count and individual character counts",
+        }
+    },
+    summary="Get character statistics",
+    description="Returns statistics for all characters including total count",
+)
 class StatisticsAPI(APIView):
     permission_classes = []
 
