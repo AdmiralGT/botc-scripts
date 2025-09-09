@@ -41,16 +41,13 @@ class ScriptUploadSerializer(serializers.ModelSerializer):
             script__name=self.validated_data.get("name"), version=self.validated_data.get("version")
         ).exists():
             errors.append("A script with this name and version already exists.")
-            return False
         if not self.validated_data.get("name"):
             errors.append("Script name is required.")
-            return False
         try:
             script = models.Script.objects.get(name=self.validated_data.get("name"))
             json = script_json.get_json_content(self.validated_data)
             if script.latest_version().content == json:
                 errors.append("The content is identical to the latest version.")
-                return False
         except models.Script.DoesNotExist:
             # It's OK if the script doesn't exist, it just means we're creating it.
             pass
