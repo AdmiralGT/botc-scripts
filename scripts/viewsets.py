@@ -3,7 +3,7 @@ from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.decorators import action, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, action, authentication_classes, permission_classes
 from rest_framework import status
 from scripts import models, serializers, script_json
 from scripts import filters as filtersets
@@ -23,7 +23,6 @@ class ScriptApiPermissions(BasePermission):
     Custom permission to only allow authenticated users to create, update, or delete scripts.
     All users can read scripts.
     """
-
     def has_permission(self, request, view):
         if request.user and request.user.has_perm("scripts.api_write_permission"):
             return True
@@ -48,9 +47,15 @@ class ScriptViewSet(viewsets.ModelViewSet):
     @action(methods=["get"], detail=True)
     def json(self, _, pk=None):
         return Response(models.ScriptVersion.objects.get(pk=pk).content)
+    
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            permission_classes = [IsAuthenticated, ScriptApiPermissions]
+        else:
+            permission_classes = []
+        return [permission() for permission in permission_classes]
 
     @authentication_classes([BasicAuthentication])
-    @permission_classes([IsAuthenticated, ScriptApiPermissions])
     def create(self, request, *args, **kwargs):
         kwargs.setdefault("context", self.get_serializer_context())
         serializer = serializers.ScriptUploadSerializer(data=request.data, *args, **kwargs)
@@ -142,7 +147,6 @@ class ScriptViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_201_CREATED, data={"pk": self.script_version.pk})
 
     @authentication_classes([BasicAuthentication])
-    @permission_classes([IsAuthenticated, ScriptApiPermissions])
     def update(self, request, *args, **kwargs):
         pk = kwargs.pop("pk")
         try:
@@ -184,7 +188,6 @@ class ScriptViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
     @authentication_classes([BasicAuthentication])
-    @permission_classes([IsAuthenticated, ScriptApiPermissions])
     def destroy(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
         try:
