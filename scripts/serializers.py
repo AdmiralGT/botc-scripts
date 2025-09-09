@@ -1,12 +1,11 @@
 from rest_framework import serializers
-
 from scripts import models, constants, script_json
 
 
 # Serializers define the API representation.
 class ScriptSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="script.name")
-    score = serializers.ReadOnlyField(source="votes.count")
+    score = serializers.IntegerField(source="votes.count", read_only=True)
 
     class Meta:
         model = models.ScriptVersion

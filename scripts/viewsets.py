@@ -5,7 +5,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import action, authentication_classes, permission_classes
 from rest_framework import status
-from rest_framework.schemas.openapi import AutoSchema
 from scripts import models, serializers, script_json
 from scripts import filters as filtersets
 from scripts.views import (
@@ -247,8 +246,6 @@ class TranslateScriptViewSet(viewsets.ReadOnlyModelViewSet):
 class TranslationViewSet(viewsets.ModelViewSet):
     queryset = models.Translation.objects.all()
     serializer_class = serializers.TranslationSerializer
-
-    schema = AutoSchema()
 
     def get_object(self, language: str, character: str):
         return models.Translation.objects.get(language=language, character_id=character)
