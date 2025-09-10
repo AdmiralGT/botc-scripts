@@ -829,7 +829,7 @@ def download_json(request, pk: int, version: str, language: Optional[str] = None
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     content = translate_content(script_version.content, request, language)
-    script.num_downloads = F('num_downloads') + 1
+    script.num_downloads = F("num_downloads") + 1
     script.save()
 
     return json_file_response(script.name, content)
