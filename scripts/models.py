@@ -82,6 +82,7 @@ class Script(models.Model):
 
     name = models.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH)
     owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name="+")
+    num_downloads = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.pk}. {self.name}"

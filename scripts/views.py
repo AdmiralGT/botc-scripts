@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import permission_required
-from django.db.models import Case, When, Count, Prefetch
+from django.db.models import Case, When, Count, Prefetch, F
 from django.http import (
     FileResponse,
     JsonResponse,
@@ -829,6 +829,8 @@ def download_json(request, pk: int, version: str, language: Optional[str] = None
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     content = translate_content(script_version.content, request, language)
+    script.num_downloads = F("num_downloads") + 1
+    script.save()
 
     return json_file_response(script.name, content)
 
