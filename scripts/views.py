@@ -1141,6 +1141,12 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
         if not include_homebrew:
             queryset = queryset.exclude(homebrewiness=models.Homebrewiness.HOMEBREW)
 
+        script_type = form.cleaned_data.get("script_type")
+        if script_type == models.ScriptTypes.TEENSYVILLE:
+            queryset = queryset.exclude(script_type=models.ScriptTypes.FULL)
+        else:
+            queryset = queryset.exclude(script_type=models.ScriptTypes.TEENSYVILLE)
+
         if form.cleaned_data.get("name"):
             queryset = queryset.annotate(
                 name_similarity=TrigramSimilarity("script__name", form.cleaned_data.get("name"))
