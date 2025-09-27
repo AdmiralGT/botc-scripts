@@ -659,24 +659,20 @@ class StatisticsView(generic.ListView, FilterView):
                 : ((characters_to_display + 1) * -1) : -1
             ]
 
-        townsfolk = queryset.order_by("num_townsfolk")
-        for i in range(townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1):
-            num_count[models.CharacterType.TOWNSFOLK.value][str(i)] = queryset.filter(num_townsfolk=i).count()
-        outsider = queryset.order_by("num_outsiders")
-        for i in range(outsider.first().num_outsiders, outsider.last().num_outsiders + 1):
-            num_count[models.CharacterType.OUTSIDER.value][str(i)] = queryset.filter(num_outsiders=i).count()
-        minion = queryset.order_by("num_minions")
-        for i in range(minion.first().num_minions, minion.last().num_minions + 1):
-            num_count[models.CharacterType.MINION.value][str(i)] = queryset.filter(num_minions=i).count()
-        demon = queryset.order_by("num_demons")
-        for i in range(demon.first().num_demons, demon.last().num_demons + 1):
-            num_count[models.CharacterType.DEMON.value][str(i)] = queryset.filter(num_demons=i).count()
-        traveller = queryset.order_by("num_travellers")
-        for i in range(traveller.first().num_travellers, traveller.last().num_travellers + 1):
-            num_count[models.CharacterType.TRAVELLER.value][str(i)] = queryset.filter(num_travellers=i).count()
-        fabled = queryset.order_by("num_fabled")
-        for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1):
-            num_count[models.CharacterType.FABLED.value][str(i)] = queryset.filter(num_fabled=i).count()
+        character_count_fields = {
+            "num_townsfolk": models.CharacterType.TOWNSFOLK.value,
+            "num_outsiders": models.CharacterType.OUTSIDER.value,
+            "num_minions": models.CharacterType.MINION.value,
+            "num_demons": models.CharacterType.DEMON.value,
+            "num_travellers": models.CharacterType.TRAVELLER.value,
+            "num_fabled": models.CharacterType.FABLED.value,
+        }
+
+        for field, label in character_count_fields.items():
+            result = queryset.values(field).annotate(script_count=F(field), character_count=Count(field))
+            for row in result:
+                num_count[label][str(row["character_count"])] = row["script_count"]
+
         for type in models.CharacterType:
             num_count[type.value] = dict(num_count[type.value])
         context["num_count"] = num_count
