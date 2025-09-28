@@ -669,7 +669,7 @@ class StatisticsView(generic.ListView, FilterView):
         }
 
         for field, label in character_count_fields.items():
-            result = queryset.values(field).annotate(script_count=F(field), character_count=Count(field))
+            result = queryset.values(field).annotate(script_count=Count(field), character_count=F(field))
             for row in result:
                 num_count[label][str(row["character_count"])] = row["script_count"]
 
