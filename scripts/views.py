@@ -635,7 +635,7 @@ class StatisticsView(generic.ListView, FilterView):
                 pass
 
         context["total"] = queryset.count()
-        if queryset.count() == 0:
+        if context["total"] == 0:
             return context
 
         character_count = {}
