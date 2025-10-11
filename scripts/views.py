@@ -676,6 +676,7 @@ class StatisticsView(generic.ListView, FilterView):
         for type in models.CharacterType:
             num_count[type.value] = dict(num_count[type.value])
         context["num_count"] = num_count
+        context["stats_character"] = stats_character
 
         return context
 
