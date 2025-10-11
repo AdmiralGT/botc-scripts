@@ -645,7 +645,7 @@ class StatisticsView(generic.ListView, FilterView):
             character_count[type.value] = Counter()
             num_count[type.value] = Counter()
 
-        character_counts = queries.get_all_script_character_counts()
+        character_counts = queries.get_all_script_character_counts(queryset)
 
         for character in models.ClocktowerCharacter.objects.all():
             # If we're on a Character Statistics page, don't include this character in the count.
