@@ -1,7 +1,10 @@
+import gzip
 import json as js
+import base64 as b64
 from scripts import constants
 from typing import List
 from django.core.files.base import File
+from urllib.parse import quote
 
 
 def get_author_from_json(json):
@@ -150,3 +153,10 @@ def get_similarity(json1: List, json2: List, same_type: bool) -> int:
         return 0
 
     return round((similarity / similarity_comp) * 100)
+
+
+def compress_json(json_data):
+    json_string = js.dumps(json_data)
+    compressed = gzip.compress(json_string.encode("utf-8"))
+    base64_encoded = b64.b64encode(compressed).decode("utf-8")
+    return quote(base64_encoded)
