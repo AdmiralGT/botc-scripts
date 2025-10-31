@@ -1,5 +1,5 @@
 from django import template
-from scripts import models, cache
+from scripts import models, cache, script_json
 from babel.core import Locale, UnknownLocaleError
 
 register = template.Library()
@@ -174,3 +174,8 @@ def get_language_name(locale: str):
 def get_character_percentage(count: int, total: int):
     percentage = count * 100 / total
     return f"{percentage:.2f}%"
+
+
+@register.simple_tag()
+def script_tool_url(script_version):
+    return f"https://script.bloodontheclocktower.com?script={script_json.compress_json(script_version.content)}"

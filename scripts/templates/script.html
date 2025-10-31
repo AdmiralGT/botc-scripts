@@ -112,6 +112,9 @@
             </select>    
         </form>
     </div>
+    <div class="col-md-auto pl-1 p-0 pt-1">
+        <a class="btn btn-primary" href="{{ script_tool_link }}" target="_blank">Open in Script Tool</a>
+    </div>
     <div class="col-md-auto pl-1 p-0">
         <form class="form-inline mb-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
             <div class="col-md-auto p-1 pt-0">

@@ -238,6 +238,7 @@ class ScriptView(generic.DetailView):
         )
 
         context["can_delete"] = self.request.user == current_script.script.owner
+        context["script_tool_link"] = f"https://script.bloodontheclocktower.com?script={script_json.compress_json(current_script.content)}"
 
         return context
 
