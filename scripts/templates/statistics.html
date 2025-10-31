@@ -44,7 +44,11 @@
 
 <div class="container">
     <div class="row">
-        <h1>Total Scripts in Database: {{ total }}</h1>
+        {% if stats_character %}
+            <h1>Total {{ stats_character }} Scripts in Database: {{ total }}</h1>
+        {% else %}
+            <h1>Total Scripts in Database: {{ total }}</h1>
+        {% endif %}
         <div class="col float-right pr-0">
             {% if user.is_authenticated and filter %}
             <form action="" method="get" class="form mb-0">
