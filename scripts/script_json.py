@@ -154,8 +154,9 @@ def get_similarity(json1: List, json2: List, same_type: bool) -> int:
 
     return round((similarity / similarity_comp) * 100)
 
+
 def compress_json(json_data):
     json_string = js.dumps(json_data)
-    compressed = gzip.compress(json_string.encode('utf-8'))
-    base64_encoded = b64.b64encode(compressed).decode('utf-8')
+    compressed = gzip.compress(json_string.encode("utf-8"))
+    base64_encoded = b64.b64encode(compressed).decode("utf-8")
     return quote(base64_encoded)
