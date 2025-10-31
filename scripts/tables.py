@@ -31,6 +31,7 @@ excluded_clocktower_version_fields = (
     "num_demons",
     "num_travellers",
     "num_fabled",
+    "num_loric",
     "edition",
     "version",
     "pdf",

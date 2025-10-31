@@ -66,6 +66,8 @@ def get_colour_from_character_type(character_type):
             return "style=color:#cc0099"
         case models.CharacterType.FABLED:
             return "style=color:#996600"
+        case models.CharacterType.LORIC:
+            return "style=color:#64882b"
         case _:
             return "style=color:#000000"
 

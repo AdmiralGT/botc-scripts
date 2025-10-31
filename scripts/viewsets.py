@@ -103,6 +103,7 @@ class ScriptViewSet(viewsets.ModelViewSet):
         num_minions = count_character(json, models.CharacterType.MINION)
         num_demons = count_character(json, models.CharacterType.DEMON)
         num_fabled = count_character(json, models.CharacterType.FABLED)
+        num_loric = count_character(json, models.CharacterType.LORIC)
         num_travellers = count_character(json, models.CharacterType.TRAVELLER)
         edition = calculate_edition(json)
 
@@ -120,6 +121,7 @@ class ScriptViewSet(viewsets.ModelViewSet):
             num_minions=num_minions,
             num_demons=num_demons,
             num_fabled=num_fabled,
+            num_loric=num_loric,
             num_travellers=num_travellers,
             edition=edition,
             homebrewiness=homebrewiness,
