@@ -42,6 +42,7 @@ class CharacterType(models.TextChoices):
     DEMON = "Demon"
     TRAVELLER = "Traveller"
     FABLED = "Fabled"
+    LORIC = "Loric"
     UNKNOWN = "Unknown"
 
 
@@ -119,6 +120,7 @@ class ScriptVersion(models.Model):
     num_minions = models.IntegerField()
     num_demons = models.IntegerField()
     num_fabled = models.IntegerField()
+    num_loric = models.IntegerField()
     num_travellers = models.IntegerField()
     tags = models.ManyToManyField(ScriptTag, blank=True)
     edition = models.IntegerField(choices=Edition.choices, default=Edition.ALL)

@@ -492,6 +492,7 @@ class ScriptUploadView(BaseScriptUploadView):
         num_minions = count_character(json, models.CharacterType.MINION)
         num_demons = count_character(json, models.CharacterType.DEMON)
         num_fabled = count_character(json, models.CharacterType.FABLED)
+        num_loric = count_character(json, models.CharacterType.LORIC)
         num_travellers = count_character(json, models.CharacterType.TRAVELLER)
         edition = calculate_edition(json)
 
@@ -509,6 +510,7 @@ class ScriptUploadView(BaseScriptUploadView):
             num_minions=num_minions,
             num_demons=num_demons,
             num_fabled=num_fabled,
+            num_loric=num_loric,
             num_travellers=num_travellers,
             edition=edition,
             homebrewiness=homebrewiness,
@@ -669,6 +671,7 @@ class StatisticsView(generic.ListView, FilterView):
             "num_demons": models.CharacterType.DEMON.value,
             "num_travellers": models.CharacterType.TRAVELLER.value,
             "num_fabled": models.CharacterType.FABLED.value,
+            "num_loric": models.CharacterType.LORIC.value,
         }
 
         for field, label in character_count_fields.items():
@@ -1126,6 +1129,7 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
             minion_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
             demon_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
             fabled_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
+            loric_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
             traveller_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
             **self.get_form_kwargs(),
         )
@@ -1191,6 +1195,9 @@ class AdvancedSearchView(generic.FormView, SingleTableMixin):
 
         if form.cleaned_data.get("number_of_travellers"):
             queryset = queryset.filter(num_travellers__in=form.cleaned_data.get("number_of_travellers"))
+
+        if form.cleaned_data.get("number_of_loric"):
+            queryset = queryset.filter(num_loric__in=form.cleaned_data.get("number_of_loric"))
 
         if form.cleaned_data.get("minimum_number_of_likes"):
             queryset = queryset.annotate(score=Count("script__votes"))
@@ -1263,6 +1270,8 @@ def get_character_type_from_team(team):
             return models.CharacterType.TRAVELLER
         case "fabled":
             return models.CharacterType.FABLED
+        case "loric":
+            return models.CharacterType.LORIC
         case _:
             return models.CharacterType.UNKNOWN
 

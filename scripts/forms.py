@@ -183,6 +183,11 @@ class AdvancedSearchForm(forms.Form):
         widget=forms.SelectMultiple,
         required=False,
     )
+    number_of_loric = forms.MultipleChoiceField(
+        choices=[(0, 0)],
+        widget=forms.SelectMultiple,
+        required=False,
+    )
     number_of_travellers = forms.MultipleChoiceField(
         choices=[(0, 0)],
         widget=forms.SelectMultiple,
@@ -196,6 +201,7 @@ class AdvancedSearchForm(forms.Form):
         minion_choices,
         demon_choices,
         fabled_choices,
+        loric_choices,
         traveller_choices,
         *args,
         **kwargs,
@@ -207,6 +213,7 @@ class AdvancedSearchForm(forms.Form):
         self.fields["number_of_demons"].choices = demon_choices
         self.fields["number_of_fabled"].choices = fabled_choices
         self.fields["number_of_travellers"].choices = traveller_choices
+        self.fields["number_of_loric"].choices = loric_choices
 
 
 class UpdateDatabaseForm(forms.Form):

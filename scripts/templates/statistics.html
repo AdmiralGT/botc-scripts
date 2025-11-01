@@ -40,6 +40,13 @@
     .table-striped-fabled>tbody>tr:nth-child(even)>td {
         background-color: #fff0cc;
     }
+    .table-striped-loric>tbody>tr:nth-child(odd)>td {
+        background-color: #2e471c;
+    }
+
+    .table-striped-loric>tbody>tr:nth-child(even)>td {
+        background-color: #bdcd51;
+    }
 </style>
 
 <div class="container">
@@ -256,6 +263,37 @@
             </table>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col w-50 pl-0">
+            <h4 class="mt-2">Most popular Loric</h4>
+            <table class="w-100 table-sm table-striped-loric">
+                <tbody>
+                    {% for character, count in Loric %}
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="col w-50 pr-0">
+            <h4 class="mt-2">Least popular Loric</h4>
+            <table class="w-100 table-sm table-striped-loric">
+                <tbody>
+                    {% for character, count in Loricleast %}
+                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
+                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                        <td class="w-25 text-center">{{ count }}</td>
+                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -265,6 +303,7 @@
     {% include "chart.html" with ChartName="DemonChart" ChartLabel="Number of Demons" ChartDictionary=num_count.Demon ChartColor="rgba(250,219,216,1)" ChartBorder="rgba(245,183,177,1)" %}
     {% include "chart.html" with ChartName="TravellerChart" ChartLabel="Number of Travellers" ChartDictionary=num_count.Traveller ChartColor="rgba(0,0,255,0.2)" ChartBorder="rgbargba(133,193,233,1)" %}
     {% include "chart.html" with ChartName="FabledChart" ChartLabel="Number of Fabled" ChartDictionary=num_count.Fabled ChartColor="rgba(255,240,204,1)" ChartBorder="rgba(255,240,153,1)" %}
+    {% include "chart.html" with ChartName="LoricChart" ChartLabel="Number of Loric" ChartDictionary=num_count.Loric ChartColor="rgba(203,214,129,1)" ChartBorder="rgba(135,143,81,1)" %}
 
     function show_and_hide_table_rows(rows_to_display) {
         for (let i = 0; i < rows_to_display + 1; i++) {
@@ -295,7 +334,8 @@
 <canvas id="MinionChart" width="400" height="100"></canvas>  
 <canvas id="DemonChart" width="400" height="100"></canvas>  
 <canvas id="TravellerChart" width="400" height="100"></canvas>  
-<canvas id="FabledChart" width="400" height="100"></canvas>  
+<canvas id="FabledChart" width="400" height="100"></canvas>
+<canvas id="LoricChart" width="400" height="100"></canvas>  
 
 {% endif %}
 
