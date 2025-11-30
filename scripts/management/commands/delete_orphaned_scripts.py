@@ -22,7 +22,7 @@ class Command(BaseCommand):
                 info += f" | Owner: {script.owner.username}"
             else:
                 info += " | Owner: None"
-            
+
             self.stdout.write(info)
 
         deleted_count, _ = orphaned_scripts.delete()
