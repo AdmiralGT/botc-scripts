@@ -1305,15 +1305,15 @@ def create_characters_and_determine_homebrew_status(script_content: Dict, script
             if character.character_id == "bootlegger":
                 entries_to_ignore += 1
         except models.ClocktowerCharacter.DoesNotExist:
-            if len(item.keys()) == 1:
+            if roles.ok and character_missing_from_database(item.get("id", ""), js.loads(roles.content)):
                 # It's possible we don't know about this character because it has just been released
                 # and it's not been added to the database. In this case check the script tool for roles
                 # and if it present, don't mark this as a homebrew character.
-
+                continue
+            if len(item.keys()) == 1:
                 # If the character element has more than 1 key then it is almost certainly an attempt at a
-                # homebrew/hybrid character.
-                if character_missing_from_database(item.get("id", ""), js.loads(roles.content)):
-                    continue
+                # homebrew/hybrid character, otherwise it's probably official.
+                continue
 
             non_clocktower_characters += 1
 
