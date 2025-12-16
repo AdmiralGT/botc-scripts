@@ -17,6 +17,7 @@ translate = viewsets.TranslateScriptViewSet.as_view({"get": "retrieve"})
 urlpatterns = [
     path("", views.ScriptsListView.as_view()),
     path("api/", include(router.urls)),
+    path("api/characters", api_views.CharactersAPI.as_view()),
     path("api/statistics", api_views.StatisticsAPI.as_view()),
     path("api/translations/<str:language>/<str:character_id>/", translation_detail),
     path("api/translate/<int:script_version>/<str:language>", translate),

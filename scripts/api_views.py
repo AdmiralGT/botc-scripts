@@ -61,3 +61,42 @@ class StatisticsAPI(APIView):
         for character in counter.most_common():
             data[character[0]] = character[1]
         return Response(data)
+
+
+@extend_schema(
+    responses={
+        200: {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "team": {"type": "string"},
+                    "firstNight": {"type": "number", "nullable": True},
+                    "firstNightReminder": {"type": "string"},
+                    "otherNight": {"type": "number", "nullable": True},
+                    "otherNightReminder": {"type": "string"},
+                    "reminders": {"type": "array", "items": {"type": "string"}},
+                    "setup": {"type": "boolean"},
+                    "ability": {"type": "string"},
+                    "image": {"type": "string"},
+                    "edition": {"type": "integer"},
+                },
+            },
+            "description": "List of all clocktower characters",
+        }
+    },
+    summary="Get all clocktower characters",
+    description="Returns all official Blood on the Clocktower characters",
+)
+class CharactersAPI(APIView):
+    permission_classes = []
+
+    def get(self, request, format=None):
+        data = []
+        for character in models.ClocktowerCharacter.objects.all():
+            character_json = character.full_character_json()
+            character_json["edition"] = character.edition
+            data.append(character_json)
+        return Response(data)
