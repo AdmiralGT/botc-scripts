@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from scripts import models
 from collections import Counter
 from drf_spectacular.utils import extend_schema
+from django.db.models import Q
 
 
 @extend_schema(
@@ -61,3 +62,39 @@ class StatisticsAPI(APIView):
         for character in counter.most_common():
             data[character[0]] = character[1]
         return Response(data)
+
+
+@extend_schema(
+    responses={
+        200: {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "team": {"type": "string"},
+                    "ability": {"type": "string"},
+                    "edition": {"type": "string"},
+                    "firstNight": {"type": "number", "nullable": True},
+                    "firstNightReminder": {"type": "string"},
+                    "otherNight": {"type": "number", "nullable": True},
+                    "otherNightReminder": {"type": "string"},
+                    "reminders": {"type": "array", "items": {"type": "string"}},
+                    "setup": {"type": "boolean"},
+                    "image": {"type": "string"},
+                },
+            },
+            "description": "List of all characters with their properties",
+        }
+    },
+    summary="Get all characters",
+    description="Returns a list of all Clocktower characters with their complete information",
+)
+class CharactersAPI(APIView):
+    permission_classes = []
+
+    def get(self, request, format=None):
+        characters = models.ClocktowerCharacter.objects.all().order_by('character_name')
+        character_list = [character.full_character_json() for character in characters]
+        return Response(character_list)
