@@ -52,7 +52,8 @@
 <div class="container">
     <div class="row">
         {% if stats_character %}
-            <h1>Total {{ stats_character }} Scripts in Database: {{ total }}</h1>
+            <h1>Stats for {{ stats_character }}</h1>
+            <h2>Total {{ stats_character }} Scripts in Database: {{ total }}</h2>
         {% else %}
             <h1>Total Scripts in Database: {{ total }}</h1>
         {% endif %}
@@ -80,7 +81,7 @@
 <div class="container">
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Townsfolk</h4>
+            <h4 class="mt-2">Most common Townsfolk pairing</h4>
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Townsfolk %}
@@ -94,7 +95,7 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Townsfolk</h4>
+            <h4 class="mt-2">Least common Townsfolk pairing</h4>
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Townsfolkleast %}
@@ -111,7 +112,7 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Outsider</h4>
+            <h4 class="mt-2">Most common Outsider pairing</h4>
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Outsider %}
@@ -125,7 +126,7 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Outsider</h4>
+            <h4 class="mt-2">Least common Outsider pairing</h4>
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Outsiderleast %}
@@ -142,7 +143,7 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Minions</h4>
+            <h4 class="mt-2">Most common Minion pairing</h4>
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Minion %}
@@ -156,7 +157,7 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Minions</h4>
+            <h4 class="mt-2">Least common Minion pairing</h4>
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Minionleast %}
@@ -173,7 +174,7 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Demons</h4>
+            <h4 class="mt-2">Most common Demon pairing</h4>
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Demon %}
@@ -187,7 +188,7 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Demons</h4>
+            <h4 class="mt-2">Least common Demon pairing</h4>
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Demonleast %}
@@ -204,7 +205,7 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Travellers</h4>
+            <h4 class="mt-2">Most common Traveller pairing</h4>
             <table class="w-100 table-sm table-striped-traveller">
                 <tbody>
                     {% for character, count in Traveller %}
@@ -218,7 +219,7 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Travellers</h4>
+            <h4 class="mt-2">Least common Traveller pairing</h4>
             <table class="w-100 table-sm table-striped-traveller">
                 <tbody>
                     {% for character, count in Travellerleast %}
@@ -235,7 +236,7 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Fabled</h4>
+            <h4 class="mt-2">Most common Fabled pairing</h4>
             <table class="w-100 table-sm table-striped-fabled">
                 <tbody>
                     {% for character, count in Fabled %}
@@ -249,7 +250,7 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Fabled</h4>
+            <h4 class="mt-2">Least common Fabled pairing</h4>
             <table class="w-100 table-sm table-striped-fabled">
                 <tbody>
                     {% for character, count in Fabledleast %}
@@ -266,7 +267,7 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Loric</h4>
+            <h4 class="mt-2">Most common Loric pairing</h4>
             <table class="w-100 table-sm table-striped-loric">
                 <tbody>
                     {% for character, count in Loric %}
@@ -280,7 +281,7 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Loric</h4>
+            <h4 class="mt-2">Least common Loric pairing</h4>
             <table class="w-100 table-sm table-striped-loric">
                 <tbody>
                     {% for character, count in Loricleast %}
