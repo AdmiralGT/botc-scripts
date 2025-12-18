@@ -70,7 +70,7 @@
             <div class="float-right mt-2">
             {% endif %}
             <input type="range" min="1" max="25" value="5" class="slider" id="DisplayRange">
-            <label><span id="DisplayRangeLabel"></label>
+            <label><span id="DisplayRangeLabel"></span></label>
         </div>
     </div>
     </div>
@@ -318,7 +318,7 @@
     }
     var slider = document.getElementById("DisplayRange");
     var label = document.getElementById("DisplayRangeLabel");
-    label.innerHTML = slider.value;
+    label.innerHTML = slider.value; 
     show_and_hide_table_rows(parseInt(slider.value))
     
 
