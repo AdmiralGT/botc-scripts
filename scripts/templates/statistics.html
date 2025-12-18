@@ -318,14 +318,19 @@
     }
     var slider = document.getElementById("DisplayRange");
     var label = document.getElementById("DisplayRangeLabel");
-    label.innerHTML = slider.value; 
-    show_and_hide_table_rows(parseInt(slider.value))
-    
+
+    function updateLabel(value) {
+        var suffix = value === 1 ? " row per table" : " rows per table";
+        label.innerHTML = value + suffix;
+    }
+
+    updateLabel(parseInt(slider.value));
+    show_and_hide_table_rows(parseInt(slider.value));
 
     // Update the current slider value (each time you drag the slider handle)
     slider.oninput = function() {
-        label.innerHTML = this.value;
-        show_and_hide_table_rows(parseInt(this.value))
+        updateLabel(parseInt(this.value));
+        show_and_hide_table_rows(parseInt(this.value));
     }
 </script>
 
