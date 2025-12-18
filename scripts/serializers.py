@@ -5,11 +5,12 @@ from scripts import models, constants, script_json
 # Serializers define the API representation.
 class ScriptSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="script.name")
+    script_id = serializers.IntegerField(source="script.pk", read_only=True)
     score = serializers.IntegerField(source="votes.count", read_only=True)
 
     class Meta:
         model = models.ScriptVersion
-        fields = ["pk", "name", "version", "author", "content", "score"]
+        fields = ["pk", "script_id", "name", "version", "author", "content", "score"]
 
 
 class TranslationSerializer(serializers.ModelSerializer):
