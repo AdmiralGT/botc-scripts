@@ -72,7 +72,6 @@ class StatisticsAPI(APIView):
                 "properties": {
                     "id": {"type": "string"},
                     "name": {"type": "string"},
-                    "team": {"type": "string"},
                     "edition": {"type": "integer"},
                     "character_type": {"type": "string"},
                 },
@@ -89,11 +88,12 @@ class CharactersAPI(APIView):
     def get(self, request, format=None):
         data = []
         for character in models.ClocktowerCharacter.objects.all():
-            data.append({
-                "id": character.character_id,
-                "name": character.character_name,
-                "team": character.character_type.lower(),
-                "edition": character.edition,
-                "character_type": character.character_type,
-            })
+            data.append(
+                {
+                    "id": character.character_id,
+                    "name": character.character_name,
+                    "edition": character.edition,
+                    "character_type": character.character_type,
+                }
+            )
         return Response(data)
