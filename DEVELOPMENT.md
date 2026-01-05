@@ -1,5 +1,38 @@
 # Local Development
 
+## Quick Start with Dev Containers (Recommended)
+
+The easiest way to get started is using VS Code Dev Containers, which provides a fully configured development environment with all dependencies pre-installed.
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+### Getting Started
+1. Open this repository in VS Code
+2. When prompted, click "Reopen in Container" (or press `F1` and select "Dev Containers: Reopen in Container")
+3. Wait for the container to build and set up (first time takes a few minutes)
+4. Once ready, create a superuser: `uv run python manage.py createsuperuser`
+5. Start the development server: `uv run python manage.py runserver`
+6. Visit [http://localhost:8000](http://localhost:8000)
+
+The dev container automatically:
+- Sets up Python 3.12 with `uv`
+- Installs all dependencies
+- Configures PostgreSQL with the required extensions
+- Runs database migrations
+- Loads character data
+- Configures Django settings
+- Installs helpful VS Code extensions
+
+### Debugging in Dev Container
+The container is pre-configured for debugging. Press `F5` or use the "Run and Debug" panel in VS Code to start the Django server in debug mode with breakpoints enabled.
+
+## Manual Local Development
+
+If you prefer not to use Dev Containers, you can set up the environment manually.
+
 ## Database
 
 The site uses PostgreSQL as the backend database. The mimimum PostgreSQL version required in v13. The PostgreSQL database must have the `postgresql-contrib` debian installed. It is recommended that you use [docker compose](./dev/docker-compose.yml) to spin up the [attached Dockerfile](./dev/Dockerfile) as your PostgreSQL database.
@@ -41,9 +74,13 @@ DATABASES = {
 
 SECRET_KEY = "<random_string>"
 
+STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 BS_ICONS_CACHE = os.path.join(STATIC_ROOT, "icon_cache")
 DEBUG = True
+
+UPLOAD_DISABLED = False
+BANNER = None
 
 INTERNAL_IPS = [
     "127.0.0.1",
