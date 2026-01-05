@@ -52,9 +52,9 @@
 <div class="container">
     <div class="row">
         {% if stats_character %}
-            <h1>Total {{ stats_character }} Scripts in Database: {{ total }}</h1>
+            <h1>Statistics for {{ stats_character }}</h1>
         {% else %}
-            <h1>Total Scripts in Database: {{ total }}</h1>
+            <h1>Overall Statistics</h1>
         {% endif %}
         <div class="col float-right pr-0">
             {% if user.is_authenticated and filter %}
@@ -69,8 +69,9 @@
             {% else %}
             <div class="float-right mt-2">
             {% endif %}
+            <span><h3>Scripts in Database: {{ total }}</h3></span>
             <input type="range" min="1" max="25" value="5" class="slider" id="DisplayRange">
-            <span id="DisplayRangeLabel"></label>
+            <label><span id="DisplayRangeLabel"></span></label>
         </div>
     </div>
     </div>
@@ -80,7 +81,13 @@
 <div class="container">
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Townsfolk</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Most common Townsfolk pairing
+                {% else %}
+                    Most popular Townsfolk 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Townsfolk %}
@@ -94,7 +101,13 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Townsfolk</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Least common Townsfolk pairing
+                {% else %}
+                    Least popular Townsfolk 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Townsfolkleast %}
@@ -111,7 +124,13 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Outsider</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Most common Outsider pairing
+                {% else %}
+                    Most popular Outsiders 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Outsider %}
@@ -125,7 +144,13 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Outsider</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Least common Outsider pairing
+                {% else %}
+                    Least popular Outsiders 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-good">
                 <tbody>
                     {% for character, count in Outsiderleast %}
@@ -142,7 +167,13 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Minions</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Most common Minion pairing
+                {% else %}
+                    Most popular Minions 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Minion %}
@@ -156,7 +187,13 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Minions</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Least common Minion pairing
+                {% else %}
+                    Least popular Minions 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Minionleast %}
@@ -173,7 +210,13 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Demons</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Most common Demon pairing
+                {% else %}
+                    Most popular Demons 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Demon %}
@@ -187,7 +230,12 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Demons</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Least common Demon pairing
+                {% else %}
+                    Least popular Demons 
+                {% endif %}
             <table class="w-100 table-sm table-striped-evil">
                 <tbody>
                     {% for character, count in Demonleast %}
@@ -204,7 +252,13 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Travellers</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Most common Traveller pairing
+                {% else %}
+                    Most popular Travellers 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-traveller">
                 <tbody>
                     {% for character, count in Traveller %}
@@ -218,7 +272,12 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Travellers</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Least common Traveller pairing
+                {% else %}
+                    Least popular Travellers 
+                {% endif %}
             <table class="w-100 table-sm table-striped-traveller">
                 <tbody>
                     {% for character, count in Travellerleast %}
@@ -235,7 +294,13 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Fabled</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Most common Fabled pairing
+                {% else %}
+                    Most popular Fabled 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-fabled">
                 <tbody>
                     {% for character, count in Fabled %}
@@ -249,7 +314,13 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Fabled</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Least common Fabled pairing
+                {% else %}
+                    Least popular Fabled 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-fabled">
                 <tbody>
                     {% for character, count in Fabledleast %}
@@ -266,7 +337,13 @@
 
     <div class="row">
         <div class="col w-50 pl-0">
-            <h4 class="mt-2">Most popular Loric</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Most common Loric pairing
+                {% else %}
+                    Most popular Lorics 
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-loric">
                 <tbody>
                     {% for character, count in Loric %}
@@ -280,7 +357,13 @@
             </table>
         </div>
         <div class="col w-50 pr-0">
-            <h4 class="mt-2">Least popular Loric</h4>
+            <h4 class="mt-2">
+                {% if stats_character %}
+                    Least common Loric pairing
+                {% else %}
+                    Least popular Lorics
+                {% endif %}
+            </h4>
             <table class="w-100 table-sm table-striped-loric">
                 <tbody>
                     {% for character, count in Loricleast %}
@@ -318,14 +401,19 @@
     }
     var slider = document.getElementById("DisplayRange");
     var label = document.getElementById("DisplayRangeLabel");
-    label.innerHTML = slider.value;
-    show_and_hide_table_rows(parseInt(slider.value))
-    
+
+    function updateLabel(value) {
+        var suffix = value === 1 ? " row per table" : " rows per table";
+        label.innerHTML = value + suffix;
+    }
+
+    updateLabel(parseInt(slider.value));
+    show_and_hide_table_rows(parseInt(slider.value));
 
     // Update the current slider value (each time you drag the slider handle)
     slider.oninput = function() {
-        label.innerHTML = this.value;
-        show_and_hide_table_rows(parseInt(this.value))
+        updateLabel(parseInt(this.value));
+        show_and_hide_table_rows(parseInt(this.value));
     }
 </script>
 
