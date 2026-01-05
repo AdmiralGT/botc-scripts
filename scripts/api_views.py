@@ -73,15 +73,8 @@ class StatisticsAPI(APIView):
                     "id": {"type": "string"},
                     "name": {"type": "string"},
                     "team": {"type": "string"},
-                    "firstNight": {"type": "number", "nullable": True},
-                    "firstNightReminder": {"type": "string"},
-                    "otherNight": {"type": "number", "nullable": True},
-                    "otherNightReminder": {"type": "string"},
-                    "reminders": {"type": "array", "items": {"type": "string"}},
-                    "setup": {"type": "boolean"},
-                    "ability": {"type": "string"},
-                    "image": {"type": "string"},
                     "edition": {"type": "integer"},
+                    "character_type": {"type": "string"},
                 },
             },
             "description": "List of all clocktower characters",
@@ -96,7 +89,11 @@ class CharactersAPI(APIView):
     def get(self, request, format=None):
         data = []
         for character in models.ClocktowerCharacter.objects.all():
-            character_json = character.full_character_json()
-            character_json["edition"] = character.edition
-            data.append(character_json)
+            data.append({
+                "id": character.character_id,
+                "name": character.character_name,
+                "team": character.character_type.lower(),
+                "edition": character.edition,
+                "character_type": character.character_type,
+            })
         return Response(data)
