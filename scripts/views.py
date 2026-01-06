@@ -199,11 +199,11 @@ class ScriptView(generic.DetailView):
         context = super().get_context_data(**kwargs)
 
         if "selected_version" in self.request.GET:
-            current_script = self.object.versions.get(version=self.request.GET["selected_version"])
+            current_script: models.ScriptVersion = self.object.versions.get(version=self.request.GET["selected_version"])
         elif "version" in self.kwargs:
-            current_script = self.object.versions.get(version=self.kwargs["version"])
+            current_script: models.ScriptVersion = self.object.versions.get(version=self.kwargs["version"])
         else:
-            current_script = self.object.versions.order_by("-version").first()
+            current_script: models.ScriptVersion = self.object.versions.order_by("-version").first()
         context["script_version"] = current_script
 
         changes = {}
@@ -242,7 +242,29 @@ class ScriptView(generic.DetailView):
             f"https://script.bloodontheclocktower.com?script={script_json.compress_json(current_script.content)}"
         )
 
+        scripts = get_popular_scripts_with_remaining_tokens(current_script.content)
+        print(f"By Favourite: {scripts[0]}")
+        print(f"By Score: {scripts[1]}")
+
         return context
+
+
+def get_popular_scripts_with_remaining_tokens(character_json: Dict):
+    queryset = models.ScriptVersion.objects.filter(num_townsfolk__gt=10,script_type=models.ScriptTypes.FULL, latest=True, homebrewiness=models.Homebrewiness.CLOCKTOWER)
+    for item in character_json:
+        if item.get("id", "") == "_meta":
+            continue
+        character_name = item.get("id", "")
+        try: 
+            character = models.ClocktowerCharacter.objects.get(character_id=character_name)
+            if character.character_type in (models.CharacterType.FABLED, models.CharacterType.TRAVELLER, models.CharacterType.LORIC):
+                continue
+        except models.ClocktowerCharacter.DoesNotExist:
+            continue
+
+        queryset = queryset.exclude(content__contains=[{"id": character.character_id}])
+        print(queryset.count())
+    return queryset.order_by("-num_favs")[:20], queryset.order_by("-score")[:20]
 
 
 def get_all_roles(edition: models.Edition):
