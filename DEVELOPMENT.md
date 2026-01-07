@@ -14,7 +14,7 @@ VS Code Dev Containers provides a fully configured development environment with 
 2. When prompted, click "Reopen in Container" (or press `F1` and select "Dev Containers: Reopen in Container")
 3. Wait for the container to build and set up (first time takes a few minutes)
 4. Once ready, create a superuser: `uv run python manage.py createsuperuser`
-5. Start the development server: `uv run python manage.py runserver`
+5. Start the development server: `uv run python manage.py runserver 0.0.0.0:8000`
 6. Visit [http://localhost:8000](http://localhost:8000)
 
 The dev container automatically:
@@ -107,7 +107,7 @@ You can also populate the database with all the characters (this is useful for t
 
 The site can be run using:
 
-`uv run python manage.py runserver`
+`uv run python manage.py runserver 0.0.0.0:8000`
 
 The site will be accessible at `http://localhost:8000`. You can access the Django admin panel, logging in with the credentials you used to create the super user at `http://localhost:8000/admin`
 
