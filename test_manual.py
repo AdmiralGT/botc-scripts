@@ -4,25 +4,20 @@ Quick manual testing script for delete all versions functionality.
 Run this with: python manage.py shell < test_manual.py
 Or copy-paste into Django shell.
 """
+
 from scripts.models import Script, ScriptVersion
 from django.contrib.auth.models import User
 from versionfield import Version
 
 # Create or get a test user
-user, created = User.objects.get_or_create(
-    username="testuser",
-    defaults={"email": "test@example.com"}
-)
+user, created = User.objects.get_or_create(username="testuser", defaults={"email": "test@example.com"})
 if created:
     user.set_password("testpass123")
     user.save()
     print(f"Created user: {user.username}")
 
 # Create a test script with multiple versions
-script, created = Script.objects.get_or_create(
-    name="Test Script for Deletion",
-    defaults={"owner": user}
-)
+script, created = Script.objects.get_or_create(name="Test Script for Deletion", defaults={"owner": user})
 if created:
     print(f"Created script: {script.name} (ID: {script.pk})")
 else:
@@ -48,14 +43,14 @@ if current_versions < 2:
                 "num_fabled": 0,
                 "num_loric": 0,
                 "num_travellers": 0,
-            }
+            },
         )
     print(f"Created test versions. Total versions: {script.versions.count()}")
 
 # Display script info
-print("\n" + "="*50)
+print("\n" + "=" * 50)
 print("SCRIPT INFORMATION")
-print("="*50)
+print("=" * 50)
 print(f"Script ID: {script.pk}")
 print(f"Script Name: {script.name}")
 print(f"Owner: {script.owner.username if script.owner else 'None'}")
@@ -64,9 +59,9 @@ print("\nVersions:")
 for v in script.versions.all().order_by("version"):
     print(f"  - Version {v.version} (PK: {v.pk}, Latest: {v.latest})")
 
-print("\n" + "="*50)
+print("\n" + "=" * 50)
 print("TESTING INSTRUCTIONS")
-print("="*50)
+print("=" * 50)
 print("1. Web UI Test:")
 print(f"   - Go to: http://localhost:8000/script/{script.pk}")
 print("   - Look for 'Delete Version' button with dropdown")
@@ -78,4 +73,3 @@ print(f"   curl -X DELETE -u {user.username}:testpass123 \\")
 print(f"        http://localhost:8000/api/scripts/{script.versions.first().pk}/delete-all-versions/")
 print("\n3. Verify deletion:")
 print(f"   Script.objects.filter(pk={script.pk}).exists()  # Should be False")
-
