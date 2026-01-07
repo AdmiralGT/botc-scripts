@@ -70,6 +70,11 @@ urlpatterns = [
     ),
     path("script/<int:pk>", views.ScriptView.as_view(), name="script"),
     path(
+        "script/<int:pk>/delete_all",
+        views.ScriptDeleteAllVersionsView.as_view(),
+        name="delete_all_script_versions",
+    ),
+    path(
         "script/<int:pk>/<str:version>/similar",
         views.get_similar_scripts,
         name="similar",
