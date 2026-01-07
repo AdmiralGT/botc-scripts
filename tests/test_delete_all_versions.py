@@ -200,7 +200,6 @@ class TestDeleteAllVersionsAPI:
     def test_api_delete_all_versions_success(self, db, user, script_with_multiple_versions):
         """Test successful API deletion of all versions."""
         from rest_framework.test import APIClient
-        from rest_framework.authtoken.models import Token
         
         script, version = script_with_multiple_versions
         client = APIClient()

@@ -2,7 +2,6 @@
 Django settings for testing.
 """
 from pathlib import Path
-import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
