@@ -1,0 +1,40 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    depends_on:
+      - db
+    environment:
+      # Force Python output to be unbuffered for real-time logs and debugging
+      # This ensures print statements and errors appear immediately in the terminal and Docker logs,
+      # which is important in containerized environments as the container may crash before the buffer is flushed.
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"
+    networks:
+      - botc-network
+
+  db:
+    image: postgres:14.19
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - botc-network
+
+volumes:
+  postgres-data:
+
+networks:
+  botc-network:
+    driver: bridge
