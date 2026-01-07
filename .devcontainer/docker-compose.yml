@@ -6,7 +6,6 @@ services:
     volumes:
       - ../..:/workspaces:cached
     command: sleep infinity
-    network_mode: service:db
     depends_on:
       - db
     environment:
@@ -16,6 +15,8 @@ services:
       - PYTHONUNBUFFERED=1
     ports:
       - "8000:8000"
+    networks:
+      - botc-network
 
   db:
     image: postgres:14.19
@@ -23,11 +24,17 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: postgres@db
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
+    networks:
+      - botc-network
 
 volumes:
   postgres-data:
+
+networks:
+  botc-network:
+    driver: bridge
