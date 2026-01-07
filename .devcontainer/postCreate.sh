@@ -3,13 +3,6 @@ set -e
 
 echo "🚀 Setting up BOTC Scripts development environment..."
 
-# Install Claude Code CLI if not already installed
-if ! command -v claude &> /dev/null; then
-  echo "🤖 Installing Claude Code CLI..."
-  curl -fsSL https://claude.com/install.sh | sh
-  export PATH="/home/vscode/.local/bin:${PATH}"
-fi
-
 # Install Python dependencies
 echo "📦 Installing Python dependencies with uv..."
 uv sync

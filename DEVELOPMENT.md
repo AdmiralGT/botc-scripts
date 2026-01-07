@@ -1,8 +1,8 @@
 # Local Development
 
-## Quick Start with Dev Containers (Recommended)
+## Quick Start with Dev Containers
 
-The easiest way to get started is using VS Code Dev Containers, which provides a fully configured development environment with all dependencies pre-installed.
+VS Code Dev Containers provides a fully configured development environment with all dependencies pre-installed.
 
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
