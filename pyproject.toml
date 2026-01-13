@@ -30,7 +30,7 @@ package-mode = false
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3.2,<9",
+    "pytest>=8.3.2,<10",
     "pytest-django>=4.9.0,<5",
     "pytest-cov>=6.0.0,<7",
     "isort",
