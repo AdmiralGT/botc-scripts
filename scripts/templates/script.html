@@ -8,8 +8,10 @@
     div.alert-messages {
         position: fixed;
         top: 80px;
-        left: 44%;
-        right: 44%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        max-width: 300px;
         z-index: 7000;
     }
 </style>
@@ -237,19 +239,29 @@
         <a class="nav-link {% active_aria_status 'comments-tab' activetab %}" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments ({{ comments|length }})</a>
     </li>
 </ul>
-<div class="tab-content row p-1" height="720">
+<div class="tab-content row p-1">
     {% if script_version.pdf %}
-    <div class="col-sm-6">
-        <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
+    <div class="col-12 col-md-6 mb-3">
+        <!-- Desktop: Embedded PDF -->
+        <div class="d-none d-md-block">
+            <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
+        </div>
+        <!-- Mobile: Link to open/download PDF -->
+        <div class="d-md-none text-center p-3 bg-light rounded">
+            <p class="mb-2"><strong>Script PDF</strong></p>
+            <a class="btn btn-primary btn-block" href="{{ script_version.pdf.url }}" target="_blank">
+                View PDF
+            </a>
+        </div>
     </div>
     {% endif %}
     {% if script_version.notes %}
-    <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-sm-6" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+    <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-12 col-md-6" id="notes" role="tabpanel" aria-labelledby="notes-tab">
         {{ script_version.notes|markdownify }}
     </div>
-    <div class="tab-pane fade col-sm-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade col-12 col-md-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% else %}
-    <div class="tab-pane fade {% active_tab_status 'characters-tab' activetab %} col-sm-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade {% active_tab_status 'characters-tab' activetab %} col-12 col-md-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% endif %}
         {% for role in script_version.content %}
             {% if role.id != "_meta" %}
@@ -263,7 +275,7 @@
         {% endfor %}
     </div>
     {% if changes.items|length > 0 %}
-    <div class="tab-pane fade col-sm-6" id="history" role="tabpanel" aria-labelledby="history-tab">
+    <div class="tab-pane fade col-12 col-md-6" id="history" role="tabpanel" aria-labelledby="history-tab">
         {% for version, diffs in changes.items %}
             <h2>{{ diffs.previous_version }} -> {{ version }}</h2>
             <div class="row">
@@ -296,7 +308,7 @@
         {% endfor %}
     </div>
     {% endif %}
-    <div class="tab-pane fade col-sm-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
+    <div class="tab-pane fade col-12 col-md-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
         <h3>Full Scripts</h3>
         <ul class="p-0" id="similar-full-list">
         loading...
@@ -306,7 +318,7 @@
         loading...
         </ul>
     </div>
-    <div class="tab-pane fade col-sm-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
+    <div class="tab-pane fade col-12 col-md-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
         <ul class="p-0">
             {% for collection in script_version.collections.all %}
                 <li><a href="/collection/{{collection.pk}}">{{collection.name}}</a></li>
@@ -314,9 +326,9 @@
         </ul>
     </div>
     {% if script_version.pdf %}
-    <div class="tab-pane fade col-sm-6 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    <div class="tab-pane fade col-12 col-md-6 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
     {% else %}
-    <div class="tab-pane fade col-sm-8 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    <div class="tab-pane fade col-12 col-md-8 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
     {% endif %}
         {% for comment_info in comments %}
             <div class="row">
