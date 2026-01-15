@@ -104,22 +104,22 @@
     </div>
 {% endif %}
 
-<div class="row">
-    <div class="col-md-auto pt-1 pr-0 h-75">
+<div class="row flex-wrap">
+    <div class="col-auto pt-1 pr-0 h-75">
         <form class="mb-0">
             <select class="custom-select" name="selected_version" onchange="this.form.submit();">
                 {% for versions in script.versions.all|dictsortreversed:"version" %}
                     <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
                 {% endfor %}
-            </select>    
+            </select>
         </form>
     </div>
-    <div class="col-md-auto pl-2 p-0 pt-1">
+    <div class="col-auto pl-2 p-0 pt-1">
         <a class="btn btn-primary" href="{{ script_tool_link }}" target="_blank">Open in Script Tool</a>
     </div>
-    <div class="col-md-auto pl-1 p-0">
+    <div class="col-auto pl-1 p-0">
         <form class="form-inline mb-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
-            <div class="col-md-auto p-1 pt-0">
+            <div class="col-auto p-1 pt-0">
                 <div class="btn-group">
                     <button type="submit" class="btn btn-primary">Download JSON</button>
                     <button type="submit" class="btn btn-primary dropdown-toggle dropdown-toggle-split" id="downloadJsonButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -133,23 +133,23 @@
                 </div>
             </div>
         </form>
-    </div>  
+    </div>
     {% if script_version.pdf %}
-        <div class="col-md-auto p-1">
+        <div class="col-auto p-1">
             <a class="btn btn-primary" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
         </div>
     {% endif %}
     {% if not script.owner or user == script_version.script.owner %}
-        <div class="col-md-auto p-1">
+        <div class="col-auto p-1">
             <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
         </div>
     {% endif %}
-    <div class="col-md-auto p-1">
+    <div class="col-auto p-1">
         <button class="btn btn-primary" onclick="CopyLink()">JSON</button>
     </div>
     {% if script_version.edition > 2 %}
         {% if perms.scripts.download_unsupported_json %}
-            <div class="col-md-auto p-1">
+            <div class="col-auto p-1">
                 <a class="btn btn-warning" href="{% url 'download_unsupported' script.pk script_version.version %}">Autogen JSON</a>
             </div>
         {% endif %}
@@ -158,17 +158,17 @@
         {% if user.collections.count > 0 %}
             {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}
             {% if script_can_be_added_to_collection %}
-                <div class="col-md-auto p-1">
+                <div class="col-auto p-1">
                     {% include "add_to_collection.html" %}
                 </div>
-            {% endif %}    
+            {% endif %}
         {% endif %}
         {% if can_delete %}
-            <div class="col-md-auto p-1">
+            <div class="col-auto p-1">
                 {% include "delete_script.html" %}
             </div>
         {% endif %}
-        <div class="col-md-auto p-1">
+        <div class="col-auto p-1">
             {% include "favourite.html" with record=script_version %}
         </div>
     {% endif %}
