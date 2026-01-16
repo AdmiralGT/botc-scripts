@@ -50,30 +50,30 @@
 </style>
 
 <div class="container">
-    <div class="row">
-        {% if stats_character %}
-            <h1>Statistics for {{ stats_character }}</h1>
-        {% else %}
-            <h1>Overall Statistics</h1>
-        {% endif %}
-        <div class="col float-right pr-0">
-            {% if user.is_authenticated and filter %}
+    <div class="row align-items-center">
+        <div class="col-12 col-md-auto">
+            {% if stats_character %}
+                <h1>Statistics for {{ stats_character }}</h1>
+            {% else %}
+                <h1>Overall Statistics</h1>
+            {% endif %}
+        </div>
+        {% if user.is_authenticated and filter %}
+        <div class="col-12 col-md-auto">
             <form action="" method="get" class="form mb-0">
-                <div class="float-right form-group row p-1 mb-0">
+                <div class="form-group d-flex flex-wrap align-items-center mb-2 mb-md-0">
                     {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
                     {% bootstrap_button 'filter' extra_classes="btn-sm mr-1" %}
                     {% bootstrap_button 'clear' extra_classes="btn-sm" href="/statistics" %}
                 </div>
             </form>
-            <div class="float-right mr-4 mt-2">
-            {% else %}
-            <div class="float-right mt-2">
-            {% endif %}
-            <span><h3>Scripts in Database: {{ total }}</h3></span>
+        </div>
+        {% endif %}
+        <div class="col-12 col-md-auto ml-md-auto">
+            <h3>Scripts in Database: {{ total }}</h3>
             <input type="range" min="1" max="25" value="5" class="slider" id="DisplayRange">
             <label><span id="DisplayRangeLabel"></span></label>
         </div>
-    </div>
     </div>
 </div>
 
