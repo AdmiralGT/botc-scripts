@@ -218,7 +218,7 @@ class CollectionFilter(django_filters.FilterSet, django_filters.filters.QuerySet
 
 class StatisticsFilter(django_filters.FilterSet, django_filters.filters.QuerySetRequestMixin):
     is_owner = django_filters.filters.BooleanFilter(
-        widget=forms.CheckboxInput, label="My Scripts only", method="is_owner_function"
+        widget=forms.CheckboxInput, label="My scripts only", method="is_owner_function"
     )
 
     class Meta:
