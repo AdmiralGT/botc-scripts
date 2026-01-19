@@ -15,6 +15,10 @@ def get_name_from_json(json):
     return get_metadata_field_from_json(json, "name")
 
 
+def get_bootlegger_rules_from_json(json):
+    return get_metadata_field_from_json(json, "bootlegger")
+
+
 def get_metadata_field_from_json(json, field):
     """
     Returns a chosen field from the _meta JSON data.
