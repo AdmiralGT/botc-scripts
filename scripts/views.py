@@ -241,6 +241,7 @@ class ScriptView(generic.DetailView):
         context["script_tool_link"] = (
             f"https://script.bloodontheclocktower.com?script={script_json.compress_json(current_script.content)}"
         )
+        context["bootlegger_rules"] = script_json.get_bootlegger_rules_from_json(current_script.content)
 
         return context
 
