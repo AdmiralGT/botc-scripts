@@ -106,7 +106,6 @@ class ScriptVersion(models.Model):
     def determine_script_location(instance, filename):
         from pathlib import Path
         from uuid import uuid4
-        from django.utils.text import get_valid_filename
 
         # Add hash to filename to bust CDN cache
         name = Path(filename).stem
