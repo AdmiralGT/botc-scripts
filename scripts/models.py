@@ -4,7 +4,10 @@ from versionfield import VersionField
 
 from scripts import constants
 from scripts.managers import ScriptViewManager, CollectionManager
+
+from pathlib import Path
 from typing import Dict
+from uuid import uuid4
 
 
 # Note, if more Editions are added, the Script Upload view
@@ -104,9 +107,6 @@ class ScriptVersion(models.Model):
     """
 
     def determine_script_location(instance, filename):
-        from pathlib import Path
-        from uuid import uuid4
-
         # Add hash to filename to bust CDN cache
         name = Path(filename).stem
         ext = Path(filename).suffix

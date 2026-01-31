@@ -17,6 +17,7 @@ from django.http import (
     HttpResponse,
 )
 from django.shortcuts import redirect
+from django.utils.text import get_valid_filename
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
@@ -869,8 +870,6 @@ def download_unsupported_json(request, pk: int, version: str) -> FileResponse:
 
 
 def download_pdf(request, pk: int, version: str) -> FileResponse:
-    from django.utils.text import get_valid_filename
-
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
     # Sanitize script name for safe filename
