@@ -4,7 +4,10 @@ from versionfield import VersionField
 
 from scripts import constants
 from scripts.managers import ScriptViewManager, CollectionManager
+
+from pathlib import Path
 from typing import Dict
+from uuid import uuid4
 
 
 # Note, if more Editions are added, the Script Upload view
@@ -104,7 +107,12 @@ class ScriptVersion(models.Model):
     """
 
     def determine_script_location(instance, filename):
-        return f"{instance.script.pk}/{instance.version}/{filename}"
+        # Add hash to filename to bust CDN cache
+        name = Path(filename).stem
+        ext = Path(filename).suffix
+        file_hash = uuid4().hex[:8]
+        unique_filename = f"{name}_{file_hash}{ext}"
+        return f"{instance.script.pk}/{instance.version}/{unique_filename}"
 
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="versions")
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)

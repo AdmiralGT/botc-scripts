@@ -17,6 +17,7 @@ from django.http import (
     HttpResponse,
 )
 from django.shortcuts import redirect
+from django.utils.text import get_valid_filename
 from django.views import generic
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
@@ -305,6 +306,9 @@ def update_script(script_version: models.ScriptVersion, cleaned_data, author, us
     if cleaned_data.get("notes", None):
         script_version.notes = cleaned_data["notes"]
     if cleaned_data.get("pdf", None):
+        # Delete old PDF if it exists to prevent orphaned files
+        if script_version.pdf:
+            script_version.pdf.delete(save=False)
         script_version.pdf = cleaned_data["pdf"]
 
     if user.is_staff:
@@ -868,10 +872,13 @@ def download_unsupported_json(request, pk: int, version: str) -> FileResponse:
 def download_pdf(request, pk: int, version: str) -> FileResponse:
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
+    # Sanitize script name for safe filename
+    safe_name = get_valid_filename(script.name)
+    filename = f"{safe_name}_v{version}.pdf"
     if os.environ.get("DJANGO_HOST", None):
-        return FileResponse(script_version.pdf, as_attachment=True)
+        return FileResponse(script_version.pdf, as_attachment=True, filename=filename)
     else:
-        return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True)
+        return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True, filename=filename)
 
 
 class CollectionScriptListView(SingleTableView):
