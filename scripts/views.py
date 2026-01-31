@@ -869,12 +869,17 @@ def download_unsupported_json(request, pk: int, version: str) -> FileResponse:
 
 
 def download_pdf(request, pk: int, version: str) -> FileResponse:
+    from django.utils.text import get_valid_filename
+
     script = models.Script.objects.get(pk=pk)
     script_version = script.versions.get(version=version)
+    # Sanitize script name for safe filename
+    safe_name = get_valid_filename(script.name)
+    filename = f"{safe_name}_v{version}.pdf"
     if os.environ.get("DJANGO_HOST", None):
-        return FileResponse(script_version.pdf, as_attachment=True)
+        return FileResponse(script_version.pdf, as_attachment=True, filename=filename)
     else:
-        return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True)
+        return FileResponse(open(script_version.pdf.name, "rb"), as_attachment=True, filename=filename)
 
 
 class CollectionScriptListView(SingleTableView):

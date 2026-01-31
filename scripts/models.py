@@ -104,7 +104,16 @@ class ScriptVersion(models.Model):
     """
 
     def determine_script_location(instance, filename):
-        return f"{instance.script.pk}/{instance.version}/{filename}"
+        from pathlib import Path
+        from uuid import uuid4
+        from django.utils.text import get_valid_filename
+
+        # Add hash to filename to bust CDN cache
+        name = Path(filename).stem
+        ext = Path(filename).suffix
+        file_hash = uuid4().hex[:8]
+        unique_filename = f"{name}_{file_hash}{ext}"
+        return f"{instance.script.pk}/{instance.version}/{unique_filename}"
 
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="versions")
     pdf = models.FileField(null=True, blank=True, upload_to=determine_script_location)
