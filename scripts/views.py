@@ -305,6 +305,9 @@ def update_script(script_version: models.ScriptVersion, cleaned_data, author, us
     if cleaned_data.get("notes", None):
         script_version.notes = cleaned_data["notes"]
     if cleaned_data.get("pdf", None):
+        # Delete old PDF if it exists to prevent orphaned files
+        if script_version.pdf:
+            script_version.pdf.delete(save=False)
         script_version.pdf = cleaned_data["pdf"]
 
     if user.is_staff:
