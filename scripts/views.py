@@ -27,6 +27,7 @@ from scripts import (
     cache,
     constants,
     filters,
+    queries,
     forms,
     models,
     script_json,
@@ -645,7 +646,7 @@ class StatisticsView(generic.ListView, FilterView):
                 pass
 
         context["total"] = queryset.count()
-        if queryset.count() == 0:
+        if context["total"] == 0:
             return context
 
         character_count = {}
@@ -654,14 +655,14 @@ class StatisticsView(generic.ListView, FilterView):
             character_count[type.value] = Counter()
             num_count[type.value] = Counter()
 
+        character_counts = queries.get_all_script_character_counts(queryset)
+
         for character in models.ClocktowerCharacter.objects.all():
             # If we're on a Character Statistics page, don't include this character in the count.
             if character == stats_character:
                 continue
 
-            character_count[character.character_type][character] = queryset.filter(
-                content__contains=[{"id": character.character_id}]
-            ).count()
+            character_count[character.character_type][character] = character_counts.get(character.character_id, 0)
 
         for type in models.CharacterType:
             context[type.value] = character_count[type.value].most_common(characters_to_display)
