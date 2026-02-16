@@ -8,9 +8,8 @@ license = { text = "MIT" }
 dependencies = [
     "Django<6.0,>=5.1",
     "django-versionfield<2.0.0,>=1.0.2",
-    "packaging<25.0,>=24.2",
     "django-tables2<3.0.0,>=2.4.1",
-    "django-bootstrap4<25.0,>=24.1",
+    "django-bootstrap4<27.0,>=26.1",
     "django-filter<25.0,>=24.2",
     "djangorestframework<4.0.0,>=3.12.2",
     "psycopg2-binary<3.0.0,>=2.9.9",
@@ -30,9 +29,9 @@ package-mode = false
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3.2,<9",
-    "pytest-django>=4.9.0,<5",
-    "pytest-cov>=6.0.0,<7",
+    "pytest",
+    "pytest-django",
+    "pytest-cov",
     "isort",
     "mypy",
     "ruff",
@@ -43,9 +42,9 @@ package = false
 
 [tool.pdm.dev-dependencies]
 dev = [
-    "pytest<9.0.0,>=8.3.2",
-    "pytest-django<5.0.0,>=4.9.0",
-    "pytest-cov<7.0.0,>=6.0.0",
+    "pytest",
+    "pytest-django",
+    "pytest-cov",
     "isort",
     "mypy",
     "ruff",
