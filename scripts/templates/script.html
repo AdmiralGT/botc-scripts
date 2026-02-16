@@ -14,6 +14,10 @@
         max-width: 300px;
         z-index: 7000;
     }
+
+    .bg-loric {
+       background-color: rgba(141, 199, 0, 0.6);
+    }
 </style>
 
 <script>
@@ -208,7 +212,7 @@
 
 
 <ul class="nav nav-tabs" id="myTab" role="tablist">
-    {% if script_version.notes %}
+    {% if script_version.notes or bootlegger_rules %}
     <li class="nav-item">
         <a class="nav-link {% active_aria_status 'notes-tab' activetab %}" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="true">Notes</a>
     </li>
@@ -254,9 +258,21 @@
         </div>
     </div>
     {% endif %}
-    {% if script_version.notes %}
+    {% if script_version.notes or bootlegger_rules %}
     <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-12 col-md-6" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+        {% if bootlegger_rules %}
+        <div class="alert mb-3 bg-loric">
+            <strong>Bootlegger Rules:</strong>
+            <ul class="mb-0 mt-2">
+            {% for rule in bootlegger_rules %}
+                <li>{{ rule|markdownify }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% if script_version.notes %}
         {{ script_version.notes|markdownify }}
+        {% endif %}
     </div>
     <div class="tab-pane fade col-12 col-md-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% else %}
