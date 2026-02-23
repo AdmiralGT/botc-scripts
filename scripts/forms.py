@@ -52,7 +52,7 @@ class ScriptForm(forms.Form):
             raise ValidationError(f"Invalid JSON content: {e}")
 
         try:
-            schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.45.0"))
+            schema_version = str(os.environ.get("JSON_SCHEMA_VERSION", "v3.52.0"))
             schema_url = f"https://raw.githubusercontent.com/ThePandemoniumInstitute/botc-release/refs/tags/{schema_version}/script-schema.json"
             schema = requests.get(schema_url, timeout=2)
             try:
