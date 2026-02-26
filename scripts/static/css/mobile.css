@@ -1,0 +1,27 @@
+/* Mobile styles for BotC Scripts */
+
+/* Alert messages - center properly on all screen sizes */
+@media (max-width: 767.98px) {
+    div.alert-messages {
+        left: 10% !important;
+        right: 10% !important;
+    }
+}
+
+/* Tables - enable horizontal scroll on mobile */
+@media (max-width: 767.98px) {
+    .table-responsive-mobile {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Button rows - allow wrapping on mobile */
+@media (max-width: 575.98px) {
+    .btn-row-mobile .col-md-auto {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 0.25rem 0;
+    }
+}
