@@ -587,6 +587,26 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
         return f"/script/{script.pk}"
 
 
+class ScriptDeleteAllVersionsView(LoginRequiredMixin, generic.View):
+    """
+    Deletes all versions of a script and the script itself.
+    """
+
+    def post(self, request, *args, **kwargs):
+        try:
+            script = models.Script.objects.get(pk=kwargs.get("pk"))
+        except models.Script.DoesNotExist:
+            raise Http404("Cannot delete a script that does not exist.")
+
+        if script.owner != request.user:
+            return HttpResponseForbidden()
+
+        # Delete the script, which will cascade delete all versions due to CASCADE relationship
+        script.delete()
+
+        return HttpResponseRedirect("/")
+
+
 class StatisticsView(generic.ListView, FilterView):
     model = models.ScriptVersion
     template_name = "statistics.html"

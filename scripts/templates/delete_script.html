@@ -1,30 +1,67 @@
 {% load bootstrap4 %}
 {% load botc_script_tags %}
 
-<!-- Modal -->
+<!-- Modal for deleting single version -->
 <div class="modal fade" id="deletionModal" tabindex="-1" role="dialog" aria-labelledby="deletionModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deletionModalLabel">Delete</h5>
+                <h5 class="modal-title" id="deletionModalLabel">Delete Version</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete this script?
+                Are you sure you want to delete version {{ script_version.version }} of "{{ script.name }}"?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-                <form action="{% url 'delete_script' script.pk script_version.version %}" method="post">
+                <form action="{% url 'delete_script' script.pk script_version.version %}" method="post" class="d-inline">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <button type="submit" class="btn btn-danger">Delete Version</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<button class="btn btn-danger" data-toggle="modal" data-target="#deletionModal">
-    Delete
-</button>
+<!-- Modal for deleting all versions -->
+{% if script.versions.all|length > 1 %}
+<div class="modal fade" id="deleteAllVersionsModal" tabindex="-1" role="dialog" aria-labelledby="deleteAllVersionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAllVersionsModalLabel">Delete All Versions</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>all {{ script.versions.all|length }} versions</strong> of "{{ script.name }}"?</p>
+                <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                <form action="{% url 'delete_all_script_versions' script.pk %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete All Versions</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="btn-group">
+    <button class="btn btn-danger" data-toggle="modal" data-target="#deletionModal">
+        Delete Version
+    </button>
+    {% if script.versions.all|length > 1 %}
+    <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span class="sr-only">Toggle Dropdown</span>
+    </button>
+    <div class="dropdown-menu">
+        <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#deleteAllVersionsModal">Delete All Versions</a>
+    </div>
+    {% endif %}
+</div>
