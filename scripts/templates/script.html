@@ -8,8 +8,10 @@
     div.alert-messages {
         position: fixed;
         top: 80px;
-        left: 44%;
-        right: 44%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        max-width: 300px;
         z-index: 7000;
     }
 
@@ -106,22 +108,22 @@
     </div>
 {% endif %}
 
-<div class="row">
-    <div class="col-md-auto pt-1 pr-0 h-75">
+<div class="row flex-wrap">
+    <div class="col-auto pt-1 pr-0 h-75">
         <form class="mb-0">
             <select class="custom-select" name="selected_version" onchange="this.form.submit();">
                 {% for versions in script.versions.all|dictsortreversed:"version" %}
                     <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
                 {% endfor %}
-            </select>    
+            </select>
         </form>
     </div>
-    <div class="col-md-auto pl-2 p-0 pt-1">
+    <div class="col-auto pl-2 p-0 pt-1">
         <a class="btn btn-primary" href="{{ script_tool_link }}" target="_blank">Open in Script Tool</a>
     </div>
-    <div class="col-md-auto pl-1 p-0">
+    <div class="col-auto pl-1 p-0">
         <form class="form-inline mb-0" method="get" action="{% url 'download_json' script.pk script_version.version %}">
-            <div class="col-md-auto p-1 pt-0">
+            <div class="col-auto p-1 pt-0">
                 <div class="btn-group">
                     <button type="submit" class="btn btn-primary">Download JSON</button>
                     <button type="submit" class="btn btn-primary dropdown-toggle dropdown-toggle-split" id="downloadJsonButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -135,23 +137,23 @@
                 </div>
             </div>
         </form>
-    </div>  
+    </div>
     {% if script_version.pdf %}
-        <div class="col-md-auto p-1">
+        <div class="col-auto p-1">
             <a class="btn btn-primary" href="{% url 'download_pdf' script.pk script_version.version %}">Download PDF</a>
         </div>
     {% endif %}
     {% if not script.owner or user == script_version.script.owner %}
-        <div class="col-md-auto p-1">
+        <div class="col-auto p-1">
             <a class="btn btn-primary" href="{% url 'upload' %}?script={{script.pk}}">Upload new version</a>
         </div>
     {% endif %}
-    <div class="col-md-auto p-1">
+    <div class="col-auto p-1">
         <button class="btn btn-primary" onclick="CopyLink()">JSON</button>
     </div>
     {% if script_version.edition > 2 %}
         {% if perms.scripts.download_unsupported_json %}
-            <div class="col-md-auto p-1">
+            <div class="col-auto p-1">
                 <a class="btn btn-warning" href="{% url 'download_unsupported' script.pk script_version.version %}">Autogen JSON</a>
             </div>
         {% endif %}
@@ -160,17 +162,17 @@
         {% if user.collections.count > 0 %}
             {% script_not_in_user_collection user script_version as script_can_be_added_to_collection %}
             {% if script_can_be_added_to_collection %}
-                <div class="col-md-auto p-1">
+                <div class="col-auto p-1">
                     {% include "add_to_collection.html" %}
                 </div>
-            {% endif %}    
+            {% endif %}
         {% endif %}
         {% if can_delete %}
-            <div class="col-md-auto p-1">
+            <div class="col-auto p-1">
                 {% include "delete_script.html" %}
             </div>
         {% endif %}
-        <div class="col-md-auto p-1">
+        <div class="col-auto p-1">
             {% include "favourite.html" with record=script_version %}
         </div>
     {% endif %}
@@ -241,14 +243,23 @@
         <a class="nav-link {% active_aria_status 'comments-tab' activetab %}" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments ({{ comments|length }})</a>
     </li>
 </ul>
-<div class="tab-content row p-1" height="720">
+<div class="tab-content row p-1">
     {% if script_version.pdf %}
-    <div class="col-sm-6">
-        <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
+    <div class="col-12 col-md-6 mb-3">
+        <!-- Desktop: Embedded PDF -->
+        <div class="d-none d-md-block">
+            <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
+        </div>
+        <!-- Mobile: Link to open/download PDF -->
+        <div class="d-md-none text-center p-3 bg-light rounded">
+            <a class="btn btn-primary btn-block" href="{{ script_version.pdf.url }}" target="_blank">
+                View PDF
+            </a>
+        </div>
     </div>
     {% endif %}
     {% if script_version.notes or bootlegger_rules %}
-    <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-sm-6" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+    <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-12 col-md-6" id="notes" role="tabpanel" aria-labelledby="notes-tab">
         {% if bootlegger_rules %}
         <div class="alert mb-3 bg-loric">
             <strong>Bootlegger Rules:</strong>
@@ -263,9 +274,9 @@
         {{ script_version.notes|markdownify }}
         {% endif %}
     </div>
-    <div class="tab-pane fade col-sm-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade col-12 col-md-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% else %}
-    <div class="tab-pane fade {% active_tab_status 'characters-tab' activetab %} col-sm-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
+    <div class="tab-pane fade {% active_tab_status 'characters-tab' activetab %} col-12 col-md-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% endif %}
         {% for role in script_version.content %}
             {% if role.id != "_meta" %}
@@ -279,7 +290,7 @@
         {% endfor %}
     </div>
     {% if changes.items|length > 0 %}
-    <div class="tab-pane fade col-sm-6" id="history" role="tabpanel" aria-labelledby="history-tab">
+    <div class="tab-pane fade col-12 col-md-6" id="history" role="tabpanel" aria-labelledby="history-tab">
         {% for version, diffs in changes.items %}
             <h2>{{ diffs.previous_version }} -> {{ version }}</h2>
             <div class="row">
@@ -312,7 +323,7 @@
         {% endfor %}
     </div>
     {% endif %}
-    <div class="tab-pane fade col-sm-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
+    <div class="tab-pane fade col-12 col-md-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
         <h3>Full Scripts</h3>
         <ul class="p-0" id="similar-full-list">
         loading...
@@ -322,7 +333,7 @@
         loading...
         </ul>
     </div>
-    <div class="tab-pane fade col-sm-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
+    <div class="tab-pane fade col-12 col-md-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
         <ul class="p-0">
             {% for collection in script_version.collections.all %}
                 <li><a href="/collection/{{collection.pk}}">{{collection.name}}</a></li>
@@ -330,9 +341,9 @@
         </ul>
     </div>
     {% if script_version.pdf %}
-    <div class="tab-pane fade col-sm-6 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    <div class="tab-pane fade col-12 col-md-6 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
     {% else %}
-    <div class="tab-pane fade col-sm-8 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    <div class="tab-pane fade col-12 col-md-8 {% active_tab_status 'comments-tab' activetab %}" id="comments" role="tabpanel" aria-labelledby="comments-tab">
     {% endif %}
         {% for comment_info in comments %}
             <div class="row">
