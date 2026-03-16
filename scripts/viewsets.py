@@ -214,6 +214,28 @@ class ScriptViewSet(viewsets.ModelViewSet):
             script.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @authentication_classes([BasicAuthentication])
+    @action(methods=["delete"], detail=True, url_path="delete-all-versions")
+    def delete_all_versions(self, request, pk=None):
+        """
+        Delete all versions of a script. The script itself will also be deleted.
+        """
+        try:
+            instance = models.ScriptVersion.objects.get(pk=pk)
+        except models.ScriptVersion.DoesNotExist:
+            return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        script = instance.script
+
+        if script.owner != self.request.user:
+            return Response(
+                {"error": "You do not have permission to delete this script."}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Delete the script, which will cascade delete all versions due to CASCADE relationship
+        script.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class TranslateScriptViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.ScriptVersion.objects.all()
