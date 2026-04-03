@@ -51,6 +51,14 @@ def script_not_in_user_collection(user, script_version):
             return True
     return False
 
+@register.simple_tag()
+def get_characters(script_version):
+    characters = []
+    for character in script_version.content:
+        if character.get("id", "_meta") != "_meta":
+            characters.append(convert_id_to_friendly_text(character.get("id", "_meta")))
+    return ", ".join(characters)
+
 
 def get_colour_from_character_type(character_type):
     match character_type:
