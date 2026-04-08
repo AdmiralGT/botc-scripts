@@ -667,14 +667,14 @@ azure = [
 
 [[package]]
 name = "django-tables2"
-version = "2.8.0"
+version = "2.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/28/ab/3533314e818b04a9e1f04ae167845fec509f4e78ebaa6cf507d12eabcce3/django_tables2-2.8.0.tar.gz", hash = "sha256:0dea3401bb99a0164ba09e20d59a7d90856fdc05e5ae2da9a14d0fa14d99257c", size = 129204, upload-time = "2025-11-21T10:17:43.813Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ef/3b/957b973281d2562261c35a200d20d2ff17a13f7cd25640c1d39e4f73e2c3/django_tables2-2.9.0.tar.gz", hash = "sha256:687d99646165da7ba77240d5298ded76b55012733c3ee3123fdb32028af8d24e", size = 130058, upload-time = "2026-04-06T10:00:11.634Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/79/8b/047bb29359953b1c76f8886377845538144033d87da622c6b743f597a50b/django_tables2-2.8.0-py3-none-any.whl", hash = "sha256:860633b0f448216af73fca6005c7e38dc9b46931dc36c08a9281a71ee250b1ee", size = 95968, upload-time = "2025-11-21T10:17:42.363Z" },
+    { url = "https://files.pythonhosted.org/packages/98/f0/2b9778554306adafbe68665616ae688ea79b6e2362736abd509b06a89f55/django_tables2-2.9.0-py3-none-any.whl", hash = "sha256:54112f6cedcc56361184d7ac350255d1f2ded6ff630ca6faf394d088908a05af", size = 96409, upload-time = "2026-04-06T10:00:10.055Z" },
 ]
 
 [[package]]
