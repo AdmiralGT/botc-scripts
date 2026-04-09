@@ -51,6 +51,7 @@ def script_not_in_user_collection(user, script_version):
             return True
     return False
 
+
 @register.simple_tag()
 def get_characters(script_version):
     characters = []
