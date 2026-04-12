@@ -1,4 +1,5 @@
 from django import template
+from django.utils.safestring import mark_safe
 from scripts import models, cache, script_json
 from babel.core import Locale, UnknownLocaleError
 
@@ -54,11 +55,42 @@ def script_not_in_user_collection(user, script_version):
 
 @register.simple_tag()
 def get_characters(script_version):
-    characters = []
+    type_order = [
+        models.CharacterType.TOWNSFOLK,
+        models.CharacterType.OUTSIDER,
+        models.CharacterType.MINION,
+        models.CharacterType.DEMON,
+        models.CharacterType.TRAVELLER,
+        models.CharacterType.FABLED,
+        models.CharacterType.LORIC,
+        models.CharacterType.UNKNOWN,
+    ]
+    characters_by_type = {t: [] for t in type_order}
+
+    clocktower_characters = cache.get_clocktower_characters()
+    homebrew_characters = cache.get_homebrew_characters()
+
     for character in script_version.content:
-        if character.get("id", "_meta") != "_meta":
-            characters.append(convert_id_to_friendly_text(character.get("id", "_meta")))
-    return ", ".join(characters)
+        char_id = character.get("id", "_meta")
+        if char_id == "_meta":
+            continue
+        char_obj = clocktower_characters.get(char_id) or homebrew_characters.get(char_id)
+        if char_obj:
+            char_name = char_obj.character_name
+            char_type = char_obj.character_type
+        else:
+            char_name = char_id
+            char_type = models.CharacterType.UNKNOWN
+        type_list = characters_by_type.get(char_type, characters_by_type[models.CharacterType.UNKNOWN])
+        type_list.append(char_name)
+
+    lines = []
+    for char_type in type_order:
+        chars = characters_by_type[char_type]
+        if chars:
+            lines.append(f"{char_type}: {', '.join(chars)}")
+
+    return mark_safe("&#10;".join(lines))
 
 
 def get_colour_from_character_type(character_type):

@@ -827,13 +827,14 @@ def translate_content(content, request, language):
     return content
 
 
-def json_file_response(name, content):
+def json_file_response(name, script_version, content):
     json = js.JSONEncoder(ensure_ascii=False).encode(content)
     temp_file = TemporaryFile()
     temp_file.write(json.encode("utf-8"))
     temp_file.flush()
     temp_file.seek(0)
-    response = FileResponse(temp_file, as_attachment=True, filename=(name + ".json"))
+    version = str(script_version.version).replace(".", "_")
+    response = FileResponse(temp_file, as_attachment=True, filename=(name + "_" + version + ".json"))
     return response
 
 
@@ -844,7 +845,7 @@ def download_json(request, pk: int, version: str, language: Optional[str] = None
     script.num_downloads = F("num_downloads") + 1
     script.save()
 
-    return json_file_response(script.name, content)
+    return json_file_response(script.name, script_version, content)
 
 
 @permission_required("scripts.download_unsupported_json")

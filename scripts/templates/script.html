@@ -4,7 +4,7 @@
 {% load botc_script_tags %}
 <meta property="og:title" content="{{ script.name }} - v{{ script_version.version }}" />
 {% if script_version.author %}
-<meta property="og:description" content="Script by {{ script_version.author }} - {% get_characters script_version %}" />
+<meta property="og:description" content="Script by {{ script_version.author }}&#10;{% get_characters script_version %}" />
 {% else %}
 <meta property="og:description" content="{% get_characters script_version %}" />
 {% endif %}
@@ -12,7 +12,7 @@
 <meta property="og:url" content="{{ request.build_absolute_uri }}" />
 <meta property="twitter:title" content="{{ script.name }} - v{{ script_version.version }}" />
 {% if script_version.author %}
-<meta property="twitter:description" content="Script by {{ script_version.author }} - {% get_characters script_version %}" />
+<meta property="twitter:description" content="Script by {{ script_version.author }}&#10;{% get_characters script_version %}" />
 {% else %}
 <meta property="twitter:description" content="{% get_characters script_version %}" />
 {% endif %}
