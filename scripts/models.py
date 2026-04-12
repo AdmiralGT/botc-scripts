@@ -36,6 +36,7 @@ class TagStyles(models.TextChoices):
     PURPLE = "badge-purple"
     NOCTURNE = "badge-nocturne"
     BLOODRED = "badge-bloodred"
+    CLOCKCONAUS = "badge-clockconaus"
 
 
 class CharacterType(models.TextChoices):
