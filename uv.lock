@@ -106,7 +106,6 @@ dependencies = [
     { name = "django-markdownify" },
     { name = "django-storages", extra = ["azure"] },
     { name = "django-tables2" },
-    { name = "django-versionfield" },
     { name = "djangorestframework" },
     { name = "drf-spectacular" },
     { name = "jsonschema" },
@@ -129,6 +128,7 @@ requires-dist = [
     { name = "babel", specifier = ">=2.13.1,<3.0.0" },
     { name = "bleach", specifier = ">=6.2.0" },
     { name = "django", specifier = ">=5.1,<6.0" },
+    { name = "django", specifier = ">=5.2.14,<6.0" },
     { name = "django-allauth", extras = ["socialaccount"], specifier = ">=65.2.0,<66.0.0" },
     { name = "django-bootstrap-icons", specifier = ">=0.9.0,<1.0.0" },
     { name = "django-bootstrap4", specifier = ">=26.1,<27.0" },
@@ -137,7 +137,6 @@ requires-dist = [
     { name = "django-markdownify", specifier = ">=0.9.2,<1.0.0" },
     { name = "django-storages", extras = ["azure"], specifier = ">=1.11.1,<2.0.0" },
     { name = "django-tables2", specifier = ">=2.4.1,<3.0.0" },
-    { name = "django-versionfield", specifier = ">=1.0.2,<2.0.0" },
     { name = "djangorestframework", specifier = ">=3.12.2,<4.0.0" },
     { name = "drf-spectacular", specifier = ">=0.28.0" },
     { name = "jsonschema", specifier = ">=4.23.0,<5.0.0" },
@@ -549,16 +548,16 @@ wheels = [
 
 [[package]]
 name = "django"
-version = "5.2.13"
+version = "5.2.14"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "sqlparse" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1f/c5/c69e338eb2959f641045802e5ea87ca4bf5ac90c5fd08953ca10742fad51/django-5.2.13.tar.gz", hash = "sha256:a31589db5188d074c63f0945c3888fad104627dfcc236fb2b97f71f89da33bc4", size = 10890368, upload-time = "2026-04-07T14:02:15.072Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/65/95/95f7faa0950867afaa0bef2460c6263afd6a2c78cc9434046ed28160b015/django-5.2.14.tar.gz", hash = "sha256:58a63ba841662e5c686b57ba1fec52ddd68c0b93bd96ac3029d55728f00bf8a2", size = 10895118, upload-time = "2026-05-05T13:57:31.104Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/b1/51ab36b2eefcf8cdb9338c7188668a157e29e30306bfc98a379704c9e10d/django-5.2.13-py3-none-any.whl", hash = "sha256:5788fce61da23788a8ce6f02583765ab060d396720924789f97fa42119d37f7a", size = 8310982, upload-time = "2026-04-07T14:02:08.883Z" },
+    { url = "https://files.pythonhosted.org/packages/14/44/f172870cf87aa25afef48fb72adba89ee8b77fcab6f3b23d240b923f1528/django-5.2.14-py3-none-any.whl", hash = "sha256:6f712143bd3064310d1f50fac859c3e9a274bdcfc9595339853be7779297fc76", size = 8311320, upload-time = "2026-05-05T13:57:25.795Z" },
 ]
 
 [[package]]
@@ -675,15 +674,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ef/3b/957b973281d2562261c35a200d20d2ff17a13f7cd25640c1d39e4f73e2c3/django_tables2-2.9.0.tar.gz", hash = "sha256:687d99646165da7ba77240d5298ded76b55012733c3ee3123fdb32028af8d24e", size = 130058, upload-time = "2026-04-06T10:00:11.634Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/98/f0/2b9778554306adafbe68665616ae688ea79b6e2362736abd509b06a89f55/django_tables2-2.9.0-py3-none-any.whl", hash = "sha256:54112f6cedcc56361184d7ac350255d1f2ded6ff630ca6faf394d088908a05af", size = 96409, upload-time = "2026-04-06T10:00:10.055Z" },
-]
-
-[[package]]
-name = "django-versionfield"
-version = "1.0.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/6d/98/c18c27bb3a0e3c6190e0ae6986f2ce1842a52a2cd7e6a9d9568e5559f397/django-versionfield-1.0.3.tar.gz", hash = "sha256:3ad461fcd61bc8f3ca30c7ca11a7bf956d9ca4619de443ebfb2e5acf34fc01a8", size = 411326, upload-time = "2023-01-21T05:40:01.219Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/ba/92b3c4d8d2be95893417e959895d14ef168b96bd275c702d44e81a8b88db/django_versionfield-1.0.3-py3-none-any.whl", hash = "sha256:f3a8325fd7b06c25f55628d4218ed613136354f3c81623e1d923c867872aa387", size = 414819, upload-time = "2023-01-21T05:39:58.709Z" },
 ]
 
 [[package]]
