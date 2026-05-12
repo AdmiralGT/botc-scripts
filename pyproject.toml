@@ -7,7 +7,7 @@ requires-python = "<4.0,>=3.10"
 license = { text = "MIT" }
 dependencies = [
     "django>=5.2.14,<6.0",
-    "django-tables2<3.0.0,>=2.4.1",
+    "django-tables2>=3.0.0,<4.0.0",
     "django-bootstrap4<27.0,>=26.1",
     "django-filter<25.0,>=24.2",
     "django-versionfield<2.0.0,>=1.0.2",
