@@ -136,6 +136,7 @@ class ScriptVersion(models.Model):
     homebrewiness = models.IntegerField(choices=Homebrewiness.choices, default=Homebrewiness.CLOCKTOWER)
 
     objects = ScriptViewManager()
+    plain_objects = models.Manager()
 
     def __str__(self):
         return f"{self.pk}. {self.script.name} - v{self.version}"

@@ -1,3 +1,4 @@
+from django.db.models import Count
 from rest_framework import filters, viewsets
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import BasePermission, IsAuthenticated
@@ -39,10 +40,10 @@ class ScriptViewSet(viewsets.ModelViewSet):
     ordering = ["-pk"]
 
     def get_queryset(self):
-        queryset = models.ScriptVersion.objects.all()
+        queryset = models.ScriptVersion.plain_objects.annotate(score=Count("script__votes", distinct=True))
         latest = self.request.query_params.get("latest")
         if latest:
-            queryset = models.ScriptVersion.objects.filter(latest=True)
+            queryset = queryset.filter(latest=True)
         return queryset
 
     @action(methods=["get"], detail=True)
@@ -224,10 +225,10 @@ class TranslateScriptViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ["-pk"]
 
     def get_queryset(self):
-        queryset = models.ScriptVersion.objects.all()
+        queryset = models.ScriptVersion.plain_objects.annotate(score=Count("script__votes", distinct=True))
         latest = self.request.query_params.get("latest")
         if latest:
-            queryset = models.ScriptVersion.objects.filter(latest=True)
+            queryset = queryset.filter(latest=True)
         return queryset
 
     def get_object(self, pk: int):
