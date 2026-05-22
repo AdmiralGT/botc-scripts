@@ -6,7 +6,7 @@ from scripts import models, constants, script_json
 class ScriptSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="script.name")
     script_id = serializers.IntegerField(source="script.pk", read_only=True)
-    score = serializers.IntegerField(source="votes.count", read_only=True)
+    score = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = models.ScriptVersion
