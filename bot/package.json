@@ -10,14 +10,14 @@
     "type-check": "tsc --noEmit"
   },
   "engines": {
-    "node": ">=22.2.0"
+    "node": ">=24.0.0"
   },
   "dependencies": {
     "@devvit/public-api": "0.12.24",
-    "devvit": "0.12.24"
+    "devvit": "^0.12.24"
   },
   "devDependencies": {
-    "@types/node": "^22",
+    "@types/node": "^25",
     "typescript": "6.0.3"
   }
 }
