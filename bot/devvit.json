@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "botcscriptbot",
+  "blocks": {
+    "entry": "src/main.ts",
+    "triggers": [
+      "onCommentCreate"
+    ]
+  },
+  "permissions": {
+    "reddit": true,
+    "http": {
+      "domains": ["botcscripts.com"]
+    }
+  }
+}

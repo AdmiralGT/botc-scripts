@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "name": "botcscripts-reddit-bot",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "deploy": "devvit upload",
+    "dev": "devvit playtest",
+    "login": "devvit login",
+    "type-check": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22.2.0"
+  },
+  "dependencies": {
+    "@devvit/public-api": "0.12.24",
+    "devvit": "0.12.24"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "6.0.3"
+  }
+}
