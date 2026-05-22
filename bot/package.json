@@ -16,6 +16,11 @@
     "@devvit/public-api": "0.12.24",
     "devvit": "^0.12.24"
   },
+  "overrides": {
+    "protobufjs": "^7.5.8",
+    "tmp": "^0.2.3",
+    "ws": "^8.20.0"
+  },
   "devDependencies": {
     "@types/node": "^25",
     "typescript": "6.0.3"
