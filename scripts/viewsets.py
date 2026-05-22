@@ -40,9 +40,7 @@ class ScriptViewSet(viewsets.ModelViewSet):
     ordering = ["-pk"]
 
     def get_queryset(self):
-        queryset = models.ScriptVersion.plain_objects.annotate(
-            score=Count("script__votes", distinct=True)
-        )
+        queryset = models.ScriptVersion.plain_objects.annotate(score=Count("script__votes", distinct=True))
         latest = self.request.query_params.get("latest")
         if latest:
             queryset = queryset.filter(latest=True)
@@ -227,9 +225,7 @@ class TranslateScriptViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ["-pk"]
 
     def get_queryset(self):
-        queryset = models.ScriptVersion.plain_objects.annotate(
-            score=Count("script__votes", distinct=True)
-        )
+        queryset = models.ScriptVersion.plain_objects.annotate(score=Count("script__votes", distinct=True))
         latest = self.request.query_params.get("latest")
         if latest:
             queryset = queryset.filter(latest=True)
