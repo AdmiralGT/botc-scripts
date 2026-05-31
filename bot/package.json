@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@devvit/public-api": "0.12.24",
-    "devvit": "^0.12.24"
+    "devvit": "^0.13.0"
   },
   "overrides": {
     "protobufjs": "^7.5.8",
