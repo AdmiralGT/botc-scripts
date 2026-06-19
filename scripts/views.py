@@ -176,9 +176,9 @@ class ScriptView(generic.DetailView):
         return models.Script.objects.select_related("owner").prefetch_related(
             Prefetch(
                 "versions",
-                queryset=models.ScriptVersion.objects.prefetch_related("tags").annotate(
-                    num_comments=Count("script__comments", distinct=True)
-                ).order_by("-version"),
+                queryset=models.ScriptVersion.objects.prefetch_related("tags")
+                .annotate(num_comments=Count("script__comments", distinct=True))
+                .order_by("-version"),
             ),
             Prefetch(
                 "comments",
@@ -760,9 +760,11 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
     similarity = {}
     similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
     similarity[models.ScriptTypes.FULL.value] = {}
-    for script_version in models.ScriptVersion.objects.filter(
-        latest=True, homebrewiness=models.Homebrewiness.CLOCKTOWER
-    ).select_related("script").order_by("pk"):
+    for script_version in (
+        models.ScriptVersion.objects.filter(latest=True, homebrewiness=models.Homebrewiness.CLOCKTOWER)
+        .select_related("script")
+        .order_by("pk")
+    ):
         if current_script == script_version:
             continue
 
