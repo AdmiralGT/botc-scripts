@@ -88,6 +88,7 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
 
     def get_queryset(self):
         queryset = super(UserScriptsListView, self).get_queryset()
+        queryset = queryset.prefetch_related("tags")
         if self.script_view == "favourite":
             queryset = queryset.filter(script__favourites__user=self.request.user)
         elif self.script_view == "owned":
@@ -173,7 +174,12 @@ class ScriptView(generic.DetailView):
 
     def get_queryset(self):
         return models.Script.objects.select_related("owner").prefetch_related(
-            Prefetch("versions", queryset=models.ScriptVersion.objects.prefetch_related("tags").order_by("-version")),
+            Prefetch(
+                "versions",
+                queryset=models.ScriptVersion.objects.prefetch_related("tags")
+                .annotate(num_comments=Count("script__comments", distinct=True))
+                .order_by("-version"),
+            ),
             Prefetch(
                 "comments",
                 queryset=models.Comment.objects.select_related("user")
@@ -644,8 +650,9 @@ class StatisticsView(generic.ListView, FilterView):
             except ValueError:
                 pass
 
-        context["total"] = queryset.count()
-        if queryset.count() == 0:
+        total = queryset.count()
+        context["total"] = total
+        if total == 0:
             return context
 
         character_count = {}
@@ -753,9 +760,11 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
     similarity = {}
     similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
     similarity[models.ScriptTypes.FULL.value] = {}
-    for script_version in models.ScriptVersion.objects.filter(
-        latest=True, homebrewiness=models.Homebrewiness.CLOCKTOWER
-    ).order_by("pk"):
+    for script_version in (
+        models.ScriptVersion.objects.filter(latest=True, homebrewiness=models.Homebrewiness.CLOCKTOWER)
+        .select_related("script")
+        .order_by("pk")
+    ):
         if current_script == script_version:
             continue
 
@@ -888,13 +897,18 @@ class CollectionScriptListView(SingleTableView):
     table_pagination = {"per_page": 20}
     ordering = ["pk"]
 
+    def get_collection(self):
+        if not hasattr(self, "_collection"):
+            self._collection = models.Collection.objects.get(pk=self.kwargs["pk"])
+        return self._collection
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["collection"] = models.Collection.objects.get(pk=self.kwargs["pk"])
+        context["collection"] = self.get_collection()
         return context
 
     def get_table_class(self):
-        collection = models.Collection.objects.get(pk=self.kwargs["pk"])
+        collection = self.get_collection()
         if self.request.user == collection.owner:
             return tables.CollectionClocktowerTable
         elif self.request.user.is_authenticated:
@@ -902,8 +916,8 @@ class CollectionScriptListView(SingleTableView):
         return tables.ClocktowerTable
 
     def get_queryset(self):
-        collection = models.Collection.objects.get(pk=self.kwargs["pk"])
-        return collection.scripts.order_by("pk")
+        collection = self.get_collection()
+        return collection.scripts.select_related("script").prefetch_related("tags").order_by("pk")
 
 
 class CollectionListView(SingleTableMixin, FilterView):
@@ -1099,9 +1113,9 @@ class AdvancedSearchResultsView(SingleTableView):
                     return models.ScriptVersion.objects.none()
                 ids = data.get("queryset_pks", [])
                 order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-                queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
+                queryset = models.ScriptVersion.objects.filter(pk__in=ids).prefetch_related("tags").order_by(order)
                 return queryset
-        return models.ScriptVersion.objects.all()
+        return models.ScriptVersion.objects.prefetch_related("tags").all()
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
