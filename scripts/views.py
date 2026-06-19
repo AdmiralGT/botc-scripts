@@ -888,13 +888,18 @@ class CollectionScriptListView(SingleTableView):
     table_pagination = {"per_page": 20}
     ordering = ["pk"]
 
+    def get_collection(self):
+        if not hasattr(self, "_collection"):
+            self._collection = models.Collection.objects.get(pk=self.kwargs["pk"])
+        return self._collection
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["collection"] = models.Collection.objects.get(pk=self.kwargs["pk"])
+        context["collection"] = self.get_collection()
         return context
 
     def get_table_class(self):
-        collection = models.Collection.objects.get(pk=self.kwargs["pk"])
+        collection = self.get_collection()
         if self.request.user == collection.owner:
             return tables.CollectionClocktowerTable
         elif self.request.user.is_authenticated:
@@ -902,8 +907,8 @@ class CollectionScriptListView(SingleTableView):
         return tables.ClocktowerTable
 
     def get_queryset(self):
-        collection = models.Collection.objects.get(pk=self.kwargs["pk"])
-        return collection.scripts.order_by("pk")
+        collection = self.get_collection()
+        return collection.scripts.select_related("script").prefetch_related("tags").order_by("pk")
 
 
 class CollectionListView(SingleTableMixin, FilterView):
