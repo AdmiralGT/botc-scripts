@@ -88,6 +88,7 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
 
     def get_queryset(self):
         queryset = super(UserScriptsListView, self).get_queryset()
+        queryset = queryset.prefetch_related("tags")
         if self.script_view == "favourite":
             queryset = queryset.filter(script__favourites__user=self.request.user)
         elif self.script_view == "owned":
@@ -173,7 +174,12 @@ class ScriptView(generic.DetailView):
 
     def get_queryset(self):
         return models.Script.objects.select_related("owner").prefetch_related(
-            Prefetch("versions", queryset=models.ScriptVersion.objects.prefetch_related("tags").order_by("-version")),
+            Prefetch(
+                "versions",
+                queryset=models.ScriptVersion.objects.prefetch_related("tags").annotate(
+                    num_comments=Count("script__comments", distinct=True)
+                ).order_by("-version"),
+            ),
             Prefetch(
                 "comments",
                 queryset=models.Comment.objects.select_related("user")
@@ -1104,9 +1110,9 @@ class AdvancedSearchResultsView(SingleTableView):
                     return models.ScriptVersion.objects.none()
                 ids = data.get("queryset_pks", [])
                 order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-                queryset = models.ScriptVersion.objects.filter(pk__in=ids).order_by(order)
+                queryset = models.ScriptVersion.objects.filter(pk__in=ids).prefetch_related("tags").order_by(order)
                 return queryset
-        return models.ScriptVersion.objects.all()
+        return models.ScriptVersion.objects.prefetch_related("tags").all()
 
     def get_table_class(self):
         if self.request.user.is_authenticated:

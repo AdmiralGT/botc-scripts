@@ -1,4 +1,4 @@
-{% if record.num_tags > 0 %}
+{% if record.tags.all %}
     {% for tag in record.tags.all %}
         {% if '?' in request.get_full_path %}
             <a class="text-decoration-none" href="{{ request.get_full_path}}&tags={{tag.pk}}"><span class="badge badge-pill mb-1 {{ tag.style }}">{{ tag }}</span></a>
