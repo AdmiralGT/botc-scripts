@@ -650,8 +650,9 @@ class StatisticsView(generic.ListView, FilterView):
             except ValueError:
                 pass
 
-        context["total"] = queryset.count()
-        if queryset.count() == 0:
+        total = queryset.count()
+        context["total"] = total
+        if total == 0:
             return context
 
         character_count = {}
@@ -761,7 +762,7 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
     similarity[models.ScriptTypes.FULL.value] = {}
     for script_version in models.ScriptVersion.objects.filter(
         latest=True, homebrewiness=models.Homebrewiness.CLOCKTOWER
-    ).order_by("pk"):
+    ).select_related("script").order_by("pk"):
         if current_script == script_version:
             continue
 
