@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-Guidance for Claude Code (claude.ai/code) working in this repo.
+Guidance for AI coding agents (Claude Code, Codex, Cursor, etc.) working in this repo.
 
 ## What this is
 
