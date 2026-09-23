@@ -193,7 +193,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 # Allow CORS access to the API for GETs only.
 CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", False) == "True"
 CORS_URLS_REGEX = r"^.*/api/.*$"
-CORS_ALLOW_METHODS = "GET"
+CORS_ALLOW_METHODS = ["GET"]
 
 DISABLE_VALIDATORS = os.getenv("DISABLE_VALIDATORS", False) == "True"
 
