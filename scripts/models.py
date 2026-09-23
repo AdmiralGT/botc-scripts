@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
-from django.db import models
+from django.db import models, transaction
 from versionfield import VersionField
 
 from scripts import constants
@@ -94,6 +94,40 @@ class Script(models.Model):
 
     def latest_version(self):
         return self.versions.order_by("-version").first()
+
+    def refresh_latest_flag(self):
+        """
+        Make the highest version the only version flagged as latest.
+
+        Uses queryset updates rather than saving model instances, so a stale in-memory
+        copy can never overwrite (or resurrect) a row that changed underneath us.
+        """
+        with transaction.atomic():
+            latest = self.latest_version()
+            if latest is None:
+                return None
+            others = ScriptVersion.plain_objects.filter(script=self, latest=True).exclude(pk=latest.pk)
+            others.update(latest=False)
+            ScriptVersion.plain_objects.filter(pk=latest.pk, latest=False).update(latest=True)
+            return latest
+
+    def delete_version(self, version_pk):
+        """
+        Delete one version, keeping the latest flag correct, or the whole script if it was the last one.
+
+        The script row is locked for the duration so simultaneous deletes of different versions
+        can't leave the script with no version flagged latest (which hides it from the default views).
+        Returns True if the script still has versions afterwards. Raises ScriptVersion.DoesNotExist
+        if the version is already gone.
+        """
+        with transaction.atomic():
+            Script.objects.select_for_update().get(pk=self.pk)
+            self.versions.get(pk=version_pk).delete()
+            if self.versions.exists():
+                self.refresh_latest_flag()
+                return True
+            self.delete()
+            return False
 
     class Meta:
         indexes = [

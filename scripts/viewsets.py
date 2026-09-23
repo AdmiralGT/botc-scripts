@@ -235,15 +235,10 @@ class VersionViewSet(viewsets.ModelViewSet):
                 {"error": "You do not have permission to delete this script."}, status=status.HTTP_403_FORBIDDEN
             )
 
-        script = instance.script
-        instance.delete()
-
-        if script.versions.count() > 0:
-            latest_version = script.latest_version()
-            latest_version.latest = True
-            latest_version.save()
-        else:
-            script.delete()
+        try:
+            instance.script.delete_version(instance.pk)
+        except models.ScriptVersion.DoesNotExist:
+            return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

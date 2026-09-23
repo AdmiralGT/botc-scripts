@@ -576,15 +576,15 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
 
         if script.owner != self.request.user:
             return HttpResponseForbidden()
-        script_version.delete()
 
-        if script.versions.count() > 0:
-            latest_version = script.latest_version()
-            latest_version.latest = True
-            latest_version.save()
+        try:
+            script_remains = script.delete_version(script_version.pk)
+        except models.ScriptVersion.DoesNotExist:
+            raise Http404("Cannot delete a script version that does not exist.")
+
+        if script_remains:
             self.success_url = self.determine_success_url(script)
         else:
-            script.delete()
             self.success_url = "/"
 
         return HttpResponseRedirect(self.get_success_url())
