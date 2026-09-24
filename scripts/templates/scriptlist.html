@@ -2,29 +2,48 @@
 
 {% load static %}
 {% load bootstrap4 %}
+{% load botc_script_tags %}
 
 {% block content %}
 
 {% if filter %}
-<form action="" method="get" class="form mb-0">
-    <div class="form-group row p-1 mb-0">
-        {% bootstrap_form filter.form exclude='tags' layout='inline' form_group_class="mb-0 m-1" %}
+{% active_filter_count filter.form "search,tags" as filter_count %}
+<form action="" method="get" class="form script-filter mb-2" role="search" aria-label="Filter scripts">
+    <div class="form-group row p-1 mb-0 filter-row">
+        <div class="filter-search m-1">
+            {% bootstrap_field filter.form.search layout='inline' form_group_class="mb-0 flex-grow-1" %}
+            <button type="button" class="btn btn-outline-secondary d-md-none filter-toggle" data-toggle="collapse" data-target="#filter-fields" aria-expanded="false" aria-controls="filter-fields">
+                Filters{% if filter_count %} <span class="badge badge-primary">{{ filter_count }}</span><span class="sr-only"> active</span>{% endif %}
+            </button>
+        </div>
+        <div id="filter-fields" class="collapse filter-fields">
+            {% bootstrap_form filter.form exclude='tags,search' layout='inline' form_group_class="mb-0 m-1" %}
+            <div class="filter-panel-actions d-md-none">
+                <button type="submit" class="btn btn-primary btn-shaded-text">Show results</button>
+                <a class="btn btn-outline-secondary" href="{{ request.path }}">Clear all</a>
+            </div>
+        </div>
     </div>
     <div class="form-group row mb-0">
         <div class="container">
             <div class="row p-1">
-                {% bootstrap_button 'Filter' button_class='btn-primary' extra_classes="mr-1 btn-shaded-text" %}
-                {% bootstrap_button 'Clear' button_class='btn-primary' href="/" %}
-                <div class="col">
-                    <p class="font-weight-bold text-right">
+                {% bootstrap_button 'Filter' button_class='btn-primary' extra_classes="mr-1 btn-shaded-text d-none d-md-inline-block" %}
+                {% bootstrap_button 'Clear' button_class='btn-outline-secondary' href=request.path extra_classes="d-none d-md-inline-block" %}
+                <div class="col results-row">
+                    <p class="results-count text-right" role="status" aria-live="polite">
                         Results: {{ table.rows|length }}
                     </p>
+                    {% if filter_count or filter.form.data.search %}
+                    <a class="d-md-none results-clear" href="{{ request.path }}">Clear filters</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </form>
 {% endif %}
+
+{% include "mobile_sort.html" %}
 
 {% include "table.html" %}
 

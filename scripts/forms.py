@@ -133,20 +133,58 @@ class CollectionForm(forms.ModelForm):
 
 
 class AdvancedSearchForm(forms.Form):
-    name = forms.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH, required=False)
-    author = forms.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False)
+    name = forms.CharField(
+        max_length=constants.MAX_SCRIPT_NAME_LENGTH,
+        required=False,
+        help_text="Finds names similar to what you type, so small typos are fine.",
+    )
+    author = forms.CharField(
+        max_length=constants.MAX_AUTHOR_NAME_LENGTH,
+        required=False,
+        help_text="Also matches similar spellings.",
+    )
     script_type = forms.ChoiceField(choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL)
-    includes_characters = forms.CharField(required=False)
-    excludes_characters = forms.CharField(required=False)
-    edition = forms.ChoiceField(choices=models.Edition.choices, initial=models.Edition.ALL)
-    minimum_number_of_likes = forms.IntegerField(required=False)
-    minimum_number_of_favourites = forms.IntegerField(required=False)
-    minimum_number_of_comments = forms.IntegerField(required=False)
-    all_scripts = forms.BooleanField(initial=False, label="Include all Script Versions", required=False)
-    include_hybrid = forms.BooleanField(initial=False, label="Include Hybrid", required=False)
-    include_homebrew = forms.BooleanField(initial=False, label="Include Homebrew", required=False)
+    includes_characters = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Imp, Washerwoman"}),
+        help_text="Scripts must contain all of these. Separate names with commas.",
+    )
+    excludes_characters = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Drunk, Baron"}),
+        help_text="Scripts must contain none of these. Separate names with commas.",
+    )
+    edition = forms.ChoiceField(
+        choices=models.Edition.choices,
+        initial=models.Edition.ALL,
+        help_text="Only show scripts that use nothing newer than this edition.",
+    )
+    minimum_number_of_likes = forms.IntegerField(required=False, min_value=0, label="Minimum votes")
+    minimum_number_of_favourites = forms.IntegerField(required=False, min_value=0, label="Minimum favourites")
+    minimum_number_of_comments = forms.IntegerField(required=False, min_value=0, label="Minimum comments")
+    all_scripts = forms.BooleanField(
+        initial=False,
+        label="Include all script versions",
+        required=False,
+        help_text="By default only the latest version of each script is searched.",
+    )
+    include_hybrid = forms.BooleanField(
+        initial=False,
+        label="Include hybrid scripts",
+        required=False,
+        help_text="Scripts mixing official and custom characters.",
+    )
+    include_homebrew = forms.BooleanField(
+        initial=False,
+        label="Include homebrew scripts",
+        required=False,
+        help_text="Scripts made of custom characters.",
+    )
     tag_combinations = forms.ChoiceField(
-        choices=[("AND", "AND"), ("OR", "OR")], initial="AND", widget=forms.RadioSelect
+        choices=[("AND", "All selected tags"), ("OR", "Any selected tag")],
+        initial="AND",
+        widget=forms.RadioSelect,
+        label="Match",
     )
     tags = forms.ModelMultipleChoiceField(
         queryset=models.ScriptTag.objects.all().order_by("order"),
@@ -156,37 +194,37 @@ class AdvancedSearchForm(forms.Form):
     # We can actually get the min,max by querying the database.
     number_of_townsfolk = forms.MultipleChoiceField(
         choices=[(0, 0)],
-        widget=forms.SelectMultiple,
+        widget=forms.SelectMultiple(attrs={"size": 8}),
         required=False,
     )
     number_of_outsiders = forms.MultipleChoiceField(
         choices=[(0, 0)],
-        widget=forms.SelectMultiple,
+        widget=forms.SelectMultiple(attrs={"size": 8}),
         required=False,
     )
     number_of_minions = forms.MultipleChoiceField(
         choices=[(0, 0)],
-        widget=forms.SelectMultiple,
+        widget=forms.SelectMultiple(attrs={"size": 8}),
         required=False,
     )
     number_of_demons = forms.MultipleChoiceField(
         choices=[(0, 0)],
-        widget=forms.SelectMultiple,
+        widget=forms.SelectMultiple(attrs={"size": 8}),
         required=False,
     )
     number_of_fabled = forms.MultipleChoiceField(
         choices=[(0, 0)],
-        widget=forms.SelectMultiple,
+        widget=forms.SelectMultiple(attrs={"size": 8}),
         required=False,
     )
     number_of_loric = forms.MultipleChoiceField(
         choices=[(0, 0)],
-        widget=forms.SelectMultiple,
+        widget=forms.SelectMultiple(attrs={"size": 8}),
         required=False,
     )
     number_of_travellers = forms.MultipleChoiceField(
         choices=[(0, 0)],
-        widget=forms.SelectMultiple,
+        widget=forms.SelectMultiple(attrs={"size": 8}),
         required=False,
     )
 

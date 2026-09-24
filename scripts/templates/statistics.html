@@ -3,402 +3,92 @@
 {% load bootstrap4 %}
 {% load botc_script_tags %}
 
+{% block title %}{% if stats_character %}Statistics for {{ stats_character }}{% else %}Overall Statistics{% endif %} - BotC Scripts{% endblock %}
+
 {% block content %}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" integrity="sha256-Uv9BNBucvCPipKQ2NS9wYpJmi8DTOEfTA/nH2aoJALw=" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" integrity="sha256-aa0xaJgmK/X74WM224KMQeNQC2xYKwlAt08oZqjeF0E=" crossorigin="anonymous" />
 
-<style>
-    .table-striped-good>tbody>tr:nth-child(odd)>td {
-        background-color: #85c1e9;
-    }
-
-    .table-striped-good>tbody>tr:nth-child(even)>td {
-        background-color: #d6eaf8;
-    }
-
-    .table-striped-evil>tbody>tr:nth-child(odd)>td {
-        background-color: #f5b7b1;
-    }
-
-    .table-striped-evil>tbody>tr:nth-child(even)>td {
-        background-color: #fadbd8;
-    }
-
-    .table-striped-traveller>tbody>tr:nth-child(odd)>td {
-        background-color: #d6eaf8;
-    }
-
-    .table-striped-traveller>tbody>tr:nth-child(even)>td {
-        background-color: #fadbd8;
-    }
-
-    .table-striped-fabled>tbody>tr:nth-child(odd)>td {
-        background-color: #fff099;
-    }
-
-    .table-striped-fabled>tbody>tr:nth-child(even)>td {
-        background-color: #fff0cc;
-    }
-    .table-striped-loric>tbody>tr:nth-child(odd)>td {
-        background-color: rgba(46, 71, 28, 0.4);
-    }
-
-    .table-striped-loric>tbody>tr:nth-child(even)>td {
-        background-color: rgba(189, 205, 81, 0.4);
-    }
-
-    /* These tables keep fixed pastel backgrounds, so text should stay black regardless of theme. */
-    html[data-theme="dark"] .table-striped-good td,
-    html[data-theme="dark"] .table-striped-evil td,
-    html[data-theme="dark"] .table-striped-traveller td,
-    html[data-theme="dark"] .table-striped-fabled td,
-    html[data-theme="dark"] .table-striped-good .text-dark,
-    html[data-theme="dark"] .table-striped-evil .text-dark,
-    html[data-theme="dark"] .table-striped-traveller .text-dark,
-    html[data-theme="dark"] .table-striped-fabled .text-dark {
-        color: #212529 !important;
-    }
-</style>
-
-<div class="container">
-    <div class="row">
+<div class="d-flex flex-wrap justify-content-between align-items-start mb-2">
+    <div class="mr-3">
         {% if stats_character %}
             <h1>Statistics for {{ stats_character }}</h1>
+            <p><a href="/statistics">&larr; Back to overall statistics</a></p>
         {% else %}
             <h1>Overall Statistics</h1>
         {% endif %}
-        <div class="col float-right pr-0">
-            {% if user.is_authenticated and filter %}
-            <form action="" method="get" class="form mb-0">
-                <div class="float-right form-group row p-1 mb-0">
-                    {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
-                    {% bootstrap_button 'filter' extra_classes="btn-sm mr-1" %}
-                    {% bootstrap_button 'clear' extra_classes="btn-sm" href="/statistics" %}
-                </div>
-            </form>
-            <div class="float-right mr-4 mt-2">
-            {% else %}
-            <div class="float-right mt-2">
-            {% endif %}
-            <span><h3>Scripts in Database: {{ total }}</h3></span>
-            <input type="range" min="1" max="25" value="5" class="slider" id="DisplayRange">
-            <label><span id="DisplayRangeLabel"></span></label>
-        </div>
+        <p class="h5 font-weight-normal">Scripts in database: <strong>{{ total }}</strong></p>
     </div>
+    <div>
+        {% if user.is_authenticated and filter %}
+        <form action="" method="get" class="form mb-2" role="search" aria-label="Filter statistics">
+            <div class="form-group row p-1 mb-0">
+                {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
+                {% bootstrap_button 'Filter' extra_classes="btn-sm mr-1" %}
+                {% bootstrap_button 'Clear' button_class='btn-outline-secondary' extra_classes="btn-sm" href="/statistics" %}
+            </div>
+        </form>
+        {% endif %}
+        <div class="d-flex align-items-center">
+            <input type="range" min="1" max="25" value="5" class="custom-range mr-2" id="DisplayRange" aria-describedby="DisplayRangeLabel">
+            <label for="DisplayRange" class="mb-0"><span id="DisplayRangeLabel"></span></label>
+        </div>
     </div>
 </div>
 
 {% if total > 0 %}
-<div class="container">
+<div>
     <div class="row">
-        <div class="col w-50 pl-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Most common Townsfolk pairing
-                {% else %}
-                    Most popular Townsfolk 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-good">
-                <tbody>
-                    {% for character, count in Townsfolk %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col w-50 pr-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Least common Townsfolk pairing
-                {% else %}
-                    Least popular Townsfolk 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-good">
-                <tbody>
-                    {% for character, count in Townsfolkleast %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "stats_table.html" with rows=Townsfolk direction="Most" singular="Townsfolk" plural="Townsfolk" table_class="table-striped-good" %}
+        {% include "stats_table.html" with rows=Townsfolkleast direction="Least" singular="Townsfolk" plural="Townsfolk" table_class="table-striped-good" %}
     </div>
 
     <div class="row">
-        <div class="col w-50 pl-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Most common Outsider pairing
-                {% else %}
-                    Most popular Outsiders 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-good">
-                <tbody>
-                    {% for character, count in Outsider %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col w-50 pr-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Least common Outsider pairing
-                {% else %}
-                    Least popular Outsiders 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-good">
-                <tbody>
-                    {% for character, count in Outsiderleast %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "stats_table.html" with rows=Outsider direction="Most" singular="Outsider" plural="Outsiders" table_class="table-striped-good" %}
+        {% include "stats_table.html" with rows=Outsiderleast direction="Least" singular="Outsider" plural="Outsiders" table_class="table-striped-good" %}
     </div>
 
     <div class="row">
-        <div class="col w-50 pl-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Most common Minion pairing
-                {% else %}
-                    Most popular Minions 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-evil">
-                <tbody>
-                    {% for character, count in Minion %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col w-50 pr-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Least common Minion pairing
-                {% else %}
-                    Least popular Minions 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-evil">
-                <tbody>
-                    {% for character, count in Minionleast %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "stats_table.html" with rows=Minion direction="Most" singular="Minion" plural="Minions" table_class="table-striped-evil" %}
+        {% include "stats_table.html" with rows=Minionleast direction="Least" singular="Minion" plural="Minions" table_class="table-striped-evil" %}
     </div>
 
     <div class="row">
-        <div class="col w-50 pl-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Most common Demon pairing
-                {% else %}
-                    Most popular Demons 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-evil">
-                <tbody>
-                    {% for character, count in Demon %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col w-50 pr-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Least common Demon pairing
-                {% else %}
-                    Least popular Demons 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-evil">
-                <tbody>
-                    {% for character, count in Demonleast %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "stats_table.html" with rows=Demon direction="Most" singular="Demon" plural="Demons" table_class="table-striped-evil" %}
+        {% include "stats_table.html" with rows=Demonleast direction="Least" singular="Demon" plural="Demons" table_class="table-striped-evil" %}
     </div>
 
     <div class="row">
-        <div class="col w-50 pl-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Most common Traveller pairing
-                {% else %}
-                    Most popular Travellers 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-traveller">
-                <tbody>
-                    {% for character, count in Traveller %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col w-50 pr-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Least common Traveller pairing
-                {% else %}
-                    Least popular Travellers 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-traveller">
-                <tbody>
-                    {% for character, count in Travellerleast %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "stats_table.html" with rows=Traveller direction="Most" singular="Traveller" plural="Travellers" table_class="table-striped-traveller" %}
+        {% include "stats_table.html" with rows=Travellerleast direction="Least" singular="Traveller" plural="Travellers" table_class="table-striped-traveller" %}
     </div>
 
     <div class="row">
-        <div class="col w-50 pl-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Most common Fabled pairing
-                {% else %}
-                    Most popular Fabled 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-fabled">
-                <tbody>
-                    {% for character, count in Fabled %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col w-50 pr-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Least common Fabled pairing
-                {% else %}
-                    Least popular Fabled 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-fabled">
-                <tbody>
-                    {% for character, count in Fabledleast %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "stats_table.html" with rows=Fabled direction="Most" singular="Fabled" plural="Fabled" table_class="table-striped-fabled" %}
+        {% include "stats_table.html" with rows=Fabledleast direction="Least" singular="Fabled" plural="Fabled" table_class="table-striped-fabled" %}
     </div>
 
     <div class="row">
-        <div class="col w-50 pl-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Most common Loric pairing
-                {% else %}
-                    Most popular Lorics 
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-loric">
-                <tbody>
-                    {% for character, count in Loric %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col w-50 pr-0">
-            <h4 class="mt-2">
-                {% if stats_character %}
-                    Least common Loric pairing
-                {% else %}
-                    Least popular Lorics
-                {% endif %}
-            </h4>
-            <table class="w-100 table-sm table-striped-loric">
-                <tbody>
-                    {% for character, count in Loricleast %}
-                    <tr class='row{{forloop.counter|stringformat:"02d"}}' background-color="#">
-                        <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
-                        <td class="w-25 text-center">{{ count }}</td>
-                        <td class="w-25 text-center">{% get_character_percentage count total %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "stats_table.html" with rows=Loric direction="Most" singular="Loric" plural="Lorics" table_class="table-striped-loric" %}
+        {% include "stats_table.html" with rows=Loricleast direction="Least" singular="Loric" plural="Lorics" table_class="table-striped-loric" %}
     </div>
+
 </div>
 
 <script>
+    // Match chart text and grid colours to the active theme.
+    (function () {
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        Chart.defaults.global.defaultFontColor = dark ? '#e0e0e0' : '#666666';
+        Chart.defaults.scale.gridLines.color = dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+    })();
+
     {% include "chart.html" with ChartName="TownsfolkChart" ChartLabel="Number of Townsfolk" ChartDictionary=num_count.Townsfolk ChartColor="rgba(214,234,248,1)" ChartBorder="rgba(133,193,233,1)" %}
-    {% include "chart.html" with ChartName="OutsiderChart" ChartLabel="Number of Outsiders" ChartDictionary=num_count.Outsider ChartColor="rgba(214,234,248,1)" ChartBorder="rgbargba(133,193,233,1)" %}
+    {% include "chart.html" with ChartName="OutsiderChart" ChartLabel="Number of Outsiders" ChartDictionary=num_count.Outsider ChartColor="rgba(214,234,248,1)" ChartBorder="rgba(133,193,233,1)" %}
     {% include "chart.html" with ChartName="MinionChart" ChartLabel="Number of Minions" ChartDictionary=num_count.Minion ChartColor="rgba(250,219,216,1)" ChartBorder="rgba(245,183,177,1)" %}
     {% include "chart.html" with ChartName="DemonChart" ChartLabel="Number of Demons" ChartDictionary=num_count.Demon ChartColor="rgba(250,219,216,1)" ChartBorder="rgba(245,183,177,1)" %}
-    {% include "chart.html" with ChartName="TravellerChart" ChartLabel="Number of Travellers" ChartDictionary=num_count.Traveller ChartColor="rgba(0,0,255,0.2)" ChartBorder="rgbargba(133,193,233,1)" %}
+    {% include "chart.html" with ChartName="TravellerChart" ChartLabel="Number of Travellers" ChartDictionary=num_count.Traveller ChartColor="rgba(0,0,255,0.2)" ChartBorder="rgba(133,193,233,1)" %}
     {% include "chart.html" with ChartName="FabledChart" ChartLabel="Number of Fabled" ChartDictionary=num_count.Fabled ChartColor="rgba(255,240,204,1)" ChartBorder="rgba(255,240,153,1)" %}
     {% include "chart.html" with ChartName="LoricChart" ChartLabel="Number of Loric" ChartDictionary=num_count.Loric ChartColor="rgba(203,214,129,1)" ChartBorder="rgba(135,143,81,1)" %}
 
@@ -418,7 +108,7 @@
 
     function updateLabel(value) {
         var suffix = value === 1 ? " row per table" : " rows per table";
-        label.innerHTML = value + suffix;
+        label.textContent = value + suffix;
     }
 
     updateLabel(parseInt(slider.value));
@@ -431,14 +121,21 @@
     }
 </script>
 
-<canvas id="TownsfolkChart" width="400" height="100"></canvas>  
-<canvas id="OutsiderChart" width="400" height="100"></canvas>  
-<canvas id="MinionChart" width="400" height="100"></canvas>  
-<canvas id="DemonChart" width="400" height="100"></canvas>  
-<canvas id="TravellerChart" width="400" height="100"></canvas>  
-<canvas id="FabledChart" width="400" height="100"></canvas>
-<canvas id="LoricChart" width="400" height="100"></canvas>  
+<h2 class="h4 mt-4">Characters per script</h2>
+<div>
+    <canvas id="TownsfolkChart" width="400" height="100" role="img" aria-label="Bar chart: number of Townsfolk per script"></canvas>
+    <canvas id="OutsiderChart" width="400" height="100" role="img" aria-label="Bar chart: number of Outsiders per script"></canvas>
+    <canvas id="MinionChart" width="400" height="100" role="img" aria-label="Bar chart: number of Minions per script"></canvas>
+    <canvas id="DemonChart" width="400" height="100" role="img" aria-label="Bar chart: number of Demons per script"></canvas>
+    <canvas id="TravellerChart" width="400" height="100" role="img" aria-label="Bar chart: number of Travellers per script"></canvas>
+    <canvas id="FabledChart" width="400" height="100" role="img" aria-label="Bar chart: number of Fabled per script"></canvas>
+    <canvas id="LoricChart" width="400" height="100" role="img" aria-label="Bar chart: number of Lorics per script"></canvas>
+</div>
 
+{% else %}
+<div class="alert alert-info" role="status">
+    No scripts match these filters yet.{% if stats_character %} <a href="/statistics" class="alert-link">Back to overall statistics</a>{% endif %}
+</div>
 {% endif %}
 
 {% endblock %}

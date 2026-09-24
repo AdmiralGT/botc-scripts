@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ script.name }} v{{ script_version.version }} - BotC Scripts{% endblock %}
+
 {% block extra_head %}
 {% load botc_script_tags %}
 <meta property="og:title" content="{{ script.name }} - v{{ script_version.version }}" />
@@ -27,9 +29,12 @@
     div.alert-messages {
         position: fixed;
         top: 80px;
-        left: 44%;
-        right: 44%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: max-content;
+        max-width: 90vw;
         z-index: 7000;
+        pointer-events: none;
     }
 
     .bg-loric {
@@ -42,9 +47,6 @@
 </style>
 
 <script>
-    // Set the name of the page to the name & version of the script.    
-    document.title = "{{ script.name }} v{{ script_version.version }}"
-  
     function showAndDismissAlert(message) {
         var htmlAlert = '<div class="alert alert-primary' + '">' + message + '</div>';
 
@@ -57,8 +59,10 @@
     }    
   
     function CopyLink() {
-        navigator.clipboard.writeText("https://www.botcscripts.com/api/scripts/{{script_version.pk}}/json/")
-        showAndDismissAlert("Link Copied to Clipboard")
+        navigator.clipboard.writeText("https://www.botcscripts.com/api/scripts/{{script_version.pk}}/json/").then(
+            function () { showAndDismissAlert("Link copied to clipboard"); },
+            function () { showAndDismissAlert("Could not copy the link. Please copy it manually."); }
+        );
     }
 </script>
 <script async>
@@ -129,18 +133,19 @@
     </div>
 {% endif %}
 
-<div class="row">
-    <div class="col-md-auto pt-1 pr-0 h-75">
+<div class="row script-actions">
+    <div class="col-md-auto pt-1 pr-0 h-75 script-actions-wide">
         <form class="mb-0">
-            <select class="custom-select" name="selected_version" onchange="this.form.submit();">
+            <label for="selected_version" class="sr-only">Script version</label>
+            <select class="custom-select" id="selected_version" name="selected_version" onchange="this.form.submit();">
                 {% for versions in script.versions.all|dictsortreversed:"version" %}
                     <option {% if script_version.version == versions.version %}selected{% endif %}>{{ versions.version }} </option>
                 {% endfor %}
             </select>    
         </form>
     </div>
-    <div class="col-md-auto pl-2 p-0 pt-1">
-        <a class="btn btn-primary" href="{{ script_tool_link }}" target="_blank">Open in Script Tool</a>
+    <div class="col-md-auto pl-2 p-0 pt-1 script-actions-wide">
+        <a class="btn btn-primary" href="{{ script_tool_link }}" target="_blank" rel="noopener noreferrer">Open in Script Tool<span class="sr-only"> (opens in a new tab)</span></a>
     </div>
     <div class="col-md-auto pl-1 p-0">
         <div class="col-md-auto p-1 pt-0">
@@ -168,7 +173,7 @@
         </div>
     {% endif %}
     <div class="col-md-auto p-1">
-        <a class="btn btn-primary" href="#" role="button" onclick="CopyLink(); return false;">JSON</a>
+        <button type="button" class="btn btn-primary" onclick="CopyLink()" title="Copy a link to this script's JSON, for use in other tools">Copy JSON Link</button>
     </div>
     {% if script_version.edition > 2 %}
         {% if perms.scripts.download_unsupported_json %}
@@ -195,35 +200,35 @@
             {% include "favourite.html" with record=script_version %}
         </div>
     {% endif %}
-    <div class="p-1 alert-messages text-center"></div>
+    <div class="p-1 alert-messages text-center" role="status" aria-live="polite"></div>
 </div>
-<div class="row">
-    <div class="col-md-auto pl-3 pr-0 pt-0 pb-0">
+<div class="row edition-support">
+    <div class="col-auto pl-3 pr-0 pt-0 pb-0">
         Base 3: 
             {% if script_version.edition == 0 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}<span class="sr-only">Supported</span>
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}<span class="sr-only">Not supported</span>
             {% endif %}
     </div>
-    <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
+    <div class="col-auto pl-2 pr-0 pt-0 pb-0">
         Kickstarter:
             {% if script_version.edition <= 1 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}<span class="sr-only">Supported</span>
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}<span class="sr-only">Not supported</span>
             {% endif %}
     </div>
-    <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
+    <div class="col-auto pl-2 pr-0 pt-0 pb-0">
         Carousel:
             {% if script_version.edition <= 2 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}<span class="sr-only">Supported</span>
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}<span class="sr-only">Not supported</span>
             {% endif %}
     </div>
     {% if user.is_staff %}
-    <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
+    <div class="col-auto pl-2 pr-0 pt-0 pb-0">
         Script ID: {{ script_version.pk }}        
     </div>
     {% endif %}
@@ -288,16 +293,19 @@
     {% else %}
     <div class="tab-pane fade {% active_tab_status 'characters-tab' activetab %} col-sm-6" id="characters" role="tabpanel" aria-labelledby="characters-tab">
     {% endif %}
+        <ul class="character-team">
         {% for role in script_version.content %}
             {% if role.id != "_meta" %}
                 {% character_type_change script_version.content forloop.counter0 as newline %}
                 {% if newline %}
-                    <br>
+        </ul>
+        <ul class="character-team">
                 {% endif %}
                 {% character_colourisation role.id as character_colour %}
                 <li><span {{ character_colour }}>{% convert_id_to_friendly_text role.id %}</span></li>
             {% endif %}
         {% endfor %}
+        </ul>
     </div>
     {% if changes.items|length > 0 %}
     <div class="tab-pane fade col-sm-6" id="history" role="tabpanel" aria-labelledby="history-tab">
@@ -362,59 +370,65 @@
                 {% else %}
                 <div class="col offset-sm-{{comment_info.indent}}">
                 {% endif %}
+                    <p class="text-muted small mb-1"><time datetime="{{ comment_info.comment.created|date:'c' }}" title="{{ comment_info.comment.created|date:'j M Y, H:i' }}">{{ comment_info.comment.created|timesince }} ago</time></p>
                     {{ comment_info.comment.comment|markdownify }}
                 </div>
                 <div class="align-self-end">
                     {% if comment_info.comment.user == user %}
-                    <a class="btn btn-info btn-sm" data-toggle="collapse" href="#edit_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="editPanel_{{comment.pk}}">Edit</a>
+                    <a class="btn btn-info btn-sm" data-toggle="collapse" href="#edit_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="edit_{{comment_info.comment.pk}}">Edit</a>
                     {% include "delete_comment.html" with comment=comment_info.comment %}
                     {% endif %}
                     {% if user.is_authenticated %}
-                    <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="replyPanel_{{comment.pk}}">Reply</a>
+                    <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="reply_{{comment_info.comment.pk}}">Reply</a>
                     {% endif %}
                 </div>
             </div>
             {% if user.is_authenticated %}
             <div class="row">
-                <div class="col collapse" id="edit_{{comment_info.comment.pk}}" aria-labelledby="editPanel_{{comment_info.comment.pk}}">
-                    <form action="{% url 'edit_comment' comment_info.comment.pk %}" method="post" id="comment_edit_form">
+                <div class="col collapse" id="edit_{{comment_info.comment.pk}}">
+                    <form action="{% url 'edit_comment' comment_info.comment.pk %}" method="post">
                         {% csrf_token %}
-                        <textarea class="form-control" name="comment" rows="5">{{comment_info.comment.comment}}</textarea>
-                        <div class="text-right">
-                            <button type="submit" class="btn btn-secondary btn-sm">Save</button>
+                        <label for="edit_text_{{comment_info.comment.pk}}" class="sr-only">Edit your comment</label>
+                        <textarea class="form-control" id="edit_text_{{comment_info.comment.pk}}" name="comment" rows="5" required>{{comment_info.comment.comment}}</textarea>
+                        <div class="text-right mt-1">
+                            <button type="submit" class="btn btn-primary btn-sm">Save changes</button>
                         </div>
                     </form>
                 </div>
             </div>
             <div class="row">
                 {% if comment_info.indent > 0 %}
-                <div class="col offset-sm-{{comment_info.indent}} collapse" id="reply_{{comment_info.comment.pk}}" aria-labelledby="replyPanel_{{comment_info.comment.pk}}">
+                <div class="col offset-sm-{{comment_info.indent}} collapse" id="reply_{{comment_info.comment.pk}}">
                 {% else %}
-                <div class="col collapse" id="reply_{{comment_info.comment.pk}}" aria-labelledby="replyPanel_{{comment_info.comment.pk}}">
+                <div class="col collapse" id="reply_{{comment_info.comment.pk}}">
                 {% endif %}
-                    <form action="{% url 'create_comment' %}" method="post" id="comment_create_form">
+                    <form action="{% url 'create_comment' %}" method="post">
                         {% csrf_token %}
-                        <textarea class="form-control" name="comment" rows="5"></textarea>
+                        <label for="reply_text_{{comment_info.comment.pk}}" class="sr-only">Write a reply</label>
+                        <textarea class="form-control" id="reply_text_{{comment_info.comment.pk}}" name="comment" rows="5" placeholder="Write a reply" required></textarea>
                         <input type="hidden" name="script" value="{{script.pk}}">
                         <input type="hidden" name="parent" value="{{comment_info.comment.pk}}">
-                        <div class="text-right">
-                            <button type="submit" class="btn btn-secondary btn-sm">Add</button>
+                        <div class="text-right mt-1">
+                            <button type="submit" class="btn btn-primary btn-sm">Post reply</button>
                         </div>
                     </form>
                 </div>
             </div>
             {% endif %}
+        {% empty %}
+            <p class="text-muted">No comments yet.{% if not user.is_authenticated %} <a href="{% url 'account_login' %}?next={{ request.get_full_path|urlencode }}">Log in</a> to start the discussion.{% endif %}</p>
         {% endfor %}
     {% if user.is_authenticated %}
-    <a class="btn btn-secondary btn-sm" data-toggle="collapse" href="#reply" role="button" aria-expanded="false" aria-controls="replyPanel">New Comment</a>
-    <div class="row">
-        <div class="col collapse" id="reply" aria-labelledby="replyPanel">
-            <form action="{% url 'create_comment' %}" method="post" id="comment_create_form">
+    <a class="btn btn-primary btn-sm mt-2" data-toggle="collapse" href="#new_comment" role="button" aria-expanded="false" aria-controls="new_comment">New Comment</a>
+    <div class="row mt-2">
+        <div class="col collapse" id="new_comment">
+            <form action="{% url 'create_comment' %}" method="post">
                 {% csrf_token %}
-                <textarea class="form-control" name="comment" rows="5"></textarea>
+                <label for="new_comment_text" class="sr-only">Write a comment</label>
+                <textarea class="form-control" id="new_comment_text" name="comment" rows="5" placeholder="Write a comment (Markdown is supported)" required></textarea>
                 <input type="hidden" name="script" value="{{script.pk}}">
-                <div class="text-right">
-                    <button type="submit" class="btn btn-secondary btn-sm">Add</button>
+                <div class="text-right mt-1">
+                    <button type="submit" class="btn btn-primary btn-sm">Post comment</button>
                 </div>
             </form>
         </div>

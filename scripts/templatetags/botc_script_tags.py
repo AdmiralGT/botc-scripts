@@ -218,3 +218,9 @@ def get_character_percentage(count: int, total: int):
 @register.simple_tag()
 def script_tool_url(script_version):
     return f"https://script.bloodontheclocktower.com?script={script_json.compress_json(script_version.content)}"
+
+
+@register.simple_tag()
+def active_filter_count(form, exclude=""):
+    skipped = set(exclude.split(","))
+    return sum(1 for name in form.fields if name not in skipped and form.data.get(name) not in (None, ""))
