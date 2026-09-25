@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.postgres.search import TrigramSimilarity
+from django.core.exceptions import PermissionDenied
 from django.db.models import Case, Count, F, Prefetch, When
 from django.http import (
     FileResponse,
@@ -965,21 +966,21 @@ class CollectionEditView(LoginRequiredMixin, generic.edit.UpdateView):
     form_class = forms.CollectionForm
     model = models.Collection
 
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
+    def get_object(self, queryset=None):
+        """
+        A user should only be able to edit the collections they own. get_object() is used by
+        both GET and POST.
+        """
+        try:
+            collection = super().get_object(queryset)
+        except Http404:
+            raise Http404("This collection doesn't exist.")
+        if collection.owner != self.request.user:
+            raise PermissionDenied("You can only edit collections you own.")
+        return collection
 
     def get_success_url(self) -> str:
         return "/collection/" + str(self.object.id)
-
-    def get(self, request, *args, **kwargs):
-        """
-        A user should only be able to edit the collections they own.
-        """
-        self.object = self.get_object()
-        if self.object.owner != self.request.user:
-            raise Http404("Cannot edit a collection you don't own.")
-        return super().get(request, *args, **kwargs)
 
 
 class CollectionDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
@@ -1007,8 +1008,19 @@ class AddScriptToCollectionView(LoginRequiredMixin, generic.View):
     """
 
     def post(self, request, *args, **kwargs):
-        collection = models.Collection.objects.get(pk=request.POST.get("collection"))
-        script = models.ScriptVersion.objects.get(pk=request.POST.get("script_version"))
+        try:
+            collection = models.Collection.objects.get(pk=request.POST.get("collection"))
+        except (models.Collection.DoesNotExist, ValueError):
+            raise Http404("This collection doesn't exist.")
+
+        if collection.owner != request.user:
+            raise PermissionDenied("You can only add scripts to collections you own.")
+
+        try:
+            script = models.ScriptVersion.objects.get(pk=request.POST.get("script_version"))
+        except (models.ScriptVersion.DoesNotExist, ValueError):
+            raise Http404("This script doesn't exist.")
+
         collection.scripts.add(script)
         return HttpResponseRedirect("/script/" + str(script.script.pk) + "/" + str(script.version))
 
