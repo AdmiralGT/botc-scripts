@@ -1,5 +1,6 @@
 from babel.core import Locale, UnknownLocaleError
 from django import template
+from django.utils.html import escape
 
 from scripts import cache, models, script_json
 from scripts.html_utils import join_lines_for_html_attribute
