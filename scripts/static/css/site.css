@@ -1,0 +1,414 @@
+/* Site-wide styles for BotC Scripts (Bootstrap 4 overrides). */
+
+/* ---- Theme tokens ---------------------------------------------------- */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #212529;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+    --link-color: #0056b3;
+    --muted-color: #595f64;
+    --focus-ring: #0056b3;
+    --radius: 0.5rem;
+    --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.06);
+    color-scheme: light;
+}
+html[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --border-color: #444444;
+    --link-color: #8ab4f8;
+    --muted-color: #b0b0b0;
+    --focus-ring: #8ab4f8;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+main {
+    padding-top: 1rem;
+    padding-bottom: 1.5rem;
+}
+.footer {
+    padding: 1rem 0;
+    font-size: 0.875rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ---- Accessibility --------------------------------------------------- */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 2000;
+    padding: 0.5rem 1rem;
+    background: var(--bg-color);
+    color: var(--link-color);
+    border: 2px solid var(--focus-ring);
+}
+.skip-link:focus {
+    left: 0.5rem;
+    top: 0.5rem;
+}
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.form-control:focus-visible,
+.custom-select:focus-visible,
+.nav-link:focus-visible,
+.dropdown-item:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ---- Navbar ---------------------------------------------------------- */
+.navbar .nav-link.active {
+    font-weight: 600;
+    color: #ffffff;
+    box-shadow: inset 0 -2px 0 currentColor;
+}
+.navbar form .btn {
+    /* Keep the logout button aligned with neighbouring nav links. */
+    color: rgba(255, 255, 255, 0.5);
+}
+.navbar form .btn:hover,
+.navbar form .btn:focus {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* ---- Dark mode overrides for Bootstrap components -------------------- */
+html[data-theme="dark"] a {
+    color: var(--link-color);
+}
+html[data-theme="dark"] .btn-primary.btn-shaded-text {
+    color: var(--link-color);
+}
+html[data-theme="dark"] .text-dark {
+    color: var(--text-color) !important;
+}
+html[data-theme="dark"] .text-muted {
+    color: var(--muted-color) !important;
+}
+html[data-theme="dark"] .table {
+    color: var(--text-color);
+}
+html[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+html[data-theme="dark"] .form-control,
+html[data-theme="dark"] .custom-select,
+html[data-theme="dark"] .dropdown-menu,
+html[data-theme="dark"] .modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+html[data-theme="dark"] .dropdown-item {
+    color: var(--text-color);
+}
+html[data-theme="dark"] .dropdown-item:hover,
+html[data-theme="dark"] .dropdown-item:focus {
+    background-color: #333333;
+    color: #ffffff;
+}
+html[data-theme="dark"] .list-group-item {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+html[data-theme="dark"] .page-link {
+    background-color: var(--card-bg);
+    color: var(--link-color);
+    border-color: var(--border-color);
+}
+html[data-theme="dark"] .page-item.disabled .page-link {
+    background-color: var(--bg-color);
+    color: var(--muted-color);
+    border-color: var(--border-color);
+}
+html[data-theme="dark"] .page-item.active .page-link {
+    background-color: var(--link-color);
+    border-color: var(--link-color);
+    color: #121212;
+}
+
+/* ---- Script-type badges ---------------------------------------------- */
+.badge-purple {
+    color: #ffffff;
+    background-color: #694c8f;
+}
+.badge-nocturne {
+    color: #6e9dcd;
+    background-color: #000000;
+}
+.badge-bloodred {
+    color: #ffffff;
+    background-color: #880808;
+}
+.badge-clockconaus {
+    color: #ffffff;
+    background-color: #0e1e3a;
+}
+
+/* ---- Script list & filters ------------------------------------------- */
+.script-filter .form-group {
+    margin-bottom: 0.5rem;
+}
+.script-filter .results-count {
+    font-weight: 600;
+    margin: 0;
+    align-self: center;
+}
+.table-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.table-responsive-wrapper table {
+    margin-bottom: 0;
+}
+
+/* ---- Statistics tables ------------------------------------------------ */
+.table-striped-good>tbody>tr:nth-child(odd)>td {
+    background-color: #85c1e9;
+}
+
+.table-striped-good>tbody>tr:nth-child(even)>td {
+    background-color: #d6eaf8;
+}
+
+.table-striped-evil>tbody>tr:nth-child(odd)>td {
+    background-color: #f5b7b1;
+}
+
+.table-striped-evil>tbody>tr:nth-child(even)>td {
+    background-color: #fadbd8;
+}
+
+.table-striped-traveller>tbody>tr:nth-child(odd)>td {
+    background-color: #d6eaf8;
+}
+
+.table-striped-traveller>tbody>tr:nth-child(even)>td {
+    background-color: #fadbd8;
+}
+
+.table-striped-fabled>tbody>tr:nth-child(odd)>td {
+    background-color: #fff099;
+}
+
+.table-striped-fabled>tbody>tr:nth-child(even)>td {
+    background-color: #fff0cc;
+}
+.table-striped-loric>tbody>tr:nth-child(odd)>td {
+    background-color: rgba(46, 71, 28, 0.4);
+}
+
+.table-striped-loric>tbody>tr:nth-child(even)>td {
+    background-color: rgba(189, 205, 81, 0.4);
+}
+
+/* These tables keep fixed pastel backgrounds, so text should stay black regardless of theme. */
+html[data-theme="dark"] .table-striped-good td,
+html[data-theme="dark"] .table-striped-evil td,
+html[data-theme="dark"] .table-striped-traveller td,
+html[data-theme="dark"] .table-striped-fabled td,
+html[data-theme="dark"] .table-striped-good .text-dark,
+html[data-theme="dark"] .table-striped-evil .text-dark,
+html[data-theme="dark"] .table-striped-traveller .text-dark,
+html[data-theme="dark"] .table-striped-fabled .text-dark {
+    color: #212529 !important;
+}
+
+/* ---- World Cup fixtures ------------------------------------------------ */
+.worldcup-table .table-success {
+    background-color: #1e5631;
+    color: #ffffff !important;
+}
+.worldcup-table .table-success a {
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* ---- Advanced search --------------------------------------------------- */
+.advanced-search .search-section {
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.25rem 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--card-bg);
+}
+.advanced-search legend {
+    width: auto;
+    padding: 0 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+.advanced-search summary {
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0.25rem 0;
+}
+.advanced-search select[multiple] {
+    min-height: 8rem;
+}
+
+/* ---- Visual polish ----------------------------------------------------- */
+body {
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+h1, .h1 { margin-bottom: 0.75rem; }
+main { padding-top: 1.5rem; }
+a { text-underline-offset: 2px; }
+
+/* Navbar */
+.navbar.bg-dark {
+    background-color: #1b2430 !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+.navbar-dark .navbar-nav .nav-link {
+    border-radius: 0.375rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.navbar-dark .navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+.navbar .nav-link.active {
+    box-shadow: none;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Buttons, inputs, menus, dialogs */
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-primary,
+.btn-success,
+.btn-danger,
+.btn-warning {
+    box-shadow: var(--shadow);
+}
+.form-control,
+.custom-select {
+    border-radius: 0.375rem;
+}
+.dropdown-menu {
+    border-radius: var(--radius);
+    border-color: var(--border-color);
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
+    padding: 0.35rem;
+}
+.dropdown-item {
+    border-radius: 0.3rem;
+}
+.modal-content {
+    border: 0;
+    border-radius: var(--radius);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+}
+.modal-header,
+.modal-footer {
+    border-color: var(--border-color);
+}
+.alert {
+    border-radius: var(--radius);
+}
+.badge-pill {
+    font-weight: 500;
+    padding-left: 0.65em;
+    padding-right: 0.65em;
+}
+
+/* Tables (django-tables2 lists, fixtures) */
+.table thead th {
+    border-top: 0;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--muted-color);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.table thead th a {
+    color: inherit;
+}
+.table thead th a:hover {
+    color: var(--link-color);
+    text-decoration: none;
+}
+.table td,
+.table th {
+    vertical-align: middle;
+    border-color: var(--border-color);
+}
+.table tbody tr {
+    transition: background-color 0.1s ease;
+}
+.table tbody tr:hover {
+    background-color: rgba(0, 86, 179, 0.06);
+}
+html[data-theme="dark"] .table tbody tr:hover {
+    background-color: rgba(138, 180, 248, 0.1);
+}
+.table-responsive-wrapper .table {
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Pagination */
+.pagination .page-link {
+    border-radius: 0.375rem;
+    margin: 0 0.15rem;
+}
+
+/* Tabs on the script page */
+.nav-tabs {
+    border-bottom-color: var(--border-color);
+}
+.nav-tabs .nav-link {
+    border-radius: 0.375rem 0.375rem 0 0;
+    font-weight: 500;
+}
+html[data-theme="dark"] .nav-tabs .nav-link.active {
+    background-color: var(--card-bg);
+    border-color: var(--border-color) var(--border-color) var(--card-bg);
+    color: var(--text-color);
+}
+html[data-theme="dark"] .nav-tabs .nav-link:hover {
+    border-color: var(--border-color);
+}
+
+/* Footer */
+.footer {
+    background-color: var(--card-bg);
+    color: var(--muted-color);
+}

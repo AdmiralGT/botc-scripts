@@ -6,7 +6,7 @@
 {% block content %}
 
 {% if filter %}
-<form action="" method="get" class="form mb-0">
+<form action="" method="get" class="form script-filter mb-2" role="search" aria-label="Filter scripts">
     <div class="form-group row p-1 mb-0">
         {% bootstrap_form filter.form exclude='tags' layout='inline' form_group_class="mb-0 m-1" %}
     </div>
@@ -14,9 +14,9 @@
         <div class="container">
             <div class="row p-1">
                 {% bootstrap_button 'Filter' button_class='btn-primary' extra_classes="mr-1 btn-shaded-text" %}
-                {% bootstrap_button 'Clear' button_class='btn-primary' href="/" %}
+                {% bootstrap_button 'Clear' button_class='btn-outline-secondary' href="/" %}
                 <div class="col">
-                    <p class="font-weight-bold text-right">
+                    <p class="results-count text-right" role="status" aria-live="polite">
                         Results: {{ table.rows|length }}
                     </p>
                 </div>
