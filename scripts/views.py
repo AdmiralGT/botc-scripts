@@ -6,12 +6,14 @@ from tempfile import TemporaryFile
 from typing import Any
 
 import requests
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.postgres.search import TrigramSimilarity
+from django.core.exceptions import PermissionDenied
 from django.db.models import Case, Count, F, Prefetch, When
 from django.http import (
     FileResponse,
@@ -332,6 +334,11 @@ def update_script(script_version: models.ScriptVersion, cleaned_data, author, us
 class BaseScriptUploadView(generic.FormView):
     template_name = "upload.html"
     script_version = None
+
+    def post(self, request, *args, **kwargs):
+        if settings.UPLOAD_DISABLED and not request.user.is_staff:
+            raise PermissionDenied("Uploads are currently disabled.")
+        return super().post(request, *args, **kwargs)
 
     def get_script(self, script_pk):
         if script_pk:
