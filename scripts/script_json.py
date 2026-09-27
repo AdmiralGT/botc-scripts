@@ -1,6 +1,7 @@
 import base64 as b64
 import gzip
 import json as js
+import re
 from urllib.parse import quote
 
 from django.core.files.base import File
@@ -52,6 +53,19 @@ def strip_special_characters(character_id):
 
 def name_to_id(name):
     return name.replace(" ", "").replace("'", "").lower()
+
+
+CHARACTER_SEPARATORS = re.compile(r"[,;:/]")
+
+
+def character_ids(value):
+    """
+    Splits a user entered list of characters (separated by any of , ; : /) into character ids, skipping empty entries.
+    """
+    for part in CHARACTER_SEPARATORS.split(value):
+        character = strip_special_characters(part.strip())
+        if character:
+            yield name_to_id(character)
 
 
 def strip_special_characters_from_json(json):

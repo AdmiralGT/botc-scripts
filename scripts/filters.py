@@ -1,8 +1,7 @@
-import re
-
 import django_filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models import Count
 from django_filters import rest_framework as filters
 
 from scripts import models, script_json, widgets
@@ -15,34 +14,85 @@ edition_choices = (
 )
 
 
-def get_characters_by_type(type: models.CharacterType):
-    return models.ClocktowerCharacter.objects.filter(character_type=type)
-
-
-def get_characters_not_in_edition(edition: models.Edition):
-    return models.ClocktowerCharacter.objects.filter(edition__gt=edition)
-
-
-def annotate_queryset(queryset, field, value):
-    return queryset.annotate(similarity=TrigramSimilarity(field, value))
-
-
 def include_characters(queryset, value):
-    for character in re.split(",|;|:|/", value):
-        character = script_json.strip_special_characters(character.strip())
-        if character in ",;:/":
-            continue
-        queryset = queryset.filter(content__contains=[{"id": script_json.name_to_id(character)}])
-    return queryset
+    ids = [{"id": character_id} for character_id in script_json.character_ids(value)]
+    if not ids:
+        return queryset
+    return queryset.filter(content__contains=ids)
 
 
 def exclude_characters(queryset, value):
-    for character in re.split(",|;|:|/", value):
-        character = script_json.strip_special_characters(character.strip())
-        if character in ",;:/":
-            continue
-        queryset = queryset.exclude(content__contains=[{"id": script_json.name_to_id(character)}])
+    for character_id in script_json.character_ids(value):
+        queryset = queryset.exclude(content__contains=[{"id": character_id}])
     return queryset
+
+
+def filter_homebrewiness(queryset, include_hybrid, include_homebrew):
+    if not include_hybrid:
+        queryset = queryset.exclude(homebrewiness=models.Homebrewiness.HYBRID)
+    if not include_homebrew:
+        queryset = queryset.exclude(homebrewiness=models.Homebrewiness.HOMEBREW)
+    return queryset
+
+
+def trigram_filter(queryset, field, value, alias, min_similarity=0):
+    """
+    Annotates the queryset with the trigram similarity of field to value (as alias) and keeps rows above min_similarity.
+    """
+    queryset = queryset.annotate(**{alias: TrigramSimilarity(field, value)})
+    return queryset.filter(**{f"{alias}__gt": min_similarity})
+
+
+def advanced_search_queryset(data):
+    """
+    Build the ScriptVersion queryset for the Advanced Search from the cleaned data of an AdvancedSearchForm.
+
+    The result is a lazy queryset with a stable ordering, so it can be paginated by the database.
+    """
+    if data.get("all_scripts", False):
+        queryset = models.ScriptVersion.objects.all()
+    else:
+        queryset = models.ScriptVersion.objects.filter(latest=True)
+
+    queryset = filter_homebrewiness(queryset, data.get("include_hybrid", False), data.get("include_homebrew", False))
+
+    if data.get("script_type") == models.ScriptTypes.TEENSYVILLE:
+        queryset = queryset.exclude(script_type=models.ScriptTypes.FULL)
+    else:
+        queryset = queryset.exclude(script_type=models.ScriptTypes.TEENSYVILLE)
+
+    if data.get("name"):
+        queryset = trigram_filter(queryset, "script__name", data.get("name"), "name_similarity")
+    if data.get("author"):
+        queryset = trigram_filter(queryset, "author", data.get("author"), "author_similarity")
+
+    if data.get("includes_characters"):
+        queryset = include_characters(queryset, data.get("includes_characters"))
+    if data.get("excludes_characters"):
+        queryset = exclude_characters(queryset, data.get("excludes_characters"))
+
+    queryset = queryset.filter(edition__lte=data.get("edition"))
+    tags = data.get("tags")
+    if data.get("tag_combinations") == "AND":
+        for tag in tags:
+            queryset = queryset.filter(tags=tag)
+    elif tags:
+        queryset = queryset.filter(tags__in=tags)
+
+    for field in ("townsfolk", "outsiders", "minions", "demons", "fabled", "travellers", "loric"):
+        values = data.get(f"number_of_{field}")
+        if values:
+            queryset = queryset.filter(**{f"num_{field}__in": values})
+
+    if data.get("minimum_number_of_likes"):
+        queryset = queryset.filter(score__gte=data.get("minimum_number_of_likes"))
+    if data.get("minimum_number_of_favourites"):
+        queryset = queryset.filter(num_favs__gte=data.get("minimum_number_of_favourites"))
+    if data.get("minimum_number_of_comments"):
+        queryset = queryset.annotate(num_comments=Count("script__comments", distinct=True))
+        queryset = queryset.filter(num_comments__gte=data.get("minimum_number_of_comments"))
+
+    return queryset.order_by("-pk")
 
 
 class BaseScriptVersionFilter(filters.FilterSet):
@@ -73,7 +123,7 @@ class BaseScriptVersionFilter(filters.FilterSet):
 
     def display_all_scripts(self, queryset, name, value):
         if not value:
-            return queryset.filter(latest=(not value))
+            return queryset.filter(latest=True)
         return queryset
 
     def filter_mono_demon_scripts(self, queryset, name, value):
@@ -82,14 +132,10 @@ class BaseScriptVersionFilter(filters.FilterSet):
         return queryset
 
     def filter_hybrid_scripts(self, queryset, name, value):
-        if not value:
-            return queryset.exclude(homebrewiness=models.Homebrewiness.HYBRID)
-        return queryset
+        return filter_homebrewiness(queryset, include_hybrid=value, include_homebrew=True)
 
     def filter_homebrew_scripts(self, queryset, name, value):
-        if not value:
-            return queryset.exclude(homebrewiness=models.Homebrewiness.HOMEBREW)
-        return queryset
+        return filter_homebrewiness(queryset, include_hybrid=True, include_homebrew=value)
 
     def filter_my_scripts(self, queryset, name, value):
         if value:
@@ -102,25 +148,22 @@ class BaseScriptVersionFilter(filters.FilterSet):
     def exclude_characters(self, queryset, name, value):
         return exclude_characters(queryset, value)
 
-    def search_scripts(self, queryset, name, value):
-        queryset = annotate_queryset(queryset, "script__name", value)
+    def _is_explicitly_ordered(self):
         try:
-            if "ordering" in self.request.query_params:
-                return queryset.filter(similarity__gt=0.3)
+            return "ordering" in self.request.query_params
         except AttributeError:
-            pass
+            return False
 
-        return queryset.filter(similarity__gt=0).order_by("-similarity")
+    def search_scripts(self, queryset, name, value):
+        if self._is_explicitly_ordered():
+            return trigram_filter(queryset, "script__name", value, "similarity", min_similarity=0.3)
+        return trigram_filter(queryset, "script__name", value, "similarity").order_by("-similarity")
 
     def search_authors(self, queryset, name, value):
-        queryset = annotate_queryset(queryset, "author", value)
-        try:
-            if "ordering" in self.request.query_params:
-                return queryset.filter(similarity__gt=0.3)
-        except AttributeError:
-            pass
-
-        return queryset.filter(similarity__gt=0.3).order_by("-similarity")
+        queryset = trigram_filter(queryset, "author", value, "similarity", min_similarity=0.3)
+        if self._is_explicitly_ordered():
+            return queryset
+        return queryset.order_by("-similarity")
 
 
 class ScriptVersionFilter(BaseScriptVersionFilter):

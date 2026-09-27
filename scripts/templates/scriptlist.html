@@ -30,6 +30,15 @@
 </form>
 {% endif %}
 
+{% if search_errors %}
+<div class="alert alert-warning mt-2" role="alert">
+    {% for error in search_errors %}
+    <div>{{ error }}</div>
+    {% endfor %}
+    <a href="{% url 'advanced_search' %}" class="alert-link">Back to Advanced Search</a>
+</div>
+{% endif %}
+
 {% include "table.html" %}
 
 {% endblock %}

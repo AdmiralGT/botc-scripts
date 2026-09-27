@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import dataclass
 from tempfile import TemporaryFile
 from typing import Any
+from urllib.parse import urlencode
 
 import requests
 from django.contrib import messages
@@ -11,8 +12,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.contrib.postgres.search import TrigramSimilarity
-from django.db.models import Case, Count, F, Prefetch, When
+from django.db.models import Count, F, Prefetch
 from django.http import (
     FileResponse,
     Http404,
@@ -22,6 +22,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils.text import get_valid_filename
 from django.views import generic
 from django_filters.views import FilterView
@@ -1115,25 +1116,67 @@ class CommentDeleteView(LoginRequiredMixin, generic.View):
         return HttpResponseRedirect(success_url)
 
 
+def get_advanced_search_form(**kwargs):
+    count_choices = [(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)]
+    return forms.AdvancedSearchForm(
+        townsfolk_choices=count_choices,
+        outsider_choices=count_choices,
+        minion_choices=count_choices,
+        demon_choices=count_choices,
+        fabled_choices=count_choices,
+        loric_choices=count_choices,
+        traveller_choices=count_choices,
+        **kwargs,
+    )
+
+
 class AdvancedSearchResultsView(SingleTableView):
+    """
+    Displays the results of an Advanced Search. All of the search criteria are held in the query string (alongside the
+    table's own "sort" and "page" parameters) and the search is re-run on every request. This keeps pagination and
+    sorting working without any server side state, so it is safe with multiple workers and results never expire.
+    """
+
     model = models.ScriptVersion
     template_name = "scriptlist.html"
     table_pagination = {"per_page": 20}
     ordering = ["-pk"]
     script_view = None
+    search_errors: list[str] = []
+
+    def get_search_data(self):
+        """
+        Returns the search criteria from the query string, or None if the request has no search criteria at all.
+        """
+        form_fields = forms.AdvancedSearchForm.base_fields
+        if not any(name in self.request.GET for name in form_fields):
+            return None
+        data = self.request.GET.copy()
+        for name, field in form_fields.items():
+            if field.required and field.initial is not None:
+                data.setdefault(name, str(field.initial))
+        return data
 
     def get_queryset(self):
-        cache_key = self.request.GET.get("key")
-        if cache_key:
-            data = cache.get_advanced_search_results(cache_key)
-            if data:
-                if data.get("num_results") == 0:
-                    return models.ScriptVersion.objects.none()
-                ids = data.get("queryset_pks", [])
-                order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-                queryset = models.ScriptVersion.objects.filter(pk__in=ids).prefetch_related("tags").order_by(order)
-                return queryset
-        return models.ScriptVersion.objects.prefetch_related("tags").all()
+        self.search_errors = []
+        data = self.get_search_data()
+        if data is None:
+            self.search_errors = ["No search criteria were provided."]
+            return models.ScriptVersion.objects.none()
+
+        form = get_advanced_search_form(data=data)
+        if not form.is_valid():
+            for field, errors in form.errors.items():
+                label = getattr(form.fields.get(field), "label", None) or field.replace("_", " ").capitalize()
+                self.search_errors.extend(f"{label}: {error}" for error in errors)
+            return models.ScriptVersion.objects.none()
+
+        return filters.advanced_search_queryset(form.cleaned_data).prefetch_related("tags")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["search_errors"] = self.search_errors
+        return context
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
@@ -1141,122 +1184,22 @@ class AdvancedSearchResultsView(SingleTableView):
         return tables.ClocktowerTable
 
 
-class AdvancedSearchView(generic.FormView, SingleTableMixin):
+class AdvancedSearchView(generic.FormView):
+    """
+    Displays the Advanced Search form. A valid submission is redirected to AdvancedSearchResultsView with the search
+    criteria in the query string, so the results can be paged, sorted and refreshed without any server side state.
+    """
+
     template_name = "advanced_search.html"
     form_class = forms.AdvancedSearchForm
-    script_version = None
+    script_view = None
 
     def get_form(self):
-        # This dynamic calculation is very slow and probably isn't worth it, so instead we just use a fixed value of
-        # 0 to 25.
-        # townsfolk = models.ScriptVersion.objects.all().order_by("num_townsfolk")
-        # townsfolk_choices = [(i, i) for i in range(townsfolk.first().num_townsfolk, townsfolk.last().num_townsfolk + 1)]
-        # outsider = models.ScriptVersion.objects.all().order_by("num_outsiders")
-        # outsider_choices = [(i, i) for i in range(outsider.first().num_outsiders, outsider.last().num_outsiders + 1)]
-        # minion = models.ScriptVersion.objects.all().order_by("num_minions")
-        # minion_choices = [(i, i) for i in range(minion.first().num_minions, minion.last().num_minions + 1)]
-        # demon = models.ScriptVersion.objects.all().order_by("num_demons")
-        # demon_choices = [(i, i) for i in range(demon.first().num_demons, demon.last().num_demons + 1)]
-        # fabled = models.ScriptVersion.objects.all().order_by("num_fabled")
-        # fabled_choices = [(i, i) for i in range(fabled.first().num_fabled, fabled.last().num_fabled + 1)]
-        # travellers = models.ScriptVersion.objects.all().order_by("num_travellers")
-        # traveller_choices = [
-        #     (i, i) for i in range(travellers.first().num_travellers, travellers.last().num_travellers + 1)
-        # ]
-
-        return forms.AdvancedSearchForm(
-            townsfolk_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
-            outsider_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
-            minion_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
-            demon_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
-            fabled_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
-            loric_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
-            traveller_choices=[(i, i) for i in range(constants.MAX_CHARACTER_COUNT + 1)],
-            **self.get_form_kwargs(),
-        )
+        return get_advanced_search_form(**self.get_form_kwargs())
 
     def form_valid(self, form):
-        all_scripts = form.cleaned_data.get("all_scripts", False)
-        if all_scripts:
-            queryset = models.ScriptVersion.objects.all()
-        else:
-            queryset = models.ScriptVersion.objects.filter(latest=True)
-
-        include_hybrid = form.cleaned_data.get("include_hybrid", False)
-        if not include_hybrid:
-            queryset = queryset.exclude(homebrewiness=models.Homebrewiness.HYBRID)
-
-        include_homebrew = form.cleaned_data.get("include_homebrew", False)
-        if not include_homebrew:
-            queryset = queryset.exclude(homebrewiness=models.Homebrewiness.HOMEBREW)
-
-        script_type = form.cleaned_data.get("script_type")
-        if script_type == models.ScriptTypes.TEENSYVILLE:
-            queryset = queryset.exclude(script_type=models.ScriptTypes.FULL)
-        else:
-            queryset = queryset.exclude(script_type=models.ScriptTypes.TEENSYVILLE)
-
-        if form.cleaned_data.get("name"):
-            queryset = queryset.annotate(
-                name_similarity=TrigramSimilarity("script__name", form.cleaned_data.get("name"))
-            )
-            queryset = queryset.filter(name_similarity__gt=0).order_by("-name_similarity")
-        if form.cleaned_data.get("author"):
-            queryset = queryset.annotate(author_similarity=TrigramSimilarity("author", form.cleaned_data.get("author")))
-            queryset = queryset.filter(author_similarity__gt=0).order_by("-author_similarity")
-
-        if form.cleaned_data.get("includes_characters"):
-            queryset = filters.include_characters(queryset, form.cleaned_data.get("includes_characters"))
-        if form.cleaned_data.get("excludes_characters"):
-            queryset = filters.exclude_characters(queryset, form.cleaned_data.get("excludes_characters"))
-
-        queryset = queryset.filter(edition__lte=form.cleaned_data.get("edition"))
-        tag_combination = form.cleaned_data.get("tag_combinations")
-        if tag_combination == "AND":
-            for tag in form.cleaned_data.get("tags"):
-                queryset = queryset.filter(tags=tag)
-        else:
-            if form.cleaned_data.get("tags"):
-                queryset = queryset.filter(tags__in=form.cleaned_data.get("tags"))
-
-        if form.cleaned_data.get("number_of_townsfolk"):
-            queryset = queryset.filter(num_townsfolk__in=form.cleaned_data.get("number_of_townsfolk"))
-
-        if form.cleaned_data.get("number_of_outsiders"):
-            queryset = queryset.filter(num_outsiders__in=form.cleaned_data.get("number_of_outsiders"))
-
-        if form.cleaned_data.get("number_of_minions"):
-            queryset = queryset.filter(num_minions__in=form.cleaned_data.get("number_of_minions"))
-
-        if form.cleaned_data.get("number_of_demons"):
-            queryset = queryset.filter(num_demons__in=form.cleaned_data.get("number_of_demons"))
-
-        if form.cleaned_data.get("number_of_fabled"):
-            queryset = queryset.filter(num_fabled__in=form.cleaned_data.get("number_of_fabled"))
-
-        if form.cleaned_data.get("number_of_travellers"):
-            queryset = queryset.filter(num_travellers__in=form.cleaned_data.get("number_of_travellers"))
-
-        if form.cleaned_data.get("number_of_loric"):
-            queryset = queryset.filter(num_loric__in=form.cleaned_data.get("number_of_loric"))
-
-        if form.cleaned_data.get("minimum_number_of_likes"):
-            queryset = queryset.annotate(score=Count("script__votes"))
-            queryset = queryset.filter(score__gte=form.cleaned_data.get("minimum_number_of_likes"))
-
-        if form.cleaned_data.get("minimum_number_of_favourites"):
-            queryset = queryset.annotate(num_favs=Count("script__favourites"))
-            queryset = queryset.filter(num_favs__gte=form.cleaned_data.get("minimum_number_of_favourites"))
-
-        if form.cleaned_data.get("minimum_number_of_comments"):
-            queryset = queryset.annotate(num_comments=Count("script__comments"))
-            queryset = queryset.filter(num_comments__gte=form.cleaned_data.get("minimum_number_of_comments"))
-
-        queryset = queryset.order_by("-pk")
-        pk_list = list(queryset.values_list("pk", flat=True))
-        cache_key = cache.store_advanced_search_results(pk_list)
-
-        return redirect(f"/script/search/results?key={cache_key}")
+        params = {name: form.data.getlist(name) for name in form.fields if name in form.data}
+        return redirect(f"{reverse('advanced_search_results')}?{urlencode(params, doseq=True)}")
 
 
 class HealthCheckView(generic.View):
