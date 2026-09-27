@@ -7,6 +7,14 @@ from django.core.files.base import File
 
 from scripts import constants
 
+META_ID = "_meta"
+
+_UNKNOWN_ABILITY = "UNKNOWN_ABILITY"
+
+
+class JSONError(Exception):
+    pass
+
 
 def get_author_from_json(json):
     return get_metadata_field_from_json(json, "author")
@@ -25,25 +33,16 @@ def get_metadata_field_from_json(json, field):
     Returns a chosen field from the _meta JSON data.
     """
     for item in json:
-        if item.get("id", "") == "_meta":
+        if item.get("id", "") == META_ID:
             return item.get(field, None)
     return None
 
 
 def revert_to_old_format(json):
-    old_format_json = []
-
-    for item in json:
-        if isinstance(item, str):
-            old_format_json.append({"id": item})
-        else:
-            old_format_json.append(item)
-
-    return old_format_json
-
-
-class JSONError(Exception):
-    pass
+    """
+    Convert the "list of ID strings" script format into a list of {"id": ...} objects.
+    """
+    return [{"id": item} if isinstance(item, str) else item for item in json]
 
 
 def strip_special_characters(character_id):
@@ -61,107 +60,96 @@ def strip_special_characters_from_json(json):
             raise JSONError(f"Unexpected script element: {item}")
 
         character = item.get("id", "")
-        if character == "_meta":
-            new_json.append(item)
-            continue
-        item["id"] = strip_special_characters(character)
+        if character != META_ID:
+            item["id"] = strip_special_characters(character)
         new_json.append(item)
 
     return new_json
+
+
+def _parse_json(raw):
+    try:
+        return js.loads(raw)
+    except js.JSONDecodeError as e:
+        raise JSONError(f"Invalid JSON content: {e}") from e
 
 
 def get_json_content(data):
     json_content = data.get("content", None)
     if not json_content:
         raise JSONError("Could not read file type")
+
     if isinstance(json_content, File):
-        try:
-            json = js.loads(json_content.read().decode("utf-8"))
-        except js.JSONDecodeError as e:
-            raise JSONError(f"Invalid JSON content: {e}")
+        json = _parse_json(json_content.read().decode("utf-8"))
         json_content.seek(0)
     elif isinstance(json_content, (str, bytes, bytearray)):
-        try:
-            json = js.loads(json_content)
-        except js.JSONDecodeError as e:
-            raise JSONError(f"Invalid JSON content: {e}")
+        json = _parse_json(json_content)
     else:
         json = json_content
-    json = revert_to_old_format(json)
-    json = strip_special_characters_from_json(json)
-    return json
+
+    return strip_special_characters_from_json(revert_to_old_format(json))
 
 
-# Determine the characters that are in the new JSON but not in the old JSON
-# This
+def _character_ids(json):
+    """
+    The IDs of every character in a script, in order, ignoring the _meta entry.
+    """
+    ids = (item.get("id", "") for item in json)
+    return [character_id for character_id in ids if character_id != META_ID]
+
+
 def get_json_additions(old_json, new_json):
-    for old_id in old_json:
-        if old_id["id"] == "_meta":
-            continue
-        for new_id in new_json:
-            if new_id["id"] == "_meta":
-                continue
+    """
+    Determine the characters that are in the new JSON but not in the old JSON.
 
-            # Check if the IDs are unchanged.
-            # This is imperfect because this will detect a change from an Official
-            # to a Homebrew character of the same name, but we only have the JSON to do this check
-            # and official characters have limited information in the JSON.
-            if old_id["id"] == new_id["id"]:
-                new_json.remove(new_id)
-                continue
+    This is imperfect because a change from an official to a homebrew character of the same name
+    is not detected, but we only have the JSON to work from and official characters have limited
+    information in the JSON.
 
-    for new_id in new_json:
-        if new_id["id"] == "_meta":
-            new_json.remove(new_id)
-            break
-
-    return new_json
+    Neither input is modified.
+    """
+    old_ids = set(_character_ids(old_json))
+    return [item for item in new_json if item.get("id", "") not in old_ids and item.get("id", "") != META_ID]
 
 
-# Determine changes to character abilities where the character ID is unchanged
 def get_json_changes(old_json, new_json):
-    changed_json = []
-    for old_id in old_json:
-        if old_id["id"] == "_meta":
-            continue
-        for new_id in new_json:
-            if new_id["id"] == "_meta":
-                continue
-
-            ability_changed = old_id.get("ability", "UNKNOWN_ABILITY") != new_id.get("ability", "UNKNOWN_ABILITY")
-            if old_id["id"] == new_id["id"] and ability_changed:
-                changed_json.append({"id": new_id["id"]})
-                continue
-
-    return changed_json
+    """
+    Determine changes to character abilities where the character ID is unchanged.
+    """
+    new_abilities = {
+        item.get("id"): item.get("ability", _UNKNOWN_ABILITY) for item in new_json if item.get("id") != META_ID
+    }
+    return [
+        {"id": item.get("id")}
+        for item in old_json
+        if item.get("id") != META_ID
+        and item.get("id") in new_abilities
+        and item.get("ability", _UNKNOWN_ABILITY) != new_abilities[item.get("id")]
+    ]
 
 
 def get_similarity(json1: list, json2: list, same_type: bool) -> int:
-    similarity = 0
-    json1_metadata_count = 0
-    json2_metadata_count = 0
-    for i, id in enumerate(json1):
-        if id.get("id", "") == "_meta":
-            json1_metadata_count += 1
-            continue
-        for id2 in json2:
-            if i == 0 and id2.get("id", "") == "_meta":
-                json2_metadata_count += 1
-                continue
-            if id.get("id", "id1") == id2.get("id", "id2"):
-                similarity += 1
-                break
+    """
+    How similar two scripts are, as a percentage of the characters in ``json1`` that are also in ``json2``.
 
-    json1_len = len(json1) - json1_metadata_count
-    json2_len = len(json2) - json2_metadata_count
-    similarity_max = max(json1_len, json2_len)
-    similarity_min = max(min(json1_len, json2_len), constants.STANDARD_TEENSYVILLE_CHARACTER_COUNT)
+    Scripts of the same type are compared against the larger script, otherwise against the smaller one
+    (but never less than a standard Teensyville script) so a Teensyville script isn't considered
+    dissimilar to a full script that contains all of its characters.
+    """
+    ids1 = _character_ids(json1)
+    ids2 = _character_ids(json2)
+    ids2_set = set(ids2)
 
-    similarity_comp = similarity_max if same_type else similarity_min
-    if similarity_comp == 0:
+    shared = sum(1 for character_id in ids1 if character_id in ids2_set)
+
+    if same_type:
+        comparison_size = max(len(ids1), len(ids2))
+    else:
+        comparison_size = max(min(len(ids1), len(ids2)), constants.STANDARD_TEENSYVILLE_CHARACTER_COUNT)
+
+    if comparison_size == 0:
         return 0
-
-    return round((similarity / similarity_comp) * 100)
+    return round(shared / comparison_size * 100)
 
 
 def compress_json(json_data):

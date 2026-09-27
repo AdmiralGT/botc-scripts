@@ -103,3 +103,14 @@ def test_large_vs_small_script():
     assert reverse == 5
     reverse = get_similarity(v2, v1, False)
     assert reverse == 8
+
+
+@pytest.mark.parametrize("same_type", [True, False])
+def test_metadata_is_ignored(same_type):
+    with open(os.path.join(current_dir, "input/strings_pulling_with_meta.json"), "r") as f:
+        with_meta = js.load(f)
+    with open(os.path.join(current_dir, "input/strings_pulling.json"), "r") as f:
+        without_meta = js.load(f)
+    assert get_similarity(with_meta, with_meta, same_type) == 100
+    assert get_similarity(with_meta, without_meta, same_type) == 100
+    assert get_similarity(without_meta, with_meta, same_type) == 100
