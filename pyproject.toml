@@ -23,7 +23,7 @@ dependencies = [
     "jsonschema<5.0.0,>=4.23.0",
     "bleach>=6.2.0",
     "drf-spectacular>=0.28.0",
-    "gunicorn>=23.0.0,<24.0",
+    "gunicorn>=23.0.0,<27.0",
 ]
 requires-plugins = { poetry-plugin-export = ">=1.8" }
 package-mode = false
