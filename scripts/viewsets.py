@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Count
 from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,7 +12,7 @@ from rest_framework.response import Response
 from versionfield import Version
 
 from scripts import filters as filtersets
-from scripts import models, script_json, serializers
+from scripts import models, script_json, serializers, validators
 from scripts.views import (
     calculate_edition,
     count_character,
@@ -101,6 +102,13 @@ class VersionViewSet(viewsets.ModelViewSet):
         is_latest = True
         current_tags = None
 
+        json = script_json.get_json_content(serializer.validated_data)
+        existing_script = models.Script.objects.filter(name=serializer.validated_data.get("name")).first()
+        try:
+            validators.validate_homebrew_character(json, existing_script)
+        except DjangoValidationError as e:
+            return Response({"error": e.messages[0]}, status=status.HTTP_400_BAD_REQUEST)
+
         # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=serializer.validated_data.get("name"))
         user = request.user if request.user.is_authenticated else None
@@ -127,7 +135,6 @@ class VersionViewSet(viewsets.ModelViewSet):
                     # as the latest, that's still the current latest.
                     is_latest = False
 
-        json = script_json.get_json_content(serializer.validated_data)
         homebrewiness = create_characters_and_determine_homebrew_status(json, script)
 
         num_townsfolk = count_character(json, models.CharacterType.TOWNSFOLK)
