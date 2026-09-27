@@ -35,8 +35,7 @@ class WorldCupStatisticsView(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         characters_to_display = 5
 
-        queryset = models.ScriptVersion.objects.filter(tags=3)
-        queryset = queryset.filter(latest=True)
+        queryset = models.ScriptVersion.objects.filter(tags=3, latest=True).select_related("script")
 
         if "num" in self.request.GET:
             try:
@@ -50,13 +49,16 @@ class WorldCupStatisticsView(generic.TemplateView):
 
         context["total"] = queryset.count()
 
+        clocktower_characters = list(models.ClocktowerCharacter.objects.all())
+        characters_by_id = {character.character_id: character for character in clocktower_characters}
+
         character_count = {}
         character_count["additions"] = {}
         character_count["deletions"] = {}
         for type in models.CharacterType:
             character_count["additions"][type.value] = Counter()
             character_count["deletions"][type.value] = Counter()
-            for character in models.ClocktowerCharacter.objects.all():
+            for character in clocktower_characters:
                 if character.character_type != type:
                     continue
                 character_count["additions"][character.character_type][character] = 0
@@ -69,11 +71,8 @@ class WorldCupStatisticsView(generic.TemplateView):
                 if previous_version:
                     additions = script_json.get_json_additions(version.content.copy(), previous_version.content.copy())
                     for addition in additions:
-                        if addition.get("id", "_meta") == "_meta":
-                            pass
-                        try:
-                            character = models.ClocktowerCharacter.objects.get(character_id=addition.get("id"))
-                        except models.ClocktowerCharacter.DoesNotExist:
+                        character = characters_by_id.get(addition.get("id"))
+                        if character is None:
                             continue
 
                         character_count["additions"][character.character_type][character] = (
@@ -81,11 +80,8 @@ class WorldCupStatisticsView(generic.TemplateView):
                         )
                     deletions = script_json.get_json_additions(previous_version.content.copy(), version.content.copy())
                     for deletion in deletions:
-                        if deletion.get("id", "_meta") == "_meta":
-                            pass
-                        try:
-                            character = models.ClocktowerCharacter.objects.get(character_id=deletion.get("id"))
-                        except models.ClocktowerCharacter.DoesNotExist:
+                        character = characters_by_id.get(deletion.get("id"))
+                        if character is None:
                             continue
 
                         character_count["deletions"][character.character_type][character] = (
