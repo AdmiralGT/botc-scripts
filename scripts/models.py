@@ -4,6 +4,7 @@ from uuid import uuid4
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
+from django.utils import timezone
 from versionfield import VersionField
 
 from scripts import constants
@@ -95,6 +96,13 @@ class Script(models.Model):
     def latest_version(self):
         return self.versions.order_by("-version").first()
 
+    def last_updated(self):
+        """
+        When any version of this script was last uploaded or edited, or None if it has no versions.
+        Iterates versions in Python so it reuses a prefetch of "versions" instead of adding a query.
+        """
+        return max((version.updated for version in self.versions.all()), default=None)
+
     class Meta:
         indexes = [
             models.Index(fields=["name"], name="script_name_idx"),
@@ -123,6 +131,9 @@ class ScriptVersion(models.Model):
     version = VersionField()
     content = models.JSONField()
     created = models.DateTimeField(auto_now_add=True)
+    # When this version was last edited (PDF, notes, author, tags...). This is deliberately not auto_now: save() is
+    # also called for housekeeping such as flipping "latest", which is not an edit. Set it where an edit is made.
+    updated = models.DateTimeField(default=timezone.now)
     notes = models.TextField(blank=True)
     num_townsfolk = models.IntegerField()
     num_outsiders = models.IntegerField()

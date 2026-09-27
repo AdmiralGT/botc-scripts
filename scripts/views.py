@@ -22,6 +22,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import redirect
+from django.utils import timezone
 from django.utils.text import get_valid_filename
 from django.views import generic
 from django_filters.views import FilterView
@@ -213,6 +214,7 @@ class ScriptView(generic.DetailView):
         else:
             current_script = self.object.versions.order_by("-version").first()
         context["script_version"] = current_script
+        context["script_last_updated"] = self.object.last_updated()
 
         changes = {}
         diff_script_version = None
@@ -308,16 +310,24 @@ def download_all_roles_json(request, language: str | None = None) -> FileRespons
 
 
 def update_script(script_version: models.ScriptVersion, cleaned_data, author, user):
+    # Only a real change counts as an update, resubmitting the same values must not bump "updated".
+    # The web form gives "" for a blank author while API uploads store None, so treat both as "no author".
+    changed = script_version.script_type != cleaned_data["script_type"] or (script_version.author or "") != (
+        author or ""
+    )
     script_version.script_type = cleaned_data["script_type"]
     script_version.author = author
     if cleaned_data.get("notes", None):
+        changed = changed or script_version.notes != cleaned_data["notes"]
         script_version.notes = cleaned_data["notes"]
     if cleaned_data.get("pdf", None):
+        changed = True
         # Delete old PDF if it exists to prevent orphaned files
         if script_version.pdf:
             script_version.pdf.delete(save=False)
         script_version.pdf = cleaned_data["pdf"]
 
+    tags_before = set(script_version.tags.values_list("pk", flat=True))
     if user.is_staff:
         # Staff members can see all the tags in the form, so any changes they make
         # should actually me made.
@@ -326,6 +336,8 @@ def update_script(script_version: models.ScriptVersion, cleaned_data, author, us
         # Non-staff members can't see non-public tags so add the current non-public tags back
         current_tags = script_version.tags.filter(public=False)
         script_version.tags.set(cleaned_data["tags"] | current_tags)
+    if changed or tags_before != set(script_version.tags.values_list("pk", flat=True)):
+        script_version.updated = timezone.now()
     script_version.save()
 
 

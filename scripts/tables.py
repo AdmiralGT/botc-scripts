@@ -54,6 +54,8 @@ class ScriptTable(tables.Table):
 
     script_type = tables.Column(attrs=table_class, verbose_name="Type")
 
+    updated = tables.DateTimeColumn(format="j M Y", verbose_name="Updated", attrs=table_class)
+
     score = tables.TemplateColumn(
         template_name="script_table/likes.html",
         verbose_name="Likes",
@@ -105,6 +107,7 @@ class ClocktowerTable(ScriptTable):
             "score",
             "num_favs",
             "tags",
+            "updated",
             "actions",
         )
         orderable = True
@@ -128,6 +131,7 @@ class UserClocktowerTable(ClocktowerTable):
             "score",
             "num_favs",
             "tags",
+            "updated",
             "actions",
         )
         orderable = True
@@ -151,6 +155,7 @@ class CollectionClocktowerTable(UserClocktowerTable):
             "score",
             "num_favs",
             "tags",
+            "updated",
             "actions",
         )
         orderable = True
