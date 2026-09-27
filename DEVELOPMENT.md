@@ -1,5 +1,17 @@
 # Local Development
 
+## Tech stack
+
+Django 5 and Django REST Framework on PostgreSQL (13+, with the `pg_trgm` extension), with Python dependencies managed by [`uv`](https://docs.astral.sh/uv/).
+
+## Project layout
+
+- `botc/` - Django project: settings, URLs, storage and WSGI/ASGI entry points.
+- `scripts/` - the main app: models, views, filters, the REST API (`api/` routes), script JSON validation, templates, static files and management commands.
+- `tests/` - pytest suite.
+- `dev/` - Dockerfile/compose file for a local PostgreSQL database and `characters.json` fixture data.
+- `.devcontainer/` - VS Code Dev Container configuration.
+
 ## Quick Start with Dev Containers
 
 VS Code Dev Containers provides a fully configured development environment with all dependencies pre-installed.
@@ -18,7 +30,7 @@ VS Code Dev Containers provides a fully configured development environment with 
 6. Visit [http://localhost:8000](http://localhost:8000)
 
 The dev container automatically:
-- Sets up Python 3.12 with `uv`
+- Sets up Python with `uv`
 - Installs all dependencies
 - Configures PostgreSQL with the required extensions
 - Runs database migrations
@@ -35,7 +47,7 @@ If you prefer not to use Dev Containers, you can set up the environment manually
 
 ## Database
 
-The site uses PostgreSQL as the backend database. The mimimum PostgreSQL version required in v13. The PostgreSQL database must have the `postgresql-contrib` debian installed. It is recommended that you use [docker compose](./dev/docker-compose.yml) to spin up the [attached Dockerfile](./dev/Dockerfile) as your PostgreSQL database.
+The site uses PostgreSQL as the backend database. The minimum PostgreSQL version required is v13. The PostgreSQL database must have the `postgresql-contrib` debian installed. It is recommended that you use [docker compose](./dev/docker-compose.yml) to spin up the [attached Dockerfile](./dev/Dockerfile) as your PostgreSQL database.
 
 In order to test the "Name" and "Author" search fields, you must apply the following migration to your database once it has been deployed.
 
@@ -52,7 +64,7 @@ class Migration(migrations.Migration):
 
 This project uses [`uv`](https://docs.astral.sh/uv/) to manage python dependencies. Follow the [Installing uv](https://docs.astral.sh/uv/getting-started/installation/) guide to install uv.
 
-You can then install python environment using `uv sync`
+Python 3.13 or newer is required. You can then install the python environment using `uv sync`
 
 ### Creating the Config
 
@@ -91,6 +103,15 @@ Be sure to choose your own random string for the `SECRET_KEY`. [You can generate
 
 If you are not using the docker compose PostgreSQL database then you'll need to configure the `DATABASES` entry above with your own credentials.
 
+`botc/local.py` is only used for development. The Azure deployment uses `botc/production.py`, which reads the settings below from environment variables.
+
+| Setting | Effect |
+| --- | --- |
+| `UPLOAD_DISABLED` | Hides the upload form for everyone except staff. |
+| `BANNER` | Text shown as a banner at the top of every page, or `None` for no banner. |
+| `DISABLE_VALIDATORS` | Skips JSON validation of uploaded scripts (`scripts/validators.py`). Environment variable only, defaults to off. |
+| `CORS_ALLOW_ALL_ORIGINS` | Allows cross-origin `GET` requests to `/api/`. Environment variable only, defaults to off. |
+
 ## Running and Migration
 
 Per the usual Django development instructions, you need to apply the migrations to the database before running, create the static files and admin account. Run 
@@ -115,9 +136,6 @@ If you use VSCode for as your IDE, you can use the following `settings.json` to 
 
 ```json
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -138,3 +156,22 @@ If you use VSCode for as your IDE, you can use the following `settings.json` to 
 ## Linting
 
 This project uses [Ruff](https://docs.astral.sh/ruff/#ruff) for linting. The GitHub workflow includes a lint using ruff, but before submitting any code for review, please ensure that ruff passes by running `uv run ruff check`
+
+## Testing
+
+Tests use [pytest](https://docs.pytest.org/) with the settings in `tests/settings.py`. Because the models depend on PostgreSQL features (`GinIndex`, `pg_trgm`), the tests need a running PostgreSQL database. The defaults match the CI service (`postgres`/`postgres` on `localhost:5432`) and can be overridden with the `TEST_DB_NAME`, `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_USER` and `TEST_DB_PASSWORD` environment variables.
+
+`uv run pytest tests/`
+
+CI runs both ruff and pytest on every push and pull request.
+
+## Management commands
+
+Maintenance commands in `scripts/management/commands/`, run with `uv run python manage.py <command>`. They are safe to re-run, but back up the database before running them against production data.
+
+| Command | Purpose |
+| --- | --- |
+| `update_script_counts` | Recalculates the per-type character counts (Townsfolk, Outsiders, etc.) on every script version from its stored JSON. |
+| `update_homebrewiness` | Recalculates whether each script version is official, hybrid or homebrew, and syncs the Hybrid and Homebrew tags. The tags are looked up by hard-coded IDs (49 and 50) in the command, so update those if your database differs. |
+| `fix_latest_flags` | Ensures only the highest version of each script has `latest=True`. |
+| `delete_orphaned_scripts` | Lists and deletes scripts that have no versions. This deletes data without asking for confirmation. |
