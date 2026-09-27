@@ -3,103 +3,61 @@ import os
 
 import pytest
 
-from scripts.script_json import get_similarity
+from scripts.character_mask import MASK_BITS, build_mask
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-@pytest.mark.parametrize(
-    "orig, new",
-    [
-        ("input/trouble_brewing.json", "input/trouble_brewing.json"),
-        ("input/trouble_brewing_with_meta.json", "input/trouble_brewing.json"),
-        ("input/trouble_brewing.json", "input/trouble_brewing_with_meta.json"),
-        (
-            "input/trouble_brewing_with_meta.json",
-            "input/trouble_brewing_with_meta.json",
-        ),
-    ],
-)
-def test_same(orig, new):
-    with open(os.path.join(current_dir, orig), "r") as f:
-        v1 = js.load(f)
-    with open(os.path.join(current_dir, new), "r") as f:
-        v2 = js.load(f)
-    similarity = get_similarity(v1, v2, True)
-    assert similarity == 100
+def load(name):
+    with open(os.path.join(current_dir, "input", name), "r") as f:
+        return js.load(f)
 
 
-@pytest.mark.parametrize(
-    "orig, new",
-    [
-        ("input/trouble_brewing.json", "input/strings_pulling.json"),
-        ("input/trouble_brewing_with_meta.json", "input/strings_pulling.json"),
-        ("input/trouble_brewing.json", "input/strings_pulling_with_meta.json"),
-        (
-            "input/trouble_brewing_with_meta.json",
-            "input/strings_pulling_with_meta.json",
-        ),
-    ],
-)
-def test_minimal_diff(orig, new):
-    with open(os.path.join(current_dir, orig), "r") as f:
-        v1 = js.load(f)
-    with open(os.path.join(current_dir, new), "r") as f:
-        v2 = js.load(f)
-    similarity = get_similarity(v1, v2, True)
-    # TB has 22 characters, Strings Pulling has 23 characters, 22 of which are on TB
-    # 96 = 22/23
-    assert similarity == 96
-    similarity = get_similarity(v1, v2, False)
-    assert similarity == 100
-    reverse = get_similarity(v2, v1, True)
-    assert reverse == 96
-    reverse = get_similarity(v2, v1, False)
-    assert reverse == 100
+def character_ids(*names):
+    return {item["id"] for name in names for item in load(name) if item.get("id") != "_meta"}
 
 
-def test_two_changes():
-    with open(os.path.join(current_dir, "input/trouble_brewing.json"), "r") as f:
-        v1 = js.load(f)
-    with open(os.path.join(current_dir, "input/half_of_the_108.json"), "r") as f:
-        v2 = js.load(f)
-    similarity = get_similarity(v1, v2, True)
-    assert similarity == 92
-    similarity = get_similarity(v1, v2, False)
-    assert similarity == 100
-    reverse = get_similarity(v2, v1, True)
-    assert reverse == 92
-    reverse = get_similarity(v2, v1, False)
-    assert reverse == 100
+SCRIPTS = ("trouble_brewing.json", "strings_pulling.json", "half_of_the_108.json", "pies_baking.json")
+BIT_MAP = {character_id: index for index, character_id in enumerate(sorted(character_ids(*SCRIPTS)))}
 
 
-def test_differences_both_ways():
-    with open(os.path.join(current_dir, "input/trouble_brewing.json"), "r") as f:
-        v1 = js.load(f)
-    with open(os.path.join(current_dir, "input/pies_baking.json"), "r") as f:
-        v2 = js.load(f)
-    similarity = get_similarity(v1, v2, True)
-    # 20 out of 23 characters are shared
-    assert similarity == 87
-    # 20 out of 22 characters are shared
-    similarity = get_similarity(v1, v2, False)
-    assert similarity == 91
-    reverse = get_similarity(v2, v1, True)
-    assert reverse == 87
-    reverse = get_similarity(v2, v1, False)
-    assert reverse == 91
+def mask(content):
+    return int(build_mask(content, BIT_MAP), 2)
 
 
-def test_large_vs_small_script():
-    with open(os.path.join(current_dir, "input/trouble_brewing.json"), "r") as f:
-        v1 = js.load(f)
-    with open(os.path.join(current_dir, "input/just_the_drunk.json"), "r") as f:
-        v2 = js.load(f)
-    similarity = get_similarity(v1, v2, True)
-    assert similarity == 5
-    similarity = get_similarity(v1, v2, False)
-    assert similarity == 8
-    reverse = get_similarity(v2, v1, True)
-    assert reverse == 5
-    reverse = get_similarity(v2, v1, False)
-    assert reverse == 8
+def test_mask_length_and_bits():
+    tb = load("trouble_brewing.json")
+    result = build_mask(tb, BIT_MAP)
+    assert len(result) == MASK_BITS
+    assert result.count("1") == 22
+    assert result[BIT_MAP["washerwoman"]] == "1"
+    assert result[BIT_MAP["marionette"]] == "0"
+
+
+@pytest.mark.parametrize("name", ["trouble_brewing.json", "strings_pulling.json"])
+def test_meta_ignored(name):
+    content = load(name)
+    meta = {"id": "_meta", "name": "Test"}
+    assert mask([meta, *content]) == mask([*content, meta]) == mask(content)
+
+
+def test_unknown_and_string_entries():
+    content = ["washerwoman", {"id": "unknown"}, {"name": "no id"}, 5, {"id": ["list"]}]
+    assert build_mask(content, BIT_MAP).count("1") == 1
+
+
+def test_subset():
+    tb = mask(load("trouble_brewing.json"))
+    sp = mask(load("strings_pulling.json"))
+    assert tb & sp == tb
+    assert (tb & sp).bit_count() == 22
+    assert sp.bit_count() == 23
+
+
+def test_partial_overlap():
+    tb = mask(load("trouble_brewing.json"))
+    pies = mask(load("pies_baking.json"))
+    shared = tb & pies
+    assert shared != tb
+    assert shared != pies
+    assert 0 < shared.bit_count() < 22
