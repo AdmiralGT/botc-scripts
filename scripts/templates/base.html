@@ -93,6 +93,139 @@ html[data-theme="dark"] .page-item.active .page-link {
     border-color: var(--link-color);
     color: #121212;
 }
+/* Character type colours (script page, all roles). Darker hues get lighter dark-mode variants. */
+.char-townsfolk { color: #0000ff; }
+.char-outsider { color: #00ccff; }
+.char-minion { color: #ff8000; }
+.char-demon { color: #ff0000; }
+.char-traveller { color: #cc0099; }
+.char-fabled { color: #996600; }
+.char-loric { color: #64882b; }
+.char-unknown { color: #000000; }
+html[data-theme="dark"] .char-townsfolk { color: #66b3ff; }
+html[data-theme="dark"] .char-traveller { color: #ff66cc; }
+html[data-theme="dark"] .char-fabled { color: #d4a017; }
+html[data-theme="dark"] .char-loric { color: #8fbf4d; }
+html[data-theme="dark"] .char-unknown { color: inherit; }
+
+/* Script page statistics (votes, favourites, comments, downloads). */
+.stat-votes { color: red; }
+.stat-favs { color: #ffc000; }
+.stat-comments { color: green; }
+.stat-downloads { color: blue; }
+html[data-theme="dark"] .stat-votes { color: #ff6b6b; }
+html[data-theme="dark"] .stat-comments { color: #5fd07a; }
+html[data-theme="dark"] .stat-favs { color: #e6b93f; }
+html[data-theme="dark"] .stat-downloads { color: #66b3ff; }
+html[data-theme="dark"] .text-danger { color: #ff6b6b !important; }
+/* Like (thumbs up) and favourite (star) icons in the script list: softer than the default Bootstrap green and yellow. */
+html[data-theme="dark"] .text-success { color: #5fd07a !important; }
+html[data-theme="dark"] .text-warning { color: #e6b93f !important; }
+
+/*
+ * Dark mode buttons and tag badges: bright solid fills glare on the dark page, so each variant uses a
+ * subtle tint of its colour, a matching border and light text. Each variant only defines --tint (an rgb
+ * triplet) and --tint-fg; the shared rules below build the states from those.
+ */
+html[data-theme="dark"] .btn-primary,
+html[data-theme="dark"] .badge-primary {
+    --tint: 0, 123, 255;
+    --tint-fg: #8ab4f8;
+}
+html[data-theme="dark"] .btn-secondary,
+html[data-theme="dark"] .badge-secondary {
+    --tint: 140, 150, 160;
+    --tint-fg: #c5ccd3;
+}
+html[data-theme="dark"] .btn-success,
+html[data-theme="dark"] .badge-success {
+    --tint: 40, 167, 69;
+    --tint-fg: #5fd07a;
+}
+html[data-theme="dark"] .btn-danger,
+html[data-theme="dark"] .badge-danger {
+    --tint: 220, 53, 69;
+    --tint-fg: #ff8a94;
+}
+html[data-theme="dark"] .btn-warning,
+html[data-theme="dark"] .badge-warning {
+    --tint: 255, 193, 7;
+    --tint-fg: #ffd54f;
+}
+html[data-theme="dark"] .btn-info,
+html[data-theme="dark"] .badge-info {
+    --tint: 23, 162, 184;
+    --tint-fg: #5fd0e3;
+}
+html[data-theme="dark"] .badge-light {
+    --tint: 248, 249, 250;
+    --tint-fg: #e0e0e0;
+}
+html[data-theme="dark"] .badge-dark {
+    --tint: 200, 205, 210;
+    --tint-fg: #cfd4d9;
+}
+html[data-theme="dark"] .badge-purple {
+    --tint: 150, 110, 210;
+    --tint-fg: #c3a6ec;
+}
+html[data-theme="dark"] .badge-bloodred {
+    --tint: 200, 40, 40;
+    --tint-fg: #ff8a8a;
+}
+html[data-theme="dark"] .badge-clockconaus {
+    --tint: 70, 110, 190;
+    --tint-fg: #9dbcf0;
+}
+html[data-theme="dark"] .badge-nocturne {
+    --tint: 110, 157, 205;
+    --tint-fg: #6e9dcd;
+}
+
+html[data-theme="dark"] :is(.btn-primary,.btn-secondary,.btn-success,.btn-danger,.btn-warning,.btn-info) {
+    background-color: rgba(var(--tint), 0.22);
+    border-color: rgba(var(--tint), 0.55);
+    color: var(--tint-fg);
+}
+html[data-theme="dark"] :is(.btn-primary,.btn-secondary,.btn-success,.btn-danger,.btn-warning,.btn-info):hover,
+html[data-theme="dark"] :is(.btn-primary,.btn-secondary,.btn-success,.btn-danger,.btn-warning,.btn-info):focus,
+html[data-theme="dark"] :is(.btn-primary,.btn-secondary,.btn-success,.btn-danger,.btn-warning,.btn-info):not(:disabled):not(.disabled):active {
+    background-color: rgba(var(--tint), 0.38);
+    border-color: rgba(var(--tint), 0.8);
+    color: var(--tint-fg);
+    box-shadow: none;
+}
+html[data-theme="dark"] :is(.btn-primary,.btn-secondary,.btn-success,.btn-danger,.btn-warning,.btn-info).disabled,
+html[data-theme="dark"] :is(.btn-primary,.btn-secondary,.btn-success,.btn-danger,.btn-warning,.btn-info):disabled {
+    background-color: rgba(var(--tint), 0.12);
+    border-color: rgba(var(--tint), 0.3);
+    color: var(--tint-fg);
+}
+html[data-theme="dark"] :is(.badge-primary,.badge-secondary,.badge-success,.badge-danger,.badge-warning,.badge-info,.badge-light,.badge-dark,.badge-purple,.badge-bloodred,.badge-clockconaus,.badge-nocturne) {
+    background-color: rgba(var(--tint), 0.18);
+    color: var(--tint-fg);
+    box-shadow: inset 0 0 0 1px rgba(var(--tint), 0.5);
+}
+.badge-purple {
+    background-color: rgba(150,110,210, 0.18);
+    color: #c3a6ec;
+    box-shadow: inset 0 0 0 1px rgba(150,110,210, 0.5);
+}
+html[data-theme="dark"] .badge-bloodred {
+    background-color: rgba(200,40,40, 0.18);
+    color: #ff8a8a;
+    box-shadow: inset 0 0 0 1px rgba(200,40,40, 0.5);
+}
+html[data-theme="dark"] .badge-clockconaus {
+    background-color: rgba(70,110,190, 0.18);
+    color: #9dbcf0;
+    box-shadow: inset 0 0 0 1px rgba(70,110,190, 0.5);
+}
+html[data-theme="dark"] .badge-nocturne {
+    background-color: rgba(110,157,205, 0.18);
+    color: #6e9dcd;
+    box-shadow: inset 0 0 0 1px rgba(110,157,205, 0.5);
+}
 .badge-purple {
    color: #ffffff;
    background-color: #694c8f;

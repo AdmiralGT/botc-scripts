@@ -57,25 +57,25 @@
     <div class="col-md-auto pl-3 pr-0 pt-0 pb-0">
         Base 3: 
             {% if edition == 0 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" extra_classes="pb-1 text-success" size="24px" %}
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" extra_classes="pb-1 text-danger" size="24px" %}
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
         Kickstarter:
             {% if edition <= 1 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" extra_classes="pb-1 text-success" size="24px" %}
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" extra_classes="pb-1 text-danger" size="24px" %}
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
         clocktower.online:
             {% if edition <= 2 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" extra_classes="pb-1 text-success" size="24px" %}
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" extra_classes="pb-1 text-danger" size="24px" %}
             {% endif %}
     </div>
 </div>

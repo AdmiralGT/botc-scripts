@@ -35,10 +35,6 @@
     .bg-loric {
        background-color: rgba(141, 199, 0, 0.6);
     }
-
-    html[data-theme="dark"] #characters span[style="color:#0000ff"] {
-        color: #66b3ff !important;
-    }
 </style>
 
 <script>
@@ -201,25 +197,25 @@
     <div class="col-md-auto pl-3 pr-0 pt-0 pb-0">
         Base 3: 
             {% if script_version.edition == 0 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" extra_classes="pb-1 text-success" size="24px" %}
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" extra_classes="pb-1 text-danger" size="24px" %}
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
         Kickstarter:
             {% if script_version.edition <= 1 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" extra_classes="pb-1 text-success" size="24px" %}
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" extra_classes="pb-1 text-danger" size="24px" %}
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
         Carousel:
             {% if script_version.edition <= 2 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" extra_classes="pb-1 text-success" size="24px" %}
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" extra_classes="pb-1 text-danger" size="24px" %}
             {% endif %}
     </div>
     {% if user.is_staff %}
