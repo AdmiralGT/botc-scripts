@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Count
 from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -89,6 +90,7 @@ class VersionViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     @authentication_classes([BasicAuthentication])
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         kwargs.setdefault("context", self.get_serializer_context())
         serializer = serializers.ScriptUploadSerializer(*args, data=request.data, **kwargs)
@@ -103,6 +105,10 @@ class VersionViewSet(viewsets.ModelViewSet):
 
         # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=serializer.validated_data.get("name"))
+
+        # Lock the script row - see issue #503.
+        models.Script.objects.select_for_update().get(pk=script.pk)
+
         user = request.user if request.user.is_authenticated else None
         if created:
             script.owner = user
@@ -182,12 +188,17 @@ class VersionViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_201_CREATED, data={"pk": self.script_version.pk})
 
     @authentication_classes([BasicAuthentication])
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         pk = kwargs.pop("pk")
         try:
             instance = models.ScriptVersion.objects.get(pk=pk)
         except models.ScriptVersion.DoesNotExist:
             return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Lock the script row for the rest of this transaction - see issue #503.
+        models.Script.objects.select_for_update().get(pk=instance.script_id)
+
         serializer = serializers.ScriptUploadSerializer(*args, data=request.data, **kwargs)
         if not serializer.is_valid(create=False, raise_exception=True):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -223,6 +234,7 @@ class VersionViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
     @authentication_classes([BasicAuthentication])
+    @transaction.atomic
     def destroy(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
         try:
@@ -230,12 +242,14 @@ class VersionViewSet(viewsets.ModelViewSet):
         except models.ScriptVersion.DoesNotExist:
             return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        # Lock the script row for the rest of this transaction - see issue #503.
+        script = models.Script.objects.select_for_update().get(pk=instance.script_id)
+
         if instance.script.owner != self.request.user:
             return Response(
                 {"error": "You do not have permission to delete this script."}, status=status.HTTP_403_FORBIDDEN
             )
 
-        script = instance.script
         instance.delete()
 
         if script.versions.count() > 0:
