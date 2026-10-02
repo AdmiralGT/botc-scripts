@@ -4,6 +4,8 @@ from uuid import uuid4
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from versionfield import VersionField
 
 from scripts import constants
@@ -162,6 +164,66 @@ class ScriptVersion(models.Model):
             models.Index(fields=["latest", "homebrewiness"], name="sv_latest_and_homebrew_idx"),
             GinIndex(fields=["content"], name="sv_content_gin_idx"),
         ]
+
+
+def character_ids_in_content(content) -> set[str]:
+    """
+    The set of character IDs in a script's JSON, excluding the `_meta` entry.
+    """
+    ids = set()
+    if not isinstance(content, list):
+        return ids
+    for entry in content:
+        if isinstance(entry, str):
+            character_id = entry
+        elif isinstance(entry, dict):
+            character_id = entry.get("id", "")
+        else:
+            continue
+        if character_id and character_id != "_meta":
+            ids.add(character_id)
+    return ids
+
+
+class ScriptVersionCharacter(models.Model):
+    """
+    Denormalised index of which characters appear in a ScriptVersion, kept in sync from
+    `ScriptVersion.content`. Lets statistics aggregate in SQL rather than reading every
+    script's JSON into Python.
+    """
+
+    # A composite primary key, rather than the usual surrogate one: the pair is already unique,
+    # and at ~25 rows per script version the extra column and its index are a third of the table.
+    # It leads on script_version, so it also serves FK lookups.
+    pk = models.CompositePrimaryKey("script_version", "character_id")
+    script_version = models.ForeignKey(
+        ScriptVersion, on_delete=models.CASCADE, related_name="characters", db_index=False
+    )
+    character_id = models.TextField()
+
+    def __str__(self):
+        return f"{self.script_version_id} - {self.character_id}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["character_id"], name="svc_character_id_idx"),
+        ]
+
+
+def sync_script_version_characters(script_version: ScriptVersion) -> None:
+    wanted = character_ids_in_content(script_version.content)
+    existing = set(script_version.characters.values_list("character_id", flat=True))
+    if stale := existing - wanted:
+        script_version.characters.filter(character_id__in=stale).delete()
+    ScriptVersionCharacter.objects.bulk_create(
+        [ScriptVersionCharacter(script_version=script_version, character_id=cid) for cid in wanted - existing],
+        ignore_conflicts=True,
+    )
+
+
+@receiver(post_save, sender=ScriptVersion)
+def _sync_characters_on_save(sender, instance, **kwargs):
+    sync_script_version_characters(instance)
 
 
 class Comment(models.Model):
