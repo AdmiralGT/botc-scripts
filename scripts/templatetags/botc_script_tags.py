@@ -1,5 +1,6 @@
 from babel.core import Locale, UnknownLocaleError
 from django import template
+from django.utils.html import escape
 
 from scripts import cache, models, script_json
 from scripts.html_utils import join_lines_for_html_attribute
@@ -85,7 +86,7 @@ def get_characters(script_version):
     for char_type in type_order:
         chars = characters_by_type[char_type]
         if chars:
-            lines.append(f"{char_type}: {', '.join(chars)}")
+            lines.append(escape(f"{char_type}: {', '.join(chars)}"))
 
     return join_lines_for_html_attribute(lines)
 
