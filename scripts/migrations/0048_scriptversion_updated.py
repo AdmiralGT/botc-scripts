@@ -13,7 +13,7 @@ def backfill_updated(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scripts', '0046_scriptversion_sv_content_gin_idx'),
+        ('scripts', '0047_scriptversioncharacter'),
     ]
 
     operations = [
