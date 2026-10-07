@@ -9,6 +9,18 @@ This is a database for hosting Blood on the Clocktower custom scripts. You can v
 - Filter scripts based on required characters or characters to exclude.
 - Option to vote for your favourite scripts
 
+## Getting started
+
+See [DEVELOPMENT.md](./DEVELOPMENT.md) for setting up a local environment (Dev Container or manual), running the site, tests and linting.
+
+## API
+
+The site exposes a REST API under `/api/` (scripts, script IDs, collections, characters, statistics and translations). The browsable API root lists the available endpoints.
+
+## Contributing
+
+Bug reports, feature requests and script claims are welcome via the [issue templates](https://github.com/AdmiralGT/botc-scripts/issues/new/choose). For code changes, fork the repository, follow [DEVELOPMENT.md](./DEVELOPMENT.md), and make sure `uv run ruff check` and `uv run pytest tests/` pass before opening a pull request.
+
 ## Acknowledgements
 
 This site is not affiliated with The Pandemonium Institute. All roles and characters are the property of Steven Medway and The Pandemonium Institute.
