@@ -14,6 +14,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Case, Count, F, Prefetch, When
 from django.http import (
     FileResponse,
@@ -428,6 +429,7 @@ class ScriptUploadView(BaseScriptUploadView):
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)
 
+    @transaction.atomic
     def form_valid(self, form):
         user = self.request.user
         json = script_json.get_json_content(form.cleaned_data)
@@ -446,6 +448,10 @@ class ScriptUploadView(BaseScriptUploadView):
 
         # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=script_name)
+
+        # Lock the script row so a concurrent upload/delete for it is serialized against
+        # this one rather than racing it - see issue #503.
+        models.Script.objects.select_for_update().get(pk=script.pk)
 
         # We only want to set the owner on newly created scripts, so if we've
         # just created the script and the user is authenticated, set the owner to this user
@@ -573,9 +579,14 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
 
     model = models.Script
 
+    @transaction.atomic
     def form_valid(self, form):
         self.object: models.Script = self.get_object()
         script: models.Script = self.object
+
+        # Lock the script row - see issue #503.
+        models.Script.objects.select_for_update().get(pk=script.pk)
+
         try:
             script_version: models.ScriptVersion = script.versions.all().get(version=self.kwargs.get("version"))
         except models.ScriptVersion.DoesNotExist:
