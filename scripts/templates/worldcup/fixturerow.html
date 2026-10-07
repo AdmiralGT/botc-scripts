@@ -1,41 +1,26 @@
 {% load botc_script_tags %}
+{% load bootstrap_icons %}
 
 <tr>
-    {% if entry.winner == "Home" %}
-    <td class="align-middle text-center p-0 table-success">
-    {% else %}
-    <td class="align-middle text-center p-0">
-    {% endif %}
+    <td class="align-middle text-center p-2{% if entry.winner == "Home" %} table-success{% endif %}">
         <a href="{% url 'script' pk=entry.script1.script.pk version=entry.script1.version %}">{{ entry.script1.script.name }}</a>
-    </td>   
-    <td class="align-middle text-center p-0">
-        vs
-    </td>   
-    {% if entry.winner == "Away" %}
-    <td class="align-middle text-center p-0 table-success">
-    {% else %}
-    <td class="align-middle text-center p-0">
-    {% endif %}
+        {% if entry.winner == "Home" %}<span class="ml-1" title="Winner">{% bs_icon 'trophy-fill' %}</span><span class="sr-only">(winner)</span>{% endif %}
+    </td>
+    <td class="align-middle text-center p-2">vs</td>
+    <td class="align-middle text-center p-2{% if entry.winner == "Away" %} table-success{% endif %}">
         <a href="{% url 'script' pk=entry.script2.script.pk version=entry.script2.version %}">{{ entry.script2.script.name }}</a>
-    </td>   
-    <td class="align-middle text-center p-0">
+        {% if entry.winner == "Away" %}<span class="ml-1" title="Winner">{% bs_icon 'trophy-fill' %}</span><span class="sr-only">(winner)</span>{% endif %}
+    </td>
+    <td class="align-middle text-center p-2">
     {% if entry.vod %}
         {% for vod in entry.vod|split %}
-            <a href="{{ vod }}" target="_blank">
-                <button class="btn btn-link btn-sm p-0">
-                VoD
-                </button>
-            </a>
+            <a href="{{ vod }}" class="btn btn-link btn-sm p-0" target="_blank" rel="noopener noreferrer">VoD{% if not forloop.first or not forloop.last %} {{ forloop.counter }}{% endif %}<span class="sr-only"> of {{ entry.script1.script.name }} vs {{ entry.script2.script.name }} (opens in a new tab)</span></a>
         {% endfor %}
     {% endif %}
     </td>
-    <td class="align-middle text-center p-0">
+    <td class="align-middle text-center p-2">
         {% if entry.form %}
-        <a href="{{ entry.form }}" target="_blank">
-            <button class="btn btn-link btn-sm p-0">
-                Vote
-            </button>
-        </a>
+        <a href="{{ entry.form }}" class="btn btn-link btn-sm p-0" target="_blank" rel="noopener noreferrer">Vote<span class="sr-only"> on {{ entry.script1.script.name }} vs {{ entry.script2.script.name }} (opens in a new tab)</span></a>
         {% endif %}
-    </td>   
+    </td>
 </tr>

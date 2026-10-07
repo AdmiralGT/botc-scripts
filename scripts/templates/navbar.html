@@ -1,20 +1,23 @@
 {% load i18n bootstrap_icons %}
 
-<nav class="navbar sticky-top navbar-expand-sm navbar-dark bg-dark">
-    <a class="navbar-brand">BotC Scripts</a>
+<nav class="navbar sticky-top navbar-expand-md navbar-dark bg-dark" aria-label="Main navigation">
+    <a class="navbar-brand" href="/">BotC Scripts</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link{% if request.path == "/" %} active{% endif %}" href="/"{% if request.path == "/" %} aria-current="page"{% endif %}>Home</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/script/search">Search</a>
+                <a class="nav-link{% if request.path == "/script/search" %} active{% endif %}" href="/script/search"{% if request.path == "/script/search" %} aria-current="page"{% endif %}>Search</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/script/upload">Upload</a>
+                <a class="nav-link{% if request.path == "/script/upload" %} active{% endif %}" href="/script/upload"{% if request.path == "/script/upload" %} aria-current="page"{% endif %}>Upload</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/statistics">Statistics</a>
+                <a class="nav-link{% if request.path == "/statistics" %} active{% endif %}" href="/statistics"{% if request.path == "/statistics" %} aria-current="page"{% endif %}>Statistics</a>
             </li>
             {% if user.is_authenticated %}
             <li class="nav-item dropdown">
@@ -28,7 +31,7 @@
             </li>
             {% else %}
             <li class="nav-item">
-                <a class="nav-link" href="/collections">Collections</a>
+                <a class="nav-link{% if request.path == "/collections" %} active{% endif %}" href="/collections"{% if request.path == "/collections" %} aria-current="page"{% endif %}>Collections</a>
             </li>
             {% endif %}
             <li class="nav-item dropdown">
@@ -83,7 +86,7 @@
             </li>
             {% endif %}
             <li class="nav-item">
-                <a class="nav-link" href="https://github.com/AdmiralGT/botc-scripts" target="_blank">GitHub</a>
+                <a class="nav-link" href="https://github.com/AdmiralGT/botc-scripts" target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only"> (opens in a new tab)</span></a>
             </li>
         </ul>
     </div>
