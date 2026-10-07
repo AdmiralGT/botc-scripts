@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Count
 from django.http import Http404
@@ -92,6 +93,8 @@ class VersionViewSet(viewsets.ModelViewSet):
     @authentication_classes([BasicAuthentication])
     @transaction.atomic
     def create(self, request, *args, **kwargs):
+        if settings.UPLOAD_DISABLED and not (request.user.is_authenticated and request.user.is_staff):
+            return Response({"error": "Uploads are currently disabled."}, status=status.HTTP_403_FORBIDDEN)
         kwargs.setdefault("context", self.get_serializer_context())
         serializer = serializers.ScriptUploadSerializer(*args, data=request.data, **kwargs)
         if not serializer.is_valid(raise_exception=True):
