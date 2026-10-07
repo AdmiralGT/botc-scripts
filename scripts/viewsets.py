@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db.models import Count
 from django.http import Http404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.authentication import BasicAuthentication
@@ -213,14 +214,18 @@ class VersionViewSet(viewsets.ModelViewSet):
                     {"error": "You cannot modify the content of an existing script."}, status=status.HTTP_403_FORBIDDEN
                 )
 
+        changed = False
         if serializer.validated_data.get("author", None):
+            changed = changed or instance.author != serializer.validated_data.get("author")
             instance.author = serializer.validated_data.get("author")
-            instance.save()
         if serializer.validated_data.get("pdf", None):
+            changed = True
             instance.pdf = serializer.validated_data.get("pdf")
-            instance.save()
         if serializer.validated_data.get("notes", None):
+            changed = changed or instance.notes != serializer.validated_data.get("notes")
             instance.notes = serializer.validated_data.get("notes")
+        if changed:
+            instance.updated = timezone.now()
             instance.save()
 
         return Response(status=status.HTTP_200_OK)

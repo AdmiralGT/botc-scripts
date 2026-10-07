@@ -130,6 +130,15 @@
 {% endif %}
 
 <div class="row">
+    <div class="col-auto text-muted small">
+        <span>Uploaded {{ script_version.created|date:'j F Y' }}</span>
+        {% if script_last_updated and script_last_updated|date:'Y-m-d' != script_version.created|date:'Y-m-d' %}
+            &middot; <span>Last updated {{ script_last_updated|date:'j F Y' }}</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
     <div class="col-md-auto pt-1 pr-0 h-75">
         <form class="mb-0">
             <select class="custom-select" name="selected_version" onchange="this.form.submit();">
