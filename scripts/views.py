@@ -7,11 +7,13 @@ from typing import Any
 from urllib.parse import urlencode
 
 import requests
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.db.models import Count, F, Prefetch
 from django.http import (
     FileResponse,
@@ -38,6 +40,7 @@ from scripts import (
     script_json,
     tables,
 )
+from scripts.redirects import get_safe_redirect_url
 
 
 class ScriptsListView(SingleTableMixin, FilterView):
@@ -333,6 +336,11 @@ class BaseScriptUploadView(generic.FormView):
     template_name = "upload.html"
     script_version = None
 
+    def post(self, request, *args, **kwargs):
+        if settings.UPLOAD_DISABLED and not request.user.is_staff:
+            raise PermissionDenied("Uploads are currently disabled.")
+        return super().post(request, *args, **kwargs)
+
     def get_script(self, script_pk):
         if script_pk:
             script = models.Script.objects.get(pk=script_pk)
@@ -604,10 +612,12 @@ class StatisticsView(generic.ListView, FilterView):
         stats_character = None
         characters_to_display = 25
 
+        # plain_objects, not objects: statistics only ever count, so the default manager's
+        # vote/favourite annotations are joins and a GROUP BY for data that is never read.
         if "all" in self.request.GET:
-            queryset = models.ScriptVersion.objects.all()
+            queryset = models.ScriptVersion.plain_objects.all()
         else:
-            queryset = models.ScriptVersion.objects.filter(latest=True)
+            queryset = models.ScriptVersion.plain_objects.filter(latest=True)
         queryset = queryset.filter(homebrewiness=models.Homebrewiness.CLOCKTOWER)
 
         if self.request.user.is_authenticated:
@@ -618,13 +628,13 @@ class StatisticsView(generic.ListView, FilterView):
         if "character" in self.kwargs:
             try:
                 stats_character = models.ClocktowerCharacter.objects.get(character_id=self.kwargs.get("character"))
-                queryset = queryset.filter(content__contains=[{"id": stats_character.character_id}])
+                queryset = queryset.filter(characters__character_id=stats_character.character_id)
             except models.ClocktowerCharacter.DoesNotExist:
                 raise Http404()
         elif "tags" in self.kwargs:
             tags = models.ScriptTag.objects.get(pk=self.kwargs.get("tags"))
             if tags:
-                queryset = models.ScriptVersion.objects.filter(tags__in=[tags])
+                queryset = models.ScriptVersion.plain_objects.filter(tags__in=[tags])
 
         if "tags" in self.request.GET:
             try:
@@ -661,9 +671,8 @@ class StatisticsView(generic.ListView, FilterView):
             character_count[type.value] = Counter()
             num_count[type.value] = Counter()
 
-        # Build a lookup of character_id -> character, seeding every character's count to 0 so
-        # that characters which never appear in the filtered scripts still show up (e.g. in the
-        # "least common" lists).
+        # Seed every character's count to 0 so that characters which never appear in the
+        # filtered scripts still show up (e.g. in the "least common" lists).
         character_lookup = {}
         for character in cache.get_clocktower_characters().values():
             # If we're on a Character Statistics page, don't include this character in the count.
@@ -672,12 +681,15 @@ class StatisticsView(generic.ListView, FilterView):
             character_count[character.character_type][character] = 0
             character_lookup[character.character_id] = character
 
-        for content in queryset.values_list("content", flat=True):
-            ids_in_script = {item.get("id") for item in content if isinstance(item, dict)}
-            for character_id in ids_in_script:
-                character = character_lookup.get(character_id)
-                if character is not None:
-                    character_count[character.character_type][character] += 1
+        character_counts = (
+            models.ScriptVersionCharacter.objects.filter(script_version__in=queryset)
+            .values("character_id")
+            .annotate(script_count=Count("script_version"))
+        )
+        for row in character_counts:
+            character = character_lookup.get(row["character_id"])
+            if character is not None:
+                character_count[character.character_type][character] = row["script_count"]
 
         for type in models.CharacterType:
             context[type.value] = character_count[type.value].most_common(characters_to_display)
@@ -726,11 +738,18 @@ class UserDeleteView(LoginRequiredMixin, generic.TemplateView):
         return HttpResponseRedirect("/")
 
 
+def redirect_to_next(request) -> HttpResponseRedirect:
+    """
+    Redirect to the "next" value submitted with a form, but only if it stays on this site.
+    """
+    return redirect(get_safe_redirect_url(request.POST.get("next"), request.get_host(), request.is_secure()))
+
+
 def get_script(request, pk: int) -> models.Script:
     try:
         script = models.Script.objects.get(pk=pk)
     except models.Script.DoesNotExist:
-        return redirect(request.POST["next"])
+        raise Http404("Script not found.")
     return script
 
 
@@ -748,7 +767,7 @@ def vote_for_script(request, pk: int) -> None:
         raise Http404()
     script = get_script(request, pk)
     update_user_related_script(models.Vote, request.user, script)
-    return redirect(request.POST["next"])
+    return redirect_to_next(request)
 
 
 def map_similar_scripts(data):
@@ -808,7 +827,7 @@ def favourite_script(request, pk: int) -> None:
         raise Http404()
     script = get_script(request, pk)
     update_user_related_script(models.Favourite, request.user, script)
-    return redirect(request.POST["next"])
+    return redirect_to_next(request)
 
 
 def translate_character(character_id: str, language: str) -> dict:
