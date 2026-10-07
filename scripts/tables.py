@@ -42,7 +42,7 @@ excluded_clocktower_version_fields = (
 class ScriptTable(tables.Table):
     name = tables.Column(
         empty_values=(),
-        order_by=("script.name", "-version"),
+        order_by=("script.name", "-version", "pk"),
         linkify=(
             "script",
             {"pk": tables.A("script.pk"), "version": tables.A("version")},
@@ -50,14 +50,14 @@ class ScriptTable(tables.Table):
         attrs={"td": {"class": "pl-2 pr-2 p-0 align-middle"}},
     )
 
-    author = tables.Column(attrs=table_class)
+    author = tables.Column(attrs=table_class, order_by=("author", "pk"))
 
-    script_type = tables.Column(attrs=table_class, verbose_name="Type")
+    script_type = tables.Column(attrs=table_class, verbose_name="Type", order_by=("script_type", "pk"))
 
     score = tables.TemplateColumn(
         template_name="script_table/likes.html",
         verbose_name="Likes",
-        order_by=("-score"),
+        order_by=("-score", "-pk"),
         attrs={
             "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
             "th": {"class": "align-middle text-center"},
@@ -67,7 +67,7 @@ class ScriptTable(tables.Table):
     num_favs = tables.TemplateColumn(
         template_name="script_table/favourites.html",
         verbose_name="Favs",
-        order_by=("-num_favs"),
+        order_by=("-num_favs", "-pk"),
         attrs={
             "td": {"class": "pl-2 pr-2 p-0 align-middle text-center"},
             "th": {"class": "align-middle text-center"},
