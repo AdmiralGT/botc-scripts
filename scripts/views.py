@@ -976,21 +976,14 @@ class CollectionEditView(LoginRequiredMixin, generic.edit.UpdateView):
     form_class = forms.CollectionForm
     model = models.Collection
 
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def get_success_url(self) -> str:
-        return "/collection/" + str(self.object.id)
-
-    def get(self, request, *args, **kwargs):
+    def get_queryset(self):
         """
         A user should only be able to edit the collections they own.
         """
-        self.object = self.get_object()
-        if self.object.owner != self.request.user:
-            raise Http404("Cannot edit a collection you don't own.")
-        return super().get(request, *args, **kwargs)
+        return super().get_queryset().filter(owner=self.request.user)
+
+    def get_success_url(self) -> str:
+        return "/collection/" + str(self.object.id)
 
 
 class CollectionDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
@@ -1018,8 +1011,19 @@ class AddScriptToCollectionView(LoginRequiredMixin, generic.View):
     """
 
     def post(self, request, *args, **kwargs):
-        collection = models.Collection.objects.get(pk=request.POST.get("collection"))
-        script = models.ScriptVersion.objects.get(pk=request.POST.get("script_version"))
+        try:
+            collection = models.Collection.objects.get(pk=request.POST.get("collection"))
+        except (models.Collection.DoesNotExist, ValueError):
+            raise Http404("Unknown collection.")
+
+        if collection.owner != self.request.user:
+            raise Http404("Cannot edit a collection you don't own.")
+
+        try:
+            script = models.ScriptVersion.objects.get(pk=request.POST.get("script_version"))
+        except (models.ScriptVersion.DoesNotExist, ValueError):
+            raise Http404("Unknown script.")
+
         collection.scripts.add(script)
         return HttpResponseRedirect("/script/" + str(script.script.pk) + "/" + str(script.version))
 
