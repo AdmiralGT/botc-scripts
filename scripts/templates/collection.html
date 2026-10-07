@@ -8,6 +8,10 @@
 
 {% block content %}
 
+{% if table.rows %}
+    {% include "script_table/icon_symbols.html" %}
+{% endif %}
+
 <div class="row">
     <div class="col">
         <h1 class="h2">{{collection.name}}</h1>

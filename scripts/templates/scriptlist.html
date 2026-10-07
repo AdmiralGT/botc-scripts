@@ -5,6 +5,10 @@
 
 {% block content %}
 
+{% if table.rows %}
+    {% include "script_table/icon_symbols.html" %}
+{% endif %}
+
 {% if filter %}
 <form action="" method="get" class="form script-filter mb-2" role="search" aria-label="Filter scripts">
     <div class="form-group row p-1 mb-0">
