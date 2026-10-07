@@ -1,5 +1,6 @@
 from collections import Counter
 
+from django.db.models import Count
 from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -23,40 +24,46 @@ class StatisticsAPI(APIView):
 
     def get(self, request, format=None):
         counter = Counter()
+        # plain_objects, not objects: this endpoint only ever counts, so the default manager's
+        # vote/favourite annotations are joins and a GROUP BY for data that is never read.
         if "all" in request.query_params:
-            queryset = models.ScriptVersion.objects.all()
+            queryset = models.ScriptVersion.plain_objects.all()
         else:
-            queryset = models.ScriptVersion.objects.filter(latest=True)
+            queryset = models.ScriptVersion.plain_objects.filter(latest=True)
+        queryset = queryset.filter(homebrewiness=models.Homebrewiness.CLOCKTOWER)
 
-        for param in request.query_params.lists():
-            if param[0] == "character":
-                for character in param[1]:
-                    try:
-                        character = models.ClocktowerCharacter.objects.get(character_id=character)
-                        queryset = queryset.filter(content__contains=[{"id": character.character_id}])
-                    except models.ClocktowerCharacter.DoesNotExist:
-                        continue
-            elif param[0] == "character_or":
-                orig_queryset = queryset.all()
-                queryset = models.ScriptVersion.objects.none()
-                for character in param[1]:
-                    try:
-                        character = models.ClocktowerCharacter.objects.get(character_id=character)
-                        queryset = queryset | orig_queryset.filter(content__contains=[{"id": character.character_id}])
-                    except models.ClocktowerCharacter.DoesNotExist:
-                        continue
-            elif param[0] == "exclude":
-                for character in param[1]:
-                    try:
-                        character = models.ClocktowerCharacter.objects.get(character_id=character)
-                        queryset = queryset.exclude(content__contains=[{"id": character.character_id}])
-                    except models.ClocktowerCharacter.DoesNotExist:
-                        continue
+        for name, values in request.query_params.lists():
+            if name not in ("character", "character_or", "exclude"):
+                continue
+            # Unknown character IDs are silently dropped rather than matching nothing.
+            character_ids = list(
+                models.ClocktowerCharacter.objects.filter(character_id__in=values).values_list(
+                    "character_id", flat=True
+                )
+            )
+            if not character_ids:
+                continue
+            if name == "character":
+                for character_id in character_ids:
+                    queryset = queryset.filter(characters__character_id=character_id)
+            elif name == "character_or":
+                queryset = queryset.filter(characters__character_id__in=character_ids).distinct()
+            elif name == "exclude":
+                for character_id in character_ids:
+                    queryset = queryset.exclude(characters__character_id=character_id)
 
+        # Seed every character to 0 so characters absent from the filtered scripts are still
+        # reported, then overlay the counts from a single aggregate query.
         for character in models.ClocktowerCharacter.objects.all():
-            counter[character.character_id] = queryset.filter(
-                content__contains=[{"id": character.character_id}]
-            ).count()
+            counter[character.character_id] = 0
+
+        character_counts = (
+            models.ScriptVersionCharacter.objects.filter(script_version__in=queryset, character_id__in=list(counter))
+            .values("character_id")
+            .annotate(script_count=Count("script_version"))
+        )
+        for row in character_counts:
+            counter[row["character_id"]] = row["script_count"]
         data = {}
         if "total" in request.query_params:
             data["total"] = queryset.count()

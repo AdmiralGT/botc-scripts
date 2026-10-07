@@ -5,12 +5,12 @@
 
     {% load bootstrap4 %}
     {% load botc_script_tags %}
-    {% load bootstrap_icons %}
+    {% load svg_icons %}
 
     <!-- Button trigger modal -->
     <div class="d-inline-block m-0 mb-1">
         <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#removeFromCollectionModal{{record.pk}}" title="Remove from collection" aria-label="Remove {{ record.script.name }} from collection">
-            {% bs_icon 'trash-fill' %}<span class="action-label d-md-none">Remove</span>
+            {% svg_icon 'trash-fill' %}<span class="action-label d-md-none">Remove</span>
         </button>
     </div>
 
