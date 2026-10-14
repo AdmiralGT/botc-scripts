@@ -36,6 +36,34 @@
        background-color: rgba(141, 199, 0, 0.6);
     }
 
+    #pdf-container.pdf-enlarged {
+        position: fixed !important;
+        top: 5vh;
+        left: 5vw;
+        right: 5vw;
+        bottom: 5vh;
+        z-index: 8000;
+        padding: 8px;
+        background-color: var(--card-bg, #fff);
+        border: 1px solid var(--border-color, #dee2e6);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    #pdf-container.pdf-enlarged embed {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .pdf-enlarge-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 7999;
+        background-color: rgba(0, 0, 0, 0.6);
+    }
+
     html[data-theme="dark"] #characters span[style="color:#0000ff"] {
         color: #66b3ff !important;
     }
@@ -265,8 +293,44 @@
 <div class="tab-content row p-1" height="720">
     {% if script_version.pdf %}
     <div class="col-sm-6">
-        <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
+        <div id="pdf-container" class="position-relative">
+            <button type="button" class="btn btn-sm btn-secondary position-absolute" style="top: 8px; right: 24px; z-index: 10;" onclick="togglePdfFullscreen()" title="Enlarge" aria-label="Enlarge PDF">
+                {% bs_icon "arrows-fullscreen" size="16px" %}
+            </button>
+            <embed id="pdf-embed" src="{{ script_version.pdf.url }}" type="application/pdf" width="100%" style="height: 85vh;">
+        </div>
     </div>
+    <script>
+        function closePdfOnEscape(event) {
+            if (event.key === 'Escape') {
+                togglePdfFullscreen();
+            }
+        }
+
+        function togglePdfFullscreen() {
+            const container = document.getElementById('pdf-container');
+            const enlarged = container.classList.toggle('pdf-enlarged');
+            let backdrop = document.getElementById('pdf-enlarge-backdrop');
+
+            if (enlarged) {
+                if (!backdrop) {
+                    backdrop = document.createElement('div');
+                    backdrop.id = 'pdf-enlarge-backdrop';
+                    backdrop.className = 'pdf-enlarge-backdrop';
+                    backdrop.onclick = togglePdfFullscreen;
+                    document.body.appendChild(backdrop);
+                }
+                document.body.style.overflow = 'hidden';
+                document.addEventListener('keydown', closePdfOnEscape);
+            } else {
+                if (backdrop) {
+                    backdrop.remove();
+                }
+                document.body.style.overflow = '';
+                document.removeEventListener('keydown', closePdfOnEscape);
+            }
+        }
+    </script>
     {% endif %}
     {% if script_version.notes or bootlegger_rules %}
     <div class="tab-pane fade {% active_tab_status 'notes-tab' activetab %} col-sm-6" id="notes" role="tabpanel" aria-labelledby="notes-tab">
