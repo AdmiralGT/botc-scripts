@@ -53,6 +53,7 @@ class ScriptsListView(SingleTableMixin, FilterView):
         return (
             super()
             .get_queryset()
+            .select_related("script")
             .prefetch_related(
                 Prefetch(
                     "tags",
@@ -91,7 +92,7 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.prefetch_related("tags")
+        queryset = queryset.select_related("script").prefetch_related("tags")
         if self.script_view == "favourite":
             queryset = queryset.filter(script__favourites__user=self.request.user)
         elif self.script_view == "owned":
@@ -1142,9 +1143,14 @@ class AdvancedSearchResultsView(SingleTableView):
                     return models.ScriptVersion.objects.none()
                 ids = data.get("queryset_pks", [])
                 order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-                queryset = models.ScriptVersion.objects.filter(pk__in=ids).prefetch_related("tags").order_by(order)
+                queryset = (
+                    models.ScriptVersion.objects.filter(pk__in=ids)
+                    .select_related("script")
+                    .prefetch_related("tags")
+                    .order_by(order)
+                )
                 return queryset
-        return models.ScriptVersion.objects.prefetch_related("tags").all()
+        return models.ScriptVersion.objects.select_related("script").prefetch_related("tags").all()
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
@@ -1345,13 +1351,15 @@ def create_characters_and_determine_homebrew_status(script_content: dict, script
     except requests.exceptions.Timeout:
         pass
 
+    clocktower_characters = models.ClocktowerCharacter.objects.in_bulk([item.get("id", "") for item in script_content])
+
     for item in script_content:
         if item.get("id", "") == "_meta":
             entries_to_ignore += 1
             continue
 
         try:
-            character = models.ClocktowerCharacter.objects.get(character_id=item.get("id", ""))
+            character = clocktower_characters[item.get("id", "")]
             # Ignore official Loric and Fabled characters, as they shouldn't count against
             # homebrew/hybrid status (homebrew Loric/Fabled characters still count).
             if character.character_type in (
@@ -1359,7 +1367,7 @@ def create_characters_and_determine_homebrew_status(script_content: dict, script
                 models.CharacterType.FABLED,
             ):
                 entries_to_ignore += 1
-        except models.ClocktowerCharacter.DoesNotExist:
+        except KeyError:
             if roles.ok and character_missing_from_database(item.get("id", ""), js.loads(roles.content)):
                 # It's possible we don't know about this character because it has just been released
                 # and it's not been added to the database. In this case check the script tool for roles
