@@ -99,6 +99,7 @@ class ClocktowerTable(ScriptTable):
     class Meta:
         model = ScriptVersion
         exclude = excluded_clocktower_version_fields
+        template_name = "script_table/table.html"
         sequence = (
             "name",
             "author",
@@ -122,6 +123,7 @@ class UserClocktowerTable(ClocktowerTable):
     class Meta:
         model = ScriptVersion
         exclude = excluded_clocktower_version_fields
+        template_name = "script_table/table.html"
         sequence = (
             "name",
             "author",
@@ -145,6 +147,7 @@ class CollectionClocktowerTable(UserClocktowerTable):
     class Meta:
         model = ScriptVersion
         exclude = excluded_clocktower_version_fields
+        template_name = "script_table/table.html"
         sequence = (
             "name",
             "author",
