@@ -42,7 +42,50 @@ from scripts import (
 from scripts.redirects import get_safe_redirect_url
 
 
-class ScriptsListView(SingleTableMixin, FilterView):
+class ScriptOrderToggleMixin:
+    order_query_parameter = "script_order"
+
+    def order_script_queryset(self, queryset):
+        ordering = "pk" if self.request.GET.get(self.order_query_parameter) == "asc" else "-pk"
+        return queryset.order_by(ordering)
+
+    def get_script_order_toggle(self):
+        oldest_first = self.request.GET.get(self.order_query_parameter) == "asc"
+        query_params = self.request.GET.copy()
+        query_params.pop("page", None)
+        query_params.pop("sort", None)
+        if oldest_first:
+            query_params.pop(self.order_query_parameter, None)
+        else:
+            query_params[self.order_query_parameter] = "asc"
+
+        label = "Show newest first" if oldest_first else "Show oldest first"
+        return f"?{query_params.urlencode()}", label
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        oldest_first = self.request.GET.get(self.order_query_parameter) == "asc"
+        context["script_order_oldest_first"] = oldest_first
+        context["script_order_toggle_url"], context["script_order_toggle_label"] = self.get_script_order_toggle()
+        return context
+
+    def get_table(self, **kwargs):
+        table = super().get_table(**kwargs)
+        table.script_order_toggle_url, table.script_order_toggle_label = self.get_script_order_toggle()
+        table.script_order_oldest_first = self.request.GET.get(self.order_query_parameter) == "asc"
+        return table
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super().get_filterset_kwargs(filterset_class)
+        data = kwargs["data"]
+        if data is not None and self.order_query_parameter in data:
+            data = data.copy()
+            data.pop(self.order_query_parameter)
+            kwargs["data"] = data or None
+        return kwargs
+
+
+class ScriptsListView(ScriptOrderToggleMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
     template_name = "scriptlist.html"
     table_pagination = {"per_page": 20}
@@ -50,14 +93,10 @@ class ScriptsListView(SingleTableMixin, FilterView):
     script_view = None
 
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .prefetch_related(
-                Prefetch(
-                    "tags",
-                    queryset=models.ScriptTag.objects.all().order_by("order"),
-                )
+        return self.order_script_queryset(super().get_queryset()).prefetch_related(
+            Prefetch(
+                "tags",
+                queryset=models.ScriptTag.objects.all().order_by("order"),
             )
         )
 
@@ -78,7 +117,7 @@ class ScriptsListView(SingleTableMixin, FilterView):
         return tables.ClocktowerTable
 
 
-class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
+class UserScriptsListView(LoginRequiredMixin, ScriptOrderToggleMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
     table_class = tables.UserClocktowerTable
     template_name = "scriptlist.html"
@@ -91,6 +130,7 @@ class UserScriptsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = self.order_script_queryset(queryset)
         queryset = queryset.prefetch_related("tags")
         if self.script_view == "favourite":
             queryset = queryset.filter(script__favourites__user=self.request.user)
@@ -1094,7 +1134,7 @@ class CommentDeleteView(LoginRequiredMixin, generic.View):
         return HttpResponseRedirect(success_url)
 
 
-class AdvancedSearchResultsView(SingleTableView):
+class AdvancedSearchResultsView(ScriptOrderToggleMixin, SingleTableView):
     model = models.ScriptVersion
     template_name = "scriptlist.html"
     table_pagination = {"per_page": 20}
@@ -1108,11 +1148,14 @@ class AdvancedSearchResultsView(SingleTableView):
             if data:
                 if data.get("num_results") == 0:
                     return models.ScriptVersion.objects.none()
-                ids = data.get("queryset_pks", [])
+                ids = list(data.get("queryset_pks", []))
+                if self.request.GET.get(self.order_query_parameter) == "asc":
+                    ids.reverse()
                 order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
                 queryset = models.ScriptVersion.objects.filter(pk__in=ids).prefetch_related("tags").order_by(order)
                 return queryset
-        return models.ScriptVersion.objects.prefetch_related("tags").all()
+        queryset = models.ScriptVersion.objects.prefetch_related("tags").all()
+        return self.order_script_queryset(queryset)
 
     def get_table_class(self):
         if self.request.user.is_authenticated:
