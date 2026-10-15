@@ -1303,100 +1303,85 @@ def character_missing_from_database(character_id, roles):
     return False
 
 
-def create_characters_and_determine_homebrew_status(script_content: dict, script: models.Script):
+def create_characters_and_determine_homebrew_status(
+    script_content: dict,
+    script: models.Script,
+    *,
+    clocktower_character_types: dict[str, str] | None = None,
+    homebrew_character_updates: dict[str, models.HomebrewCharacter] | None = None,
+):
     homebrewiness = models.Homebrewiness.CLOCKTOWER
     non_clocktower_characters = 0
     entries_to_ignore = 0
-    roles = []
-    try:
-        roles = requests.get("https://script.bloodontheclocktower.com/data/roles.json", timeout=2)
-    except requests.exceptions.Timeout:
-        pass
+    roles = cache.get_official_roles()
 
     for item in script_content:
-        if item.get("id", "") == "_meta":
+        character_id = item.get("id", "")
+        if character_id == "_meta":
             entries_to_ignore += 1
             continue
 
-        try:
-            character = models.ClocktowerCharacter.objects.get(character_id=item.get("id", ""))
+        if clocktower_character_types is None:
+            try:
+                character_type = (
+                    models.ClocktowerCharacter.objects.only("character_type")
+                    .get(character_id=character_id)
+                    .character_type
+                )
+            except models.ClocktowerCharacter.DoesNotExist:
+                character_type = None
+        else:
+            character_type = clocktower_character_types.get(character_id)
+
+        if character_type is not None:
             # Ignore official Loric and Fabled characters, as they shouldn't count against
             # homebrew/hybrid status (homebrew Loric/Fabled characters still count).
-            if character.character_type in (
+            if character_type in (
                 models.CharacterType.LORIC,
                 models.CharacterType.FABLED,
             ):
                 entries_to_ignore += 1
-        except models.ClocktowerCharacter.DoesNotExist:
-            if roles.ok and character_missing_from_database(item.get("id", ""), js.loads(roles.content)):
-                # It's possible we don't know about this character because it has just been released
-                # and it's not been added to the database. In this case check the script tool for roles
-                # and if it present, don't mark this as a homebrew character.
-                continue
-            if len(item.keys()) == 1:
-                # If the character element has more than 1 key then it is almost certainly an attempt at a
-                # homebrew/hybrid character, otherwise it's probably official.
-                continue
+            continue
 
-            non_clocktower_characters += 1
+        if roles is not None and character_missing_from_database(character_id, roles):
+            # It's possible we don't know about this character because it has just been released
+            # and it's not been added to the database. In this case check the official role data
+            # and if it is present, don't mark this as a homebrew character.
+            continue
+        if roles is None and len(item.keys()) == 1:
+            # If the character element has more than 1 key then it is almost certainly an attempt at a
+            # homebrew/hybrid character, otherwise it's probably official when the role list is unavailable.
+            continue
 
-            image_url = item.get("image")
-            if isinstance(image_url, list):
-                image_url = ",".join(image_url)
-            try:
-                homebrew_character = models.HomebrewCharacter.objects.get(character_id=item.get("id"))
-                if homebrew_character.script and homebrew_character.script == script:
-                    models.HomebrewCharacter.objects.update_or_create(
-                        character_id=item.get("id"),
-                        script=script,
-                        defaults={
-                            "character_name": item.get("name"),
-                            "image_url": image_url,
-                            "character_type": get_character_type_from_team(item.get("team")).value,
-                            "ability": item.get("ability"),
-                            "first_night_position": item.get("firstNight", None),
-                            "other_night_position": item.get("otherNight", None),
-                            "first_night_reminder": item.get("firstNightReminder", None),
-                            "other_night_reminder": item.get("otherNightReminder", None),
-                            "global_reminders": ",".join(item.get("remindersGlobal", [])),
-                            "reminders": ",".join(item.get("reminders", [])),
-                            "modifies_setup": item.get("setup", False),
-                        },
-                    )
-                else:
-                    models.HomebrewCharacter.objects.update_or_create(
-                        character_id=item.get("id"),
-                        defaults={
-                            "script": script,
-                            "character_name": item.get("name"),
-                            "image_url": image_url,
-                            "character_type": get_character_type_from_team(item.get("team")).value,
-                            "ability": item.get("ability"),
-                            "first_night_position": item.get("firstNight", None),
-                            "other_night_position": item.get("otherNight", None),
-                            "first_night_reminder": item.get("firstNightReminder", None),
-                            "other_night_reminder": item.get("otherNightReminder", None),
-                            "global_reminders": ",".join(item.get("remindersGlobal", [])),
-                            "reminders": ",".join(item.get("reminders", [])),
-                            "modifies_setup": item.get("setup", False),
-                        },
-                    )
-            except models.HomebrewCharacter.DoesNotExist:
-                models.HomebrewCharacter.objects.create(
-                    character_id=item.get("id"),
-                    script=script,
-                    character_name=item.get("name"),
-                    image_url=image_url,
-                    character_type=get_character_type_from_team(item.get("team")).value,
-                    ability=item.get("ability"),
-                    first_night_position=item.get("firstNight", None),
-                    other_night_position=item.get("otherNight", None),
-                    first_night_reminder=item.get("firstNightReminder", None),
-                    other_night_reminder=item.get("otherNightReminder", None),
-                    global_reminders=",".join(item.get("remindersGlobal", [])),
-                    reminders=",".join(item.get("reminders", [])),
-                    modifies_setup=item.get("setup", False),
-                )
+        non_clocktower_characters += 1
+
+        image_url = item.get("image")
+        if isinstance(image_url, list):
+            image_url = ",".join(image_url)
+        defaults = {
+            "character_name": (item.get("name") or character_id)[:30],
+            "image_url": image_url,
+            "character_type": get_character_type_from_team(item.get("team")).value,
+            "ability": item.get("ability") or "",
+            "first_night_position": item.get("firstNight", None),
+            "other_night_position": item.get("otherNight", None),
+            "first_night_reminder": item.get("firstNightReminder", None),
+            "other_night_reminder": item.get("otherNightReminder", None),
+            "global_reminders": ",".join(item.get("remindersGlobal", [])),
+            "reminders": ",".join(item.get("reminders", [])),
+            "modifies_setup": item.get("setup", False),
+        }
+        if homebrew_character_updates is not None:
+            homebrew_character_updates[character_id] = models.HomebrewCharacter(
+                character_id=character_id,
+                script=script,
+                **defaults,
+            )
+        else:
+            models.HomebrewCharacter.objects.update_or_create(
+                character_id=character_id,
+                defaults={"script": script, **defaults},
+            )
 
     if non_clocktower_characters == len(script_content) - entries_to_ignore:
         homebrewiness = models.Homebrewiness.HOMEBREW
