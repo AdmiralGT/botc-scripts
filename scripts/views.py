@@ -769,56 +769,24 @@ def vote_for_script(request, pk: int) -> None:
     return redirect_to_next(request)
 
 
-def map_similar_scripts(data):
-    return {
-        "value": data[1],
-        "name": data[0].script.name,
-        "scriptPK": data[0].script.pk,
-    }
-
-
 # Seperate call to calculate similar scripts so we can lazy load it
 def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
     if request.method != "GET":
         raise Http404()
 
-    current_script = models.ScriptVersion.objects.filter(script=pk, version=version)[0]
+    current_script = models.ScriptVersion.plain_objects.filter(script=pk, version=version).first()
+    if current_script is None:
+        raise Http404()
 
-    similarity = {}
-    similarity[models.ScriptTypes.TEENSYVILLE.value] = {}
-    similarity[models.ScriptTypes.FULL.value] = {}
-    for script_version in (
-        models.ScriptVersion.objects.filter(latest=True, homebrewiness=models.Homebrewiness.CLOCKTOWER)
-        .select_related("script")
-        .order_by("pk")
-    ):
-        if current_script == script_version:
-            continue
+    similar = {category: [] for category in models.SIMILARITY_CATEGORIES}
+    mask = current_script.character_mask
+    if not mask or "1" not in mask:
+        return JsonResponse(similar)
 
-        similarity[script_version.script_type][script_version] = script_json.get_similarity(
-            current_script.content,
-            script_version.content,
-            current_script.script_type == script_version.script_type,
-        )
-    teensville_scripts = map(
-        map_similar_scripts,
-        sorted(
-            similarity[models.ScriptTypes.TEENSYVILLE].items(),
-            key=lambda x: x[1],
-            reverse=True,
-        )[:10],
-    )
+    for category, script_pk, name, value in current_script.similar_scripts():
+        similar[category].append({"value": int(value), "name": name, "scriptPK": script_pk})
 
-    full_scripts = map(
-        map_similar_scripts,
-        sorted(
-            similarity[models.ScriptTypes.FULL].items(),
-            key=lambda x: x[1],
-            reverse=True,
-        )[:10],
-    )
-
-    return JsonResponse({"full": list(full_scripts), "teensyville": list(teensville_scripts)})
+    return JsonResponse(similar)
 
 
 def favourite_script(request, pk: int) -> None:
