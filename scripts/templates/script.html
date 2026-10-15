@@ -209,6 +209,11 @@
     <div class="p-1 alert-messages text-center"></div>
 </div>
 <div class="row">
+    <div class="col-auto text-muted small">
+        <span>Uploaded {{ script_version.created|date:'j F Y' }}</span>
+    </div>
+</div>
+<div class="row">
     <div class="col-md-auto pl-3 pr-0 pt-0 pb-0">
         Base 3: 
             {% if script_version.edition == 0 %}
