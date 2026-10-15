@@ -36,6 +36,7 @@ excluded_clocktower_version_fields = (
     "version",
     "pdf",
     "homebrewiness",
+    "character_mask",
 )
 
 
