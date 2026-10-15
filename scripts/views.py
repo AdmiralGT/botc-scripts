@@ -278,6 +278,7 @@ class ScriptView(generic.DetailView):
                     diff_script_version.content.copy(),
                 )
                 changes[diff_script_version.version]["previous_version"] = script_version.version
+                changes[diff_script_version.version]["created"] = diff_script_version.created
             diff_script_version = script_version
 
         context["changes"] = changes
