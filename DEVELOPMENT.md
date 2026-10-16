@@ -138,3 +138,18 @@ If you use VSCode for as your IDE, you can use the following `settings.json` to 
 ## Linting
 
 This project uses [Ruff](https://docs.astral.sh/ruff/#ruff) for linting. The GitHub workflow includes a lint using ruff, but before submitting any code for review, please ensure that ruff passes by running `uv run ruff check`
+## Tests
+
+Tests run with pytest against a real PostgreSQL database, using `tests/settings.py`. pytest-django creates a separate `test_<NAME>` database, enables `pg_trgm` and loads `dev/characters.json` into it, so your development data is untouched.
+
+```bash
+uv run pytest tests/
+```
+
+By default the tests connect to `postgres:postgres@localhost:5432`, matching CI. Override with `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_NAME`, `TEST_DB_USER` and `TEST_DB_PASSWORD`, e.g. for the [docker compose](./dev/docker-compose.yml) database:
+
+```bash
+TEST_DB_USER=postgres@db uv run pytest tests/
+```
+
+Shared fixtures (users, `make_script`, `upload`) live in `tests/conftest.py`. Outbound HTTP via `requests.get` is stubbed for every test.
