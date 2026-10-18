@@ -5,8 +5,6 @@ from urllib.parse import quote
 
 from django.core.files.base import File
 
-from scripts import constants
-
 META_ID = "_meta"
 
 _UNKNOWN_ABILITY = "UNKNOWN_ABILITY"
@@ -126,30 +124,6 @@ def get_json_changes(old_json, new_json):
         and item.get("id") in new_abilities
         and item.get("ability", _UNKNOWN_ABILITY) != new_abilities[item.get("id")]
     ]
-
-
-def get_similarity(json1: list, json2: list, same_type: bool) -> int:
-    """
-    How similar two scripts are, as a percentage of the characters in ``json1`` that are also in ``json2``.
-
-    Scripts of the same type are compared against the larger script, otherwise against the smaller one
-    (but never less than a standard Teensyville script) so a Teensyville script isn't considered
-    dissimilar to a full script that contains all of its characters.
-    """
-    ids1 = _character_ids(json1)
-    ids2 = _character_ids(json2)
-    ids2_set = set(ids2)
-
-    shared = sum(1 for character_id in ids1 if character_id in ids2_set)
-
-    if same_type:
-        comparison_size = max(len(ids1), len(ids2))
-    else:
-        comparison_size = max(min(len(ids1), len(ids2)), constants.STANDARD_TEENSYVILLE_CHARACTER_COUNT)
-
-    if comparison_size == 0:
-        return 0
-    return round(shared / comparison_size * 100)
 
 
 def compress_json(json_data):
