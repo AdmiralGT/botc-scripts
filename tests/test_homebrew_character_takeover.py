@@ -33,6 +33,7 @@ def _fake_requests_get(url, *args, **kwargs):
         response = MagicMock()
         response.ok = True
         response.content = b"[]"
+        response.json.return_value = []
         return response
     raise Timeout
 
