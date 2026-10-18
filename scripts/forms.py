@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from versionfield import Version
 
-from scripts import constants, models, script_json, validators, widgets
+from scripts import constants, models, script_json, upload_validators, validators, widgets
 
 
 def tagOptions():
@@ -27,8 +27,19 @@ class ScriptForm(forms.Form):
     author = forms.CharField(max_length=constants.MAX_AUTHOR_NAME_LENGTH, required=False)
     script_type = forms.ChoiceField(choices=models.ScriptTypes.choices, initial=models.ScriptTypes.FULL)
     version = forms.CharField(max_length=20, initial="1", validators=[validators.valid_version])
-    content = forms.FileField(label="JSON", validators=[FileExtensionValidator(["json"])])
-    pdf = forms.FileField(label="PDF", required=False, validators=[FileExtensionValidator(["pdf"])])
+    content = forms.FileField(
+        label="JSON",
+        validators=[FileExtensionValidator(["json"]), upload_validators.validate_json_upload_size],
+    )
+    pdf = forms.FileField(
+        label="PDF",
+        required=False,
+        validators=[
+            FileExtensionValidator(["pdf"]),
+            upload_validators.validate_pdf_upload_size,
+            upload_validators.validate_pdf_signature,
+        ],
+    )
     notes = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={"rows": 17, "placeholder": "Notes (enter using Markdown formatting)"}),
@@ -47,6 +58,10 @@ class ScriptForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
+        if "content" not in cleaned_data:
+            # The JSON file already failed field validation (wrong type, too large...) and that error has been
+            # reported, so don't add a confusing "could not read file type" error on top of it.
+            return cleaned_data
         try:
             json = script_json.get_json_content(cleaned_data)
         except script_json.JSONError as e:

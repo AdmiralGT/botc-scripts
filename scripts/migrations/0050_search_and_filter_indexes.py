@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scripts', '0047_enable_pg_trgm'),
+        ('scripts', '0049_enable_pg_trgm'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
