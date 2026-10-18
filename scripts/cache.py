@@ -1,3 +1,4 @@
+import requests
 from django.core.cache import cache
 
 from scripts import models
@@ -5,6 +6,7 @@ from scripts import models
 CACHE_TIMEOUT = 60 * 60 * 1  # 1 hour
 CLOCKTOWER_CHARACTERS_CACHE_KEY = "clocktower_characters"
 HOMEBREW_CHARACTERS_CACHE_KEY = "homebrew_characters"
+OFFICIAL_ROLES_CACHE_KEY = "official_roles"
 
 
 def get_clocktower_characters(force=False) -> dict[str, models.ClocktowerCharacter]:
@@ -21,3 +23,21 @@ def get_homebrew_characters(force=False) -> dict[str, models.HomebrewCharacter]:
         characters = {character.character_id: character for character in models.HomebrewCharacter.objects.all()}
         cache.set(HOMEBREW_CHARACTERS_CACHE_KEY, characters, timeout=CACHE_TIMEOUT)  # Cache for 24 hours
     return characters
+
+
+def get_official_roles() -> list[dict] | None:
+    roles = cache.get(OFFICIAL_ROLES_CACHE_KEY)
+    if roles is not None:
+        return roles
+
+    try:
+        response = requests.get("https://release.botc.app/resources/data/roles.json", timeout=2)
+    except requests.exceptions.Timeout:
+        return None
+
+    if not response.ok:
+        return None
+
+    roles = response.json()
+    cache.set(OFFICIAL_ROLES_CACHE_KEY, roles, timeout=CACHE_TIMEOUT)
+    return roles

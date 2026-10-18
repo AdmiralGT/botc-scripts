@@ -35,7 +35,7 @@ If you prefer not to use Dev Containers, you can set up the environment manually
 
 ## Database
 
-The site uses PostgreSQL as the backend database. The mimimum PostgreSQL version required in v13. The PostgreSQL database must have the `postgresql-contrib` debian installed. It is recommended that you use [docker compose](./dev/docker-compose.yml) to spin up the [attached Dockerfile](./dev/Dockerfile) as your PostgreSQL database.
+The site uses PostgreSQL as the backend database. The minimum PostgreSQL version required is v14. The PostgreSQL database must have the `postgresql-contrib` debian installed. It is recommended that you use [docker compose](./dev/docker-compose.yml) to spin up the [attached Dockerfile](./dev/Dockerfile) as your PostgreSQL database.
 
 In order to test the "Name" and "Author" search fields, you must apply the following migration to your database once it has been deployed.
 
