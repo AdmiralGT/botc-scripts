@@ -18,7 +18,7 @@
             </div>
             <form action="{% url 'add_to_collection' %}" method="post">
                 <div class="modal-body">
-                    <select class="custom-select" id="collection" name="collection">
+                    <select class="custom-select" id="add-to-collection-select" name="collection">
                         {% for collection in user.collections.all|dictsort:"name" %}
                             {% script_in_collection collection script_version as is_script_in_collection %}
                             {% if not is_script_in_collection %}
