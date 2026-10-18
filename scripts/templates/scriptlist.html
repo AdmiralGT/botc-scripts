@@ -13,6 +13,9 @@
 {% if filter %}
 {% active_filter_count filter.form "search,tags" as filter_count %}
 <form action="" method="get" class="form script-filter mb-2" role="search" aria-label="Filter scripts">
+    {% if script_order_oldest_first %}
+        <input type="hidden" name="script_order" value="asc">
+    {% endif %}
     <div class="form-group row p-1 mb-0 filter-row">
         <div class="filter-search m-1">
             {% bootstrap_field filter.form.search layout='inline' form_group_class="mb-0 flex-grow-1" %}

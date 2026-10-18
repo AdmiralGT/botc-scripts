@@ -45,6 +45,7 @@ excluded_clocktower_version_fields = (
     "version",
     "pdf",
     "homebrewiness",
+    "character_mask",
 )
 
 
@@ -124,6 +125,7 @@ class ClocktowerTable(ScriptTable):
         model = ScriptVersion
         attrs = {"class": "table script-table"}
         exclude = excluded_clocktower_version_fields
+        template_name = "script_table/table.html"
         sequence = (
             "name",
             "author",
@@ -149,6 +151,7 @@ class UserClocktowerTable(ClocktowerTable):
         model = ScriptVersion
         attrs = {"class": "table script-table"}
         exclude = excluded_clocktower_version_fields
+        template_name = "script_table/table.html"
         sequence = (
             "name",
             "author",
@@ -174,6 +177,7 @@ class CollectionClocktowerTable(UserClocktowerTable):
         model = ScriptVersion
         attrs = {"class": "table script-table"}
         exclude = excluded_clocktower_version_fields
+        template_name = "script_table/table.html"
         sequence = (
             "name",
             "author",
