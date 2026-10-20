@@ -135,6 +135,16 @@ If you use VSCode for as your IDE, you can use the following `settings.json` to 
 }
 ```
 
+## Running the tests
+
+`uv run pytest tests/` runs the tests that don't need a database; this is what the GitHub workflow runs. The tests that need the project's apps and the PostgreSQL database (currently `tests/test_advanced_search.py`) are skipped unless you point pytest at your real settings, for example with the `botc/local.py` described above:
+
+```
+uv run pytest tests/ --ds=botc.local
+```
+
+pytest creates and drops its own `test_` database, so the database user needs permission to create databases.
+
 ## Linting
 
 This project uses [Ruff](https://docs.astral.sh/ruff/#ruff) for linting. The GitHub workflow includes a lint using ruff, but before submitting any code for review, please ensure that ruff passes by running `uv run ruff check`
