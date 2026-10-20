@@ -75,6 +75,7 @@ def _fake_requests_get(url, *args, **kwargs):
         response = MagicMock()
         response.ok = True
         response.content = b"[]"
+        response.json.return_value = []
         return response
     # The schema fetch in ScriptForm.clean() treats a timeout as "skip full-schema
     # validation", which is what we want here rather than a real network call.
