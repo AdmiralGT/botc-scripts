@@ -1,0 +1,18 @@
+{% if table.orderable %}
+<form method="get" class="d-md-none mobile-sort mb-2">
+    {% for key, values in request.GET.lists %}{% if key != 'sort' and key != 'page' %}{% for value in values %}
+    <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}{% endif %}{% endfor %}
+    <label for="mobile-sort" class="mb-0 mr-2">Sort by</label>
+    <select id="mobile-sort" name="sort" class="custom-select" onchange="this.form.submit()">
+        <option value="" {% if not request.GET.sort %}selected{% endif %}>Newest</option>
+        <option value="score" {% if request.GET.sort == 'score' %}selected{% endif %}>Most liked</option>
+        <option value="num_favs" {% if request.GET.sort == 'num_favs' %}selected{% endif %}>Most favourited</option>
+        <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Name</option>
+        {% if request.GET.sort and request.GET.sort != 'score' and request.GET.sort != 'num_favs' and request.GET.sort != 'name' %}
+        <option value="{{ request.GET.sort }}" selected>Column order</option>
+        {% endif %}
+    </select>
+    <noscript><button type="submit" class="btn btn-outline-secondary ml-2">Sort</button></noscript>
+</form>
+{% endif %}

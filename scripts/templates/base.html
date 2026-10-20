@@ -1,124 +1,29 @@
 {% load static %}
 {% load bootstrap4 %}
-{% load i18n %}
-
-{% bootstrap_css %}
-{% bootstrap_javascript jquery='full' %}
-
-<!doctype html>
-<html class="h-100">
-<script>
-    // Set data-theme before first paint to avoid a flash of the wrong theme.
-    (function () {
-        var storedTheme = localStorage.getItem('theme');
-        var theme = storedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', theme);
-    })();
-</script>
-
-<style>
-:root {
-    --bg-color: #ffffff;
-    --text-color: #212529;
-    --card-bg: #ffffff;
-    --border-color: #dee2e6;
-    --link-color: #007bff;
-    --muted-color: #6c757d;
-    color-scheme: light;
-}
-html[data-theme="dark"] {
-    --bg-color: #121212;
-    --text-color: #e0e0e0;
-    --card-bg: #1e1e1e;
-    --border-color: #444444;
-    --link-color: #8ab4f8;
-    --muted-color: #aaaaaa;
-    color-scheme: dark;
-}
-body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-}
-html[data-theme="dark"] a {
-    color: var(--link-color);
-}
-html[data-theme="dark"] .btn-primary.btn-shaded-text {
-    color: var(--link-color);
-}
-html[data-theme="dark"] .text-dark {
-    color: var(--text-color) !important;
-}
-html[data-theme="dark"] .text-muted {
-    color: var(--muted-color) !important;
-}
-html[data-theme="dark"] .table {
-    color: var(--text-color);
-}
-html[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
-    background-color: rgba(255, 255, 255, 0.05);
-}
-html[data-theme="dark"] .form-control,
-html[data-theme="dark"] .custom-select,
-html[data-theme="dark"] .dropdown-menu,
-html[data-theme="dark"] .modal-content {
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    border-color: var(--border-color);
-}
-html[data-theme="dark"] .dropdown-item {
-    color: var(--text-color);
-}
-html[data-theme="dark"] .dropdown-item:hover,
-html[data-theme="dark"] .dropdown-item:focus {
-    background-color: #333333;
-    color: #ffffff;
-}
-html[data-theme="dark"] .list-group-item {
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    border-color: var(--border-color);
-}
-html[data-theme="dark"] .page-link {
-    background-color: var(--card-bg);
-    color: var(--link-color);
-    border-color: var(--border-color);
-}
-html[data-theme="dark"] .page-item.disabled .page-link {
-    background-color: var(--bg-color);
-    color: var(--muted-color);
-    border-color: var(--border-color);
-}
-html[data-theme="dark"] .page-item.active .page-link {
-    background-color: var(--link-color);
-    border-color: var(--link-color);
-    color: #121212;
-}
-.badge-purple {
-   color: #ffffff;
-   background-color: #694c8f;
-}
-.badge-nocturne {
-    color: #6e9dcd;
-    background-color: #000000;
-}
-.badge-bloodred {
-    color: #ffffff;
-    background-color: #880808;
-}
-.badge-clockconaus {
-    color: #ffffff;
-    background-color: #0e1e3a;
-}
-</style>
-
-<title>BotC Scripts</title>
-
+{% load i18n %}<!doctype html>
+<html lang="en" class="h-100">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}BotC Scripts{% endblock %}</title>
+    <script>
+        // Set data-theme before first paint to avoid a flash of the wrong theme.
+        (function () {
+            var storedTheme = null;
+            try { storedTheme = localStorage.getItem('theme'); } catch (e) {}
+            var theme = storedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    {% bootstrap_css %}
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    {% bootstrap_javascript jquery='full' %}
     <meta name="google-site-verification" content="e7R5G0n4MYvX8KBMqBcy6QS-0sLf-10F6Fp3CULDhVI" />
     {% block extra_head %}{% endblock %}
 </head>
 
 <body class="d-flex flex-column h-100">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     {% include 'navbar.html' %}
 
     <script>
@@ -162,13 +67,35 @@ html[data-theme="dark"] .page-item.active .page-link {
         })();
     </script>
 
+    <script>
+        // Prevent duplicate POST submissions (e.g. double-clicking Upload).
+        document.addEventListener('submit', function (event) {
+            var form = event.target;
+            if (event.defaultPrevented || !form.method || form.method.toLowerCase() !== 'post') { return; }
+            // Disable after the submit event so the button's own value is still sent.
+            setTimeout(function () {
+                form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (button) {
+                    button.disabled = true;
+                });
+            }, 0);
+        });
+        // Re-enable buttons when returning via the back/forward cache.
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted) {
+                document.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (button) {
+                    button.disabled = false;
+                });
+            }
+        });
+    </script>
+
     {% if BANNER %}
         <div class="alert alert-danger">
             {{ BANNER }}
         </div>
     {% endif %}
 
-    <main role="main" class="flex-shrink-0">
+    <main id="main-content" role="main" class="flex-shrink-0" tabindex="-1">
         <div class="container">
 
             {% block content %}
@@ -184,5 +111,4 @@ html[data-theme="dark"] .page-item.active .page-link {
         </div>
     </footer>
 </body>
-
 </html>

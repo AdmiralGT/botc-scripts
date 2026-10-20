@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% block title %}All Roles/Fishbucket - BotC Scripts{% endblock %}
+
 {% block content %}
 {% load botc_script_tags %}
 {% load bootstrap_icons %}
@@ -9,8 +11,14 @@
         var doc = new DOMParser().parseFromString(input, "text/html");
         return doc.documentElement.textContent;
     }
-    function CopyLink() {
-        navigator.clipboard.writeText(htmlDecode('{{ content }}'))
+    function CopyLink(button) {
+        var label = button.textContent;
+        navigator.clipboard.writeText(htmlDecode('{{ content }}')).then(
+            function () { button.textContent = 'Copied!'; },
+            function () { button.textContent = 'Copy failed'; }
+        ).finally(function () {
+            setTimeout(function () { button.textContent = label; }, 2000);
+        });
     }
 </script>
 
@@ -25,7 +33,8 @@
 <div class="row">
     <div class="col-md-auto pt-1 pr-0 h-75">
         <form class="mb-0">
-            <select class="custom-select" name="selected_edition" onchange="this.form.submit();">
+            <label for="selected_edition" class="sr-only">Edition</label>
+            <select class="custom-select" id="selected_edition" name="selected_edition" onchange="this.form.submit();">
                 {% for edition_option in editions %}
                     <option {% if edition.label == edition_option.1 %}selected{% endif %}>{{ edition_option.1 }} </option>
                 {% endfor %}
@@ -42,7 +51,7 @@
                     </button>
                     <div class="dropdown-menu" aria-labelledby="downloadJsonButton">
                         {% for language in languages %}
-                            <button type="submit" class="dropdown-item" name="language_select" value={{ language }}>{% get_language_name language %}</a>
+                            <button type="submit" class="dropdown-item" name="language_select" value="{{ language }}">{% get_language_name language %}</button>
                         {% endfor %}
                     </div>
                 </div>
@@ -50,37 +59,37 @@
         </form>
     </div>  
     <div class="col-md-auto p-1">
-        <button class="btn btn-primary" onclick="CopyLink()">JSON</button>
+        <button type="button" class="btn btn-primary" onclick="CopyLink(this)" aria-live="polite" title="Copy the JSON for this script to the clipboard">Copy JSON</button>
     </div>
 </div>
 <div class="row">
     <div class="col-md-auto pl-3 pr-0 pt-0 pb-0">
         Base 3: 
             {% if edition == 0 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}<span class="sr-only">Supported</span>
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}<span class="sr-only">Not supported</span>
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
         Kickstarter:
             {% if edition <= 1 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}<span class="sr-only">Supported</span>
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}<span class="sr-only">Not supported</span>
             {% endif %}
     </div>
     <div class="col-md-auto pl-2 pr-0 pt-0 pb-0">
         clocktower.online:
             {% if edition <= 2 %}
-                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "check-circle-fill" color="green" extra_classes="pb-1" size="24px" %}<span class="sr-only">Supported</span>
             {% else %}
-                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}
+                {% bs_icon "x-circle-fill" color="red" extra_classes="pb-1" size="24px" %}<span class="sr-only">Not supported</span>
             {% endif %}
     </div>
 </div>
 
-<div>
+<ul class="list-unstyled mt-2">
     {% for role in content %}
         {% if role.id != "_meta" %}
             {% character_type_change content forloop.counter0 as newline %}
@@ -91,6 +100,6 @@
             <li><span {{ character_colour }}>{% convert_id_to_friendly_text role.id %}</span></li>
         {% endif %}
     {% endfor %}
-</div>
+</ul>
 
 {% endblock %}

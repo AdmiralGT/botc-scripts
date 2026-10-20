@@ -2,7 +2,12 @@
 
 {% load bootstrap4 %}
 
+{% block title %}Update database - BotC Scripts{% endblock %}
+
 {% block content %}
+
+<h1 class="h3">Update database</h1>
+<p class="text-muted">Staff only. Re-processes the stored JSON of every script version in the given ID range, stripping special characters.</p>
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
