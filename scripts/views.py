@@ -1422,6 +1422,13 @@ def create_characters_and_determine_homebrew_status(
                 **defaults,
             )
         else:
+            if (
+                models.HomebrewCharacter.objects.filter(character_id=character_id, script__isnull=False)
+                .exclude(script=script)
+                .exists()
+            ):
+                # Belongs to another script; never reassign or overwrite it.
+                continue
             models.HomebrewCharacter.objects.update_or_create(
                 character_id=character_id,
                 defaults={"script": script, **defaults},
