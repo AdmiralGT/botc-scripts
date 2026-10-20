@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Page not found - BotC Scripts{% endblock %}
+
+{% block content %}
+<div class="my-4">
+    <h1 class="h3">Page not found</h1>
+    <p class="lead">{% if exception and exception != "Resolver404" and exception != "Http404" %}{{ exception }}{% else %}The page you're looking for doesn't exist.{% endif %}</p>
+    <a href="/" class="btn btn-primary">Back to all scripts</a>
+</div>
+{% endblock %}
