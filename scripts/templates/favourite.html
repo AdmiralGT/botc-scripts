@@ -7,5 +7,5 @@
 <form action="{% url 'favourite' record.script.pk %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-    <button type="submit" class="btn btn-warning">{% bs_icon starstyle %}</button>
+    <button type="submit" class="btn btn-warning" title="{% if starstyle == 'star-fill' %}Remove from favourites{% else %}Add to favourites{% endif %}" aria-label="{% if starstyle == 'star-fill' %}Remove from favourites{% else %}Add to favourites{% endif %}">{% bs_icon starstyle %}</button>
 </form>

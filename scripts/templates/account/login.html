@@ -7,7 +7,8 @@
 {% block content %}
 {% get_providers as socialaccount_providers %}
 
-<h4>{% trans 'Log in' %}</h4>
+<h1 class="h4">{% trans 'Log in' %}</h1>
+<p class="text-muted">Sign in to vote, favourite, comment and manage your scripts and collections.</p>
 
 {% if socialaccount_providers  %}
 <div class="col-md-5 col-lg-5">
