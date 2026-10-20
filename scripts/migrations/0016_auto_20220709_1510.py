@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from scripts.views import count_character
+from scripts.services import count_character
 from scripts.models import CharacterType
 
 
