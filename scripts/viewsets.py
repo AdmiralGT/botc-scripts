@@ -253,21 +253,17 @@ class VersionViewSet(viewsets.ModelViewSet):
             return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
 
         # Lock the script row for the rest of this transaction - see issue #503.
-        script = models.Script.objects.select_for_update().get(pk=instance.script_id)
+        models.Script.objects.select_for_update().get(pk=instance.script_id)
 
         if instance.script.owner != self.request.user:
             return Response(
                 {"error": "You do not have permission to delete this script."}, status=status.HTTP_403_FORBIDDEN
             )
 
-        instance.delete()
-
-        if script.versions.count() > 0:
-            latest_version = script.latest_version()
-            latest_version.latest = True
-            latest_version.save()
-        else:
-            script.delete()
+        try:
+            instance.script.delete_version(instance.pk)
+        except models.ScriptVersion.DoesNotExist:
+            return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
