@@ -94,10 +94,14 @@ class ScriptsListView(ScriptOrderToggleMixin, SingleTableMixin, FilterView):
     script_view = None
 
     def get_queryset(self):
-        return self.order_script_queryset(super().get_queryset()).prefetch_related(
-            Prefetch(
-                "tags",
-                queryset=models.ScriptTag.objects.all().order_by("order"),
+        return (
+            self.order_script_queryset(super().get_queryset())
+            .select_related("script")
+            .prefetch_related(
+                Prefetch(
+                    "tags",
+                    queryset=models.ScriptTag.objects.all().order_by("order"),
+                )
             )
         )
 
@@ -132,7 +136,7 @@ class UserScriptsListView(LoginRequiredMixin, ScriptOrderToggleMixin, SingleTabl
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = self.order_script_queryset(queryset)
-        queryset = queryset.prefetch_related("tags")
+        queryset = queryset.select_related("script").prefetch_related("tags")
         if self.script_view == "favourite":
             queryset = queryset.filter(script__favourites__user=self.request.user)
         elif self.script_view == "owned":
@@ -1195,7 +1199,7 @@ class AdvancedSearchResultsView(ScriptOrderToggleMixin, SingleTableView):
                 self.search_errors.extend(f"{label}: {error}" for error in errors)
             return models.ScriptVersion.objects.none()
 
-        queryset = filters.advanced_search_queryset(form.cleaned_data).prefetch_related("tags")
+        queryset = filters.advanced_search_queryset(form.cleaned_data).select_related("script").prefetch_related("tags")
         return self.order_script_queryset(queryset)
 
     def get_context_data(self, **kwargs):
@@ -1304,24 +1308,20 @@ def create_characters_and_determine_homebrew_status(
     entries_to_ignore = 0
     roles = cache.get_official_roles()
 
+    if clocktower_character_types is None:
+        clocktower_character_types = dict(
+            models.ClocktowerCharacter.objects.filter(
+                character_id__in=[item.get("id", "") for item in script_content]
+            ).values_list("character_id", "character_type")
+        )
+
     for item in script_content:
         character_id = item.get("id", "")
         if character_id == "_meta":
             entries_to_ignore += 1
             continue
 
-        if clocktower_character_types is None:
-            try:
-                character_type = (
-                    models.ClocktowerCharacter.objects.only("character_type")
-                    .get(character_id=character_id)
-                    .character_type
-                )
-            except models.ClocktowerCharacter.DoesNotExist:
-                character_type = None
-        else:
-            character_type = clocktower_character_types.get(character_id)
-
+        character_type = clocktower_character_types.get(character_id)
         if character_type is not None:
             # Ignore official Loric and Fabled characters, as they shouldn't count against
             # homebrew/hybrid status (homebrew Loric/Fabled characters still count).
