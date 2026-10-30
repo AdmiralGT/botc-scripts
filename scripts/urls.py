@@ -121,7 +121,7 @@ urlpatterns = [
         name="download_pdf",
     ),
     path("script/search", views.AdvancedSearchView.as_view(), name="advanced_search"),
-    path("script/search/results", views.AdvancedSearchResultsView.as_view()),
+    path("script/search/results", views.AdvancedSearchResultsView.as_view(), name="advanced_search_results"),
     path("script/upload", views.ScriptUploadView.as_view(), name="upload"),
     path("statistics", views.StatisticsView.as_view()),
     path("statistics/<str:character>", views.StatisticsView.as_view()),
