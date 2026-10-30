@@ -986,11 +986,18 @@ class CollectionEditView(LoginRequiredMixin, generic.edit.UpdateView):
     form_class = forms.CollectionForm
     model = models.Collection
 
-    def get_queryset(self):
+    def get_object(self, queryset=None):
         """
-        A user should only be able to edit the collections they own.
+        A user should only be able to edit the collections they own. get_object() is used by
+        both GET and POST.
         """
-        return super().get_queryset().filter(owner=self.request.user)
+        try:
+            collection = super().get_object(queryset)
+        except Http404:
+            raise Http404("This collection doesn't exist.")
+        if collection.owner != self.request.user:
+            raise PermissionDenied("You can only edit collections you own.")
+        return collection
 
     def get_success_url(self) -> str:
         return "/collection/" + str(self.object.id)
@@ -1024,15 +1031,15 @@ class AddScriptToCollectionView(LoginRequiredMixin, generic.View):
         try:
             collection = models.Collection.objects.get(pk=request.POST.get("collection"))
         except (models.Collection.DoesNotExist, ValueError):
-            raise Http404("Unknown collection.")
+            raise Http404("This collection doesn't exist.")
 
-        if collection.owner != self.request.user:
-            raise Http404("Cannot edit a collection you don't own.")
+        if collection.owner != request.user:
+            raise PermissionDenied("You can only add scripts to collections you own.")
 
         try:
             script = models.ScriptVersion.objects.get(pk=request.POST.get("script_version"))
         except (models.ScriptVersion.DoesNotExist, ValueError):
-            raise Http404("Unknown script.")
+            raise Http404("This script doesn't exist.")
 
         collection.scripts.add(script)
         return HttpResponseRedirect("/script/" + str(script.script.pk) + "/" + str(script.version))

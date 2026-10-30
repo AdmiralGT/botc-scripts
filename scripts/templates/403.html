@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Access denied - BotC Scripts{% endblock %}
+
+{% block content %}
+<div class="my-4">
+    <h1 class="h3">Access denied</h1>
+    <p class="lead">{% if exception %}{{ exception }}{% else %}You don't have permission to view this page.{% endif %}</p>
+    <a href="/" class="btn btn-primary">Back to all scripts</a>
+</div>
+{% endblock %}
