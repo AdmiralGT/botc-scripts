@@ -1,0 +1,27 @@
+{% load botc_script_tags %}
+<div class="col-md-6 mb-3">
+    <h2 class="h4 mt-2">
+        {% if stats_character %}{{ direction }} common {{ singular }} pairing{% else %}{{ direction }} popular {{ plural }}{% endif %}
+    </h2>
+    <div class="table-responsive-wrapper">
+        <table class="w-100 table-sm {{ table_class }}">
+            <caption class="sr-only">{% if stats_character %}{{ direction }} common {{ singular }} pairing{% else %}{{ direction }} popular {{ plural }}{% endif %}</caption>
+            <thead class="sr-only">
+                <tr>
+                    <th scope="col">Character</th>
+                    <th scope="col">Scripts</th>
+                    <th scope="col">Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for character, count in rows %}
+                <tr class="row{{ forloop.counter|stringformat:'02d' }}">
+                    <td class="w-50"><a href="/statistics/{{ character.character_id }}" class="text-dark">{{ character.character_name }}</a></td>
+                    <td class="w-25 text-center">{{ count }}</td>
+                    <td class="w-25 text-center">{% get_character_percentage count total %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

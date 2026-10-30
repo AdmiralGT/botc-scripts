@@ -2,24 +2,74 @@
 
 {% load bootstrap4 %}
 
-{% bootstrap_css %}
-{% bootstrap_javascript jquery='full' %}
+{% block title %}Advanced search - BotC Scripts{% endblock %}
 
 {% block content %}
 
-<form method="post" enctype="multipart/form-data">
+<h1 class="h3">Advanced search</h1>
+<p class="text-muted">Fill in as much or as little as you like. Empty fields are ignored.</p>
+
+<form method="post" class="advanced-search">
     {% csrf_token %}
-    <div class="row">
-        <div class="col">
-            {% bootstrap_form form exclude="tag_combinations,tags,number_of_townsfolk,number_of_outsiders,number_of_minions,number_of_demons,number_of_fabled,number_of_loric,number_of_travellers" %}
+    {% bootstrap_form_errors form type='non_fields' %}
+
+    <fieldset class="search-section">
+        <legend>Script</legend>
+        <div class="row">
+            <div class="col-md-6">{% bootstrap_field form.name %}</div>
+            <div class="col-md-6">{% bootstrap_field form.author %}</div>
+            <div class="col-md-6">{% bootstrap_field form.script_type %}</div>
+            <div class="col-md-6">{% bootstrap_field form.edition %}</div>
         </div>
-        <div class="col">
-            {% bootstrap_form form layout='horizontal' exclude="name,author,script_type,includes_characters,excludes_characters,edition,minimum_number_of_likes,minimum_number_of_favourites,minimum_number_of_comments,all_scripts,include_hybrid,include_homebrew" %}
+    </fieldset>
+
+    <fieldset class="search-section">
+        <legend>Characters</legend>
+        <div class="row">
+            <div class="col-md-6">{% bootstrap_field form.includes_characters %}</div>
+            <div class="col-md-6">{% bootstrap_field form.excludes_characters %}</div>
         </div>
+        <details class="mt-2">
+            <summary>Number of characters per team</summary>
+            <p class="text-muted small mt-2 mb-2">Hold Ctrl (Cmd on Mac) to pick several values. Leave empty for any.</p>
+            <div class="row">
+                <div class="col-6 col-md-3">{% bootstrap_field form.number_of_townsfolk %}</div>
+                <div class="col-6 col-md-3">{% bootstrap_field form.number_of_outsiders %}</div>
+                <div class="col-6 col-md-3">{% bootstrap_field form.number_of_minions %}</div>
+                <div class="col-6 col-md-3">{% bootstrap_field form.number_of_demons %}</div>
+                <div class="col-6 col-md-3">{% bootstrap_field form.number_of_travellers %}</div>
+                <div class="col-6 col-md-3">{% bootstrap_field form.number_of_fabled %}</div>
+                <div class="col-6 col-md-3">{% bootstrap_field form.number_of_loric %}</div>
+            </div>
+        </details>
+    </fieldset>
+
+    <fieldset class="search-section">
+        <legend>Tags</legend>
+        {% bootstrap_field form.tags show_label=False %}
+        {% bootstrap_field form.tag_combinations %}
+    </fieldset>
+
+    <fieldset class="search-section">
+        <legend>Popularity</legend>
+        <div class="row">
+            <div class="col-md-4">{% bootstrap_field form.minimum_number_of_likes %}</div>
+            <div class="col-md-4">{% bootstrap_field form.minimum_number_of_favourites %}</div>
+            <div class="col-md-4">{% bootstrap_field form.minimum_number_of_comments %}</div>
+        </div>
+    </fieldset>
+
+    <fieldset class="search-section">
+        <legend>Include</legend>
+        {% bootstrap_field form.all_scripts %}
+        {% bootstrap_field form.include_hybrid %}
+        {% bootstrap_field form.include_homebrew %}
+    </fieldset>
+
+    <div class="d-flex flex-wrap" style="gap: 0.5rem;">
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a class="btn btn-outline-secondary" href="/script/search">Reset</a>
     </div>
-    {% buttons %}
-        <button type="submit" class="btn btn-primary m-1">Submit</button>
-    {% endbuttons %}
 </form>
-  
+
 {% endblock %}
