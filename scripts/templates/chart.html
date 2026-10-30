@@ -1,5 +1,8 @@
 $(document).ready(function() {
     var ctx = document.getElementById('{{ChartName}}').getContext('2d');
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var textColor = isDark ? '#e0e0e0' : '#666666';
+    var gridColor = isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)';
     var myChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -19,11 +22,20 @@ $(document).ready(function() {
             }]
         },
         options: {
+            legend: {
+                labels: { fontColor: textColor }
+            },
             scales: {
+                xAxes: [{
+                    ticks: { fontColor: textColor },
+                    gridLines: { color: gridColor }
+                }],
                 yAxes: [{
                     ticks: {
-                        beginAtZero: true
-                    }
+                        beginAtZero: true,
+                        fontColor: textColor
+                    },
+                    gridLines: { color: gridColor }
                 }]
             }
         }

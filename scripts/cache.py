@@ -1,5 +1,4 @@
 import time
-import uuid
 
 import requests
 from django.core.cache import cache
@@ -7,7 +6,6 @@ from django.core.cache import cache
 from scripts import models
 
 CACHE_TIMEOUT = 60 * 60 * 1  # 1 hour
-ADVANCED_SEARCH_TIMEOUT = 300  # 5 minutes
 CLOCKTOWER_CHARACTERS_CACHE_KEY = "clocktower_characters"
 HOMEBREW_CHARACTERS_CACHE_KEY = "homebrew_characters"
 OFFICIAL_ROLES_CACHE_KEY = "official_roles"
@@ -47,16 +45,6 @@ def get_character(character_id: str) -> models.ClocktowerCharacter | models.Home
     Look up a character by ID, preferring official characters over homebrew ones.
     """
     return get_clocktower_characters().get(character_id) or get_homebrew_characters().get(character_id)
-
-
-def store_advanced_search_results(pk_list: list[int]) -> str:
-    cache_key = uuid.uuid4().hex
-    cache.set(cache_key, {"queryset_pks": pk_list, "num_results": len(pk_list)}, timeout=ADVANCED_SEARCH_TIMEOUT)
-    return cache_key
-
-
-def get_advanced_search_results(cache_key: str) -> dict | None:
-    return cache.get(cache_key)
 
 
 def get_official_roles() -> list[dict] | None:
