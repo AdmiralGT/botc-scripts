@@ -77,3 +77,16 @@ def test_homebrew():
     ]
     reverse = get_json_additions(v2, v1)
     assert reverse == [{"id": "imp"}]
+
+
+def test_inputs_are_not_modified():
+    with open(os.path.join(current_dir, "input/trouble_brewing.json"), "r") as f:
+        v1 = js.load(f)
+    with open(os.path.join(current_dir, "input/pies_baking.json"), "r") as f:
+        v2 = js.load(f)
+    original_v1 = js.loads(js.dumps(v1))
+    original_v2 = js.loads(js.dumps(v2))
+    get_json_additions(v1, v2)
+    get_json_additions(v2, v1)
+    assert v1 == original_v1
+    assert v2 == original_v2

@@ -1,7 +1,7 @@
 from django.db import migrations, models
 
 def change_edition(apps, _):
-    from scripts import models, views
+    from scripts import models, services
     ClocktowerCharacter = apps.get_model("scripts", "clocktowercharacter")
     ScriptVersion = apps.get_model("scripts", "scriptversion")
     
@@ -13,7 +13,7 @@ def change_edition(apps, _):
 
     # Update existing script versions to have the correct edition choices
     for version in ScriptVersion.objects.all():
-        version.edition = views.calculate_edition(version.content)
+        version.edition = services.calculate_edition(version.content)
         version.save()
 
 def remove_duplicate_votes_and_favourites(apps, _):
