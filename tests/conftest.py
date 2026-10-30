@@ -28,7 +28,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
 def offline(monkeypatch):
     def fake_get(url, *args, **kwargs):
         if url.endswith("roles.json"):
-            return SimpleNamespace(ok=True, content=b"[]")
+            return SimpleNamespace(ok=True, content=b"[]", json=lambda: [])
         raise requests.exceptions.Timeout(url)
 
     monkeypatch.setattr(requests, "get", fake_get)
