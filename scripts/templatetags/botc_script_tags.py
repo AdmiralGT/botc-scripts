@@ -1,5 +1,6 @@
 from babel.core import Locale, UnknownLocaleError
 from django import template
+from django.utils.html import escape
 
 from scripts import cache, models, script_json
 from scripts.html_utils import join_lines_for_html_attribute
@@ -85,7 +86,7 @@ def get_characters(script_version):
     for char_type in type_order:
         chars = characters_by_type[char_type]
         if chars:
-            lines.append(f"{char_type}: {', '.join(chars)}")
+            lines.append(escape(f"{char_type}: {', '.join(chars)}"))
 
     return join_lines_for_html_attribute(lines)
 
@@ -93,21 +94,21 @@ def get_characters(script_version):
 def get_colour_from_character_type(character_type):
     match character_type:
         case models.CharacterType.TOWNSFOLK:
-            return "style=color:#0000ff"
+            return "class=char-townsfolk"
         case models.CharacterType.OUTSIDER:
-            return "style=color:#00ccff"
+            return "class=char-outsider"
         case models.CharacterType.MINION:
-            return "style=color:#ff8000"
+            return "class=char-minion"
         case models.CharacterType.DEMON:
-            return "style=color:#ff0000"
+            return "class=char-demon"
         case models.CharacterType.TRAVELLER:
-            return "style=color:#cc0099"
+            return "class=char-traveller"
         case models.CharacterType.FABLED:
-            return "style=color:#996600"
+            return "class=char-fabled"
         case models.CharacterType.LORIC:
-            return "style=color:#64882b"
+            return "class=char-loric"
         case _:
-            return "style=color:#000000"
+            return "class=char-unknown"
 
 
 @register.simple_tag()
@@ -121,7 +122,7 @@ def character_colourisation(character_id):
     character = homebrew_characters.get(character_id)
     if character:
         return get_colour_from_character_type(character.character_type)
-    return "style=color:#000000"
+    return "class=char-unknown"
 
 
 @register.simple_tag()

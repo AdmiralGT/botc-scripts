@@ -3,10 +3,15 @@ from uuid import uuid4
 
 from django.contrib.auth.models import User
 from django.contrib.postgres.indexes import GinIndex
-from django.db import models
+from django.db import models, transaction
+from django.db.models import F, Value, Window
+from django.db.models.functions import Cast, Round, RowNumber
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from versionfield import VersionField
 
 from scripts import constants
+from scripts.character_mask import MASK_BITS, BitAnd, BitCount, build_mask
 from scripts.managers import CollectionManager, ScriptViewManager
 
 
@@ -48,6 +53,15 @@ class CharacterType(models.TextChoices):
     FABLED = "Fabled"
     LORIC = "Loric"
     UNKNOWN = "Unknown"
+
+
+CORE_CHARACTER_TYPES = (CharacterType.TOWNSFOLK, CharacterType.OUTSIDER, CharacterType.MINION, CharacterType.DEMON)
+SIMILARITY_CATEGORIES = ("identical", "containedIn", "contains", "full", "teensyville")
+
+
+class CharacterMaskField(models.Field):
+    def db_type(self, connection):
+        return f"bit({MASK_BITS})"
 
 
 class Homebrewiness(models.IntegerChoices):
@@ -95,6 +109,40 @@ class Script(models.Model):
     def latest_version(self):
         return self.versions.order_by("-version").first()
 
+    def refresh_latest_flag(self):
+        """
+        Make the highest version the only version flagged as latest.
+
+        Uses queryset updates rather than saving model instances, so a stale in-memory
+        copy can never overwrite (or resurrect) a row that changed underneath us.
+        """
+        with transaction.atomic():
+            latest = self.latest_version()
+            if latest is None:
+                return None
+            others = ScriptVersion.plain_objects.filter(script=self, latest=True).exclude(pk=latest.pk)
+            others.update(latest=False)
+            ScriptVersion.plain_objects.filter(pk=latest.pk, latest=False).update(latest=True)
+            return latest
+
+    def delete_version(self, version_pk):
+        """
+        Delete one version, keeping the latest flag correct, or the whole script if it was the last one.
+
+        The script row is locked for the duration so simultaneous deletes of different versions
+        can't leave the script with no version flagged latest (which hides it from the default views).
+        Returns True if the script still has versions afterwards. Raises ScriptVersion.DoesNotExist
+        if the version is already gone.
+        """
+        with transaction.atomic():
+            Script.objects.select_for_update().get(pk=self.pk)
+            self.versions.get(pk=version_pk).delete()
+            if self.versions.exists():
+                self.refresh_latest_flag()
+                return True
+            self.delete()
+            return False
+
     class Meta:
         indexes = [
             models.Index(fields=["name"], name="script_name_idx"),
@@ -134,12 +182,57 @@ class ScriptVersion(models.Model):
     tags = models.ManyToManyField(ScriptTag, blank=True)
     edition = models.IntegerField(choices=Edition.choices, default=Edition.ALL)
     homebrewiness = models.IntegerField(choices=Homebrewiness.choices, default=Homebrewiness.CLOCKTOWER)
+    character_mask = CharacterMaskField(null=True, blank=True, editable=False)
 
     objects = ScriptViewManager()
     plain_objects = models.Manager()
 
     def __str__(self):
         return f"{self.pk}. {self.script.name} - v{self.version}"
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        if update_fields is None or "content" in update_fields:
+            self.character_mask = build_mask(self.content, ClocktowerCharacter.character_bit_index_mapping())
+            if update_fields is not None:
+                kwargs["update_fields"] = {*update_fields, "character_mask"}
+        super().save(*args, **kwargs)
+
+    def similar_scripts(self, per_category: int = 10):
+        count = self.character_mask.count("1")
+        return (
+            self._similarity_candidates()
+            .annotate(similarity=self._jaccard_similarity(count), category=self._similarity_category(count))
+            .annotate(
+                rank=Window(RowNumber(), partition_by=F("category"), order_by=[F("similarity").desc(), "script_id"])
+            )
+            .filter(rank__lte=per_category)
+            .order_by("category", "rank")
+            .values_list("category", "script_id", "script__name", Round(F("similarity") * 100))
+        )
+
+    def _similarity_candidates(self):
+        mask = Cast(Value(self.character_mask), CharacterMaskField())
+        return (
+            ScriptVersion.plain_objects.filter(latest=True, homebrewiness=Homebrewiness.CLOCKTOWER)
+            .exclude(script_id=self.script_id)
+            .annotate(shared=BitCount(BitAnd("character_mask", mask)), total=BitCount("character_mask"))
+            .filter(shared__gt=0)
+        )
+
+    @staticmethod
+    def _jaccard_similarity(count: int):
+        return Cast("shared", models.FloatField()) / (F("total") + count - F("shared"))
+
+    @staticmethod
+    def _similarity_category(count: int):
+        return models.Case(
+            models.When(shared=count, total=count, then=Value("identical")),
+            models.When(shared=count, then=Value("containedIn")),
+            models.When(shared=F("total"), then=Value("contains")),
+            models.When(script_type=ScriptTypes.TEENSYVILLE, then=Value("teensyville")),
+            default=Value("full"),
+        )
 
     class Meta:
         permissions = [
@@ -162,6 +255,66 @@ class ScriptVersion(models.Model):
             models.Index(fields=["latest", "homebrewiness"], name="sv_latest_and_homebrew_idx"),
             GinIndex(fields=["content"], name="sv_content_gin_idx"),
         ]
+
+
+def character_ids_in_content(content) -> set[str]:
+    """
+    The set of character IDs in a script's JSON, excluding the `_meta` entry.
+    """
+    ids = set()
+    if not isinstance(content, list):
+        return ids
+    for entry in content:
+        if isinstance(entry, str):
+            character_id = entry
+        elif isinstance(entry, dict):
+            character_id = entry.get("id", "")
+        else:
+            continue
+        if character_id and character_id != "_meta":
+            ids.add(character_id)
+    return ids
+
+
+class ScriptVersionCharacter(models.Model):
+    """
+    Denormalised index of which characters appear in a ScriptVersion, kept in sync from
+    `ScriptVersion.content`. Lets statistics aggregate in SQL rather than reading every
+    script's JSON into Python.
+    """
+
+    # A composite primary key, rather than the usual surrogate one: the pair is already unique,
+    # and at ~25 rows per script version the extra column and its index are a third of the table.
+    # It leads on script_version, so it also serves FK lookups.
+    pk = models.CompositePrimaryKey("script_version", "character_id")
+    script_version = models.ForeignKey(
+        ScriptVersion, on_delete=models.CASCADE, related_name="characters", db_index=False
+    )
+    character_id = models.TextField()
+
+    def __str__(self):
+        return f"{self.script_version_id} - {self.character_id}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["character_id"], name="svc_character_id_idx"),
+        ]
+
+
+def sync_script_version_characters(script_version: ScriptVersion) -> None:
+    wanted = character_ids_in_content(script_version.content)
+    existing = set(script_version.characters.values_list("character_id", flat=True))
+    if stale := existing - wanted:
+        script_version.characters.filter(character_id__in=stale).delete()
+    ScriptVersionCharacter.objects.bulk_create(
+        [ScriptVersionCharacter(script_version=script_version, character_id=cid) for cid in wanted - existing],
+        ignore_conflicts=True,
+    )
+
+
+@receiver(post_save, sender=ScriptVersion)
+def _sync_characters_on_save(sender, instance, **kwargs):
+    sync_script_version_characters(instance)
 
 
 class Comment(models.Model):
@@ -322,6 +475,12 @@ class ClocktowerCharacter(BaseCharacter):
     """
 
     edition = models.IntegerField(choices=Edition.choices)
+    bit_index = models.PositiveSmallIntegerField(unique=True, null=True, blank=True, editable=False)
+
+    @classmethod
+    def character_bit_index_mapping(cls) -> dict[str, int]:
+        characters = cls.objects.filter(character_type__in=CORE_CHARACTER_TYPES, bit_index__isnull=False)
+        return dict(characters.values_list("character_id", "bit_index"))
 
     class Meta:
         permissions = [("update_characters", "Can update character information")]
