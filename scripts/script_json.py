@@ -1,11 +1,10 @@
 import base64 as b64
 import gzip
 import json as js
+import re
 from urllib.parse import quote
 
 from django.core.files.base import File
-
-from scripts import constants
 
 
 def get_author_from_json(json):
@@ -52,6 +51,19 @@ def strip_special_characters(character_id):
 
 def name_to_id(name):
     return name.replace(" ", "").replace("'", "").lower()
+
+
+CHARACTER_SEPARATORS = re.compile(r"[,;:/]")
+
+
+def character_ids(value):
+    """
+    Splits a user entered list of characters (separated by any of , ; : /) into character ids, skipping empty entries.
+    """
+    for part in CHARACTER_SEPARATORS.split(value):
+        character = strip_special_characters(part.strip())
+        if character:
+            yield name_to_id(character)
 
 
 def strip_special_characters_from_json(json):
@@ -134,34 +146,6 @@ def get_json_changes(old_json, new_json):
                 continue
 
     return changed_json
-
-
-def get_similarity(json1: list, json2: list, same_type: bool) -> int:
-    similarity = 0
-    json1_metadata_count = 0
-    json2_metadata_count = 0
-    for i, id in enumerate(json1):
-        if id.get("id", "") == "_meta":
-            json1_metadata_count += 1
-            continue
-        for id2 in json2:
-            if i == 0 and id2.get("id", "") == "_meta":
-                json2_metadata_count += 1
-                continue
-            if id.get("id", "id1") == id2.get("id", "id2"):
-                similarity += 1
-                break
-
-    json1_len = len(json1) - json1_metadata_count
-    json2_len = len(json2) - json2_metadata_count
-    similarity_max = max(json1_len, json2_len)
-    similarity_min = max(min(json1_len, json2_len), constants.STANDARD_TEENSYVILLE_CHARACTER_COUNT)
-
-    similarity_comp = similarity_max if same_type else similarity_min
-    if similarity_comp == 0:
-        return 0
-
-    return round((similarity / similarity_comp) * 100)
 
 
 def compress_json(json_data):

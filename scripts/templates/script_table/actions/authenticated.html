@@ -6,7 +6,7 @@
 
     {% load bootstrap4 %}
     {% load botc_script_tags %}
-    {% load bootstrap_icons %}
+    {% load svg_icons %}
 
     {% user_favourite  record as starstyle %}
     {% user_voted_icon record as user_voted_icon %}
@@ -14,13 +14,13 @@
     <form class='d-inline-block m-0' action="{% url 'vote' record.script.pk %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="btn {% user_voted record %} btn-sm">{% bs_icon user_voted_icon %}</button>
+        <button type="submit" class="btn {% user_voted record %} btn-sm" aria-label="Toggle script vote">{% svg_icon user_voted_icon %}</button>
     </form>
 
     <form class='d-inline-block m-0' action="{% url 'favourite' record.script.pk %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="btn btn-warning btn-sm">{% bs_icon starstyle %}</button>
+        <button type="submit" class="btn btn-warning btn-sm" aria-label="Toggle favourite">{% svg_icon starstyle %}</button>
     </form>
 
 </div>

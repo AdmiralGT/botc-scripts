@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Count
 from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,7 +13,7 @@ from rest_framework.response import Response
 from versionfield import Version
 
 from scripts import filters as filtersets
-from scripts import models, script_json, serializers
+from scripts import models, script_json, serializers, validators
 from scripts.views import (
     calculate_edition,
     count_character,
@@ -90,6 +92,8 @@ class VersionViewSet(viewsets.ModelViewSet):
 
     @authentication_classes([BasicAuthentication])
     def create(self, request, *args, **kwargs):
+        if settings.UPLOAD_DISABLED and not (request.user.is_authenticated and request.user.is_staff):
+            return Response({"error": "Uploads are currently disabled."}, status=status.HTTP_403_FORBIDDEN)
         kwargs.setdefault("context", self.get_serializer_context())
         serializer = serializers.ScriptUploadSerializer(*args, data=request.data, **kwargs)
         if not serializer.is_valid(raise_exception=True):
@@ -100,6 +104,13 @@ class VersionViewSet(viewsets.ModelViewSet):
             )
         is_latest = True
         current_tags = None
+
+        json = script_json.get_json_content(serializer.validated_data)
+        existing_script = models.Script.objects.filter(name=serializer.validated_data.get("name")).first()
+        try:
+            validators.validate_homebrew_character(json, existing_script)
+        except DjangoValidationError as e:
+            return Response({"error": e.messages[0]}, status=status.HTTP_400_BAD_REQUEST)
 
         # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=serializer.validated_data.get("name"))
@@ -127,7 +138,6 @@ class VersionViewSet(viewsets.ModelViewSet):
                     # as the latest, that's still the current latest.
                     is_latest = False
 
-        json = script_json.get_json_content(serializer.validated_data)
         homebrewiness = create_characters_and_determine_homebrew_status(json, script)
 
         num_townsfolk = count_character(json, models.CharacterType.TOWNSFOLK)
@@ -235,15 +245,10 @@ class VersionViewSet(viewsets.ModelViewSet):
                 {"error": "You do not have permission to delete this script."}, status=status.HTTP_403_FORBIDDEN
             )
 
-        script = instance.script
-        instance.delete()
-
-        if script.versions.count() > 0:
-            latest_version = script.latest_version()
-            latest_version.latest = True
-            latest_version.save()
-        else:
-            script.delete()
+        try:
+            instance.script.delete_version(instance.pk)
+        except models.ScriptVersion.DoesNotExist:
+            return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
