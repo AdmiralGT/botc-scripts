@@ -348,7 +348,7 @@ def download_all_roles_json(request, language: str | None = None) -> FileRespons
     edition = get_edition_from_request(request)
     content = get_all_roles(edition)
     content = translate_content(content, request, language)
-    return json_file_response("all_roles", content)
+    return json_file_response("all_roles", "", content)
 
 
 def update_script(script_version: models.ScriptVersion, cleaned_data, author, user):
@@ -881,8 +881,11 @@ def json_file_response(name, script_version, content):
     temp_file.write(json.encode("utf-8"))
     temp_file.flush()
     temp_file.seek(0)
-    version = str(script_version.version).replace(".", "_")
-    response = FileResponse(temp_file, as_attachment=True, filename=(name + "_" + version + ".json"))
+    if script_version:
+        version = str(script_version.version).replace(".", "_")
+        response = FileResponse(temp_file, as_attachment=True, filename=(name + "_" + version + ".json"))
+    else:
+        response = FileResponse(temp_file, as_attachment=True, filename=(name + ".json"))
     return response
 
 
