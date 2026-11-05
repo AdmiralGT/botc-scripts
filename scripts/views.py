@@ -220,9 +220,7 @@ class ScriptView(generic.DetailView):
         return models.Script.objects.select_related("owner").prefetch_related(
             Prefetch(
                 "versions",
-                queryset=models.ScriptVersion.objects.prefetch_related("tags")
-                .annotate(num_comments=Count("script__comments", distinct=True))
-                .order_by("-version"),
+                queryset=models.ScriptVersion.objects.prefetch_related("tags").order_by("-version"),
             ),
             Prefetch(
                 "comments",
