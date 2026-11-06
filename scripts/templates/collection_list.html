@@ -3,14 +3,23 @@
 {% load static %}
 {% load bootstrap4 %}
 
+{% block title %}Collections - BotC Scripts{% endblock %}
+
 {% block content %}
 
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+    <h1 class="h3 mb-0">Collections</h1>
+    {% if user.is_authenticated %}
+    <a class="btn btn-primary btn-sm" href="/collection/new">New collection</a>
+    {% endif %}
+</div>
+
 {% if user.is_authenticated %}
-<form action="" method="get" class="form mb-0">
+<form action="" method="get" class="form mb-0" role="search" aria-label="Filter collections">
     <div class="form-group row p-1 mb-0">
         {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
-        {% bootstrap_button 'filter' extra_classes="btn-sm mr-1" %}
-        {% bootstrap_button 'clear' extra_classes="btn-sm" href="/collections" %}
+        {% bootstrap_button 'Filter' extra_classes="btn-sm mr-1" %}
+        {% bootstrap_button 'Clear' button_class='btn-outline-secondary' extra_classes="btn-sm" href="/collections" %}
 </div>
 </form>
 {% endif %}

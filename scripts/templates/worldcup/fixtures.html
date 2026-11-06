@@ -3,27 +3,58 @@
 {% load bootstrap4 %}
 {% load botc_script_tags %}
 
+{% block title %}World Cup Results - BotC Scripts{% endblock %}
+
 {% block content %}
 
-<h1>Final</h1>
-{% include "worldcup/fixturetable.html" with round=round7 %}
+<h1>World Cup Results</h1>
 
-<h1>3rd/4th Place Playoff</h1>
-{% include "worldcup/fixturetable.html" with round=round6 %}
+<nav aria-label="World Cup rounds">
+    <ul class="list-inline mb-0">
+        <li class="list-inline-item text-muted">Jump to:</li>
+        <li class="list-inline-item"><a href="#round7">Final</a></li>
+        <li class="list-inline-item"><a href="#round6">3rd/4th Place Playoff</a></li>
+        <li class="list-inline-item"><a href="#round5">Semi-Finals</a></li>
+        <li class="list-inline-item"><a href="#round4">Quarter-Finals</a></li>
+        <li class="list-inline-item"><a href="#round3">Round 3</a></li>
+        <li class="list-inline-item"><a href="#round2">Round 2</a></li>
+        <li class="list-inline-item"><a href="#round1">Round 1</a></li>
+    </ul>
+</nav>
 
-<h1>Semi-Finals</h1>
-{% include "worldcup/fixturetable.html" with round=round5 %}
+<section aria-labelledby="round7">
+    <h2 id="round7" class="h3 mt-4">Final</h2>
+    {% include "worldcup/fixturetable.html" with round=round7 title="Final" %}
+</section>
 
-<h1>Quarter-Finals</h1>
-{% include "worldcup/fixturetable.html" with round=round4 %}
+<section aria-labelledby="round6">
+    <h2 id="round6" class="h3 mt-4">3rd/4th Place Playoff</h2>
+    {% include "worldcup/fixturetable.html" with round=round6 title="3rd/4th Place Playoff" %}
+</section>
 
-<h1>Round 3</h1>
-{% include "worldcup/fixturetable.html" with round=round3 %}
+<section aria-labelledby="round5">
+    <h2 id="round5" class="h3 mt-4">Semi-Finals</h2>
+    {% include "worldcup/fixturetable.html" with round=round5 title="Semi-Finals" %}
+</section>
 
-<h1>Round 2</h1>
-{% include "worldcup/fixturetable.html" with round=round2 %}
+<section aria-labelledby="round4">
+    <h2 id="round4" class="h3 mt-4">Quarter-Finals</h2>
+    {% include "worldcup/fixturetable.html" with round=round4 title="Quarter-Finals" %}
+</section>
 
-<h1>Round 1</h1>
-{% include "worldcup/fixturetable.html" with round=round1 %}
+<section aria-labelledby="round3">
+    <h2 id="round3" class="h3 mt-4">Round 3</h2>
+    {% include "worldcup/fixturetable.html" with round=round3 title="Round 3" %}
+</section>
+
+<section aria-labelledby="round2">
+    <h2 id="round2" class="h3 mt-4">Round 2</h2>
+    {% include "worldcup/fixturetable.html" with round=round2 title="Round 2" %}
+</section>
+
+<section aria-labelledby="round1">
+    <h2 id="round1" class="h3 mt-4">Round 1</h2>
+    {% include "worldcup/fixturetable.html" with round=round1 title="Round 1" %}
+</section>
 
 {% endblock %}

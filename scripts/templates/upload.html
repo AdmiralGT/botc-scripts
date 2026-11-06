@@ -3,15 +3,16 @@
 {% load bootstrap4 %}
 {% load botc_script_tags %}
 
-{% bootstrap_css %}
-{% bootstrap_javascript jquery='full' %}
+{% block title %}{% if form.fields.content %}Upload a script{% elif object %}Edit collection{% else %}New collection{% endif %} - BotC Scripts{% endblock %}
 
 {% block content %}
 
+<h1 class="h3 mb-3">{% if form.fields.content %}Upload a script{% elif object %}Edit collection{% else %}New collection{% endif %}</h1>
+
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    <div class="d-flex flex-row">
-        <div class="m-1 flex-shrink-0">
+    <div class="row">
+        <div class="col-md-6">
             {% bootstrap_form form exclude="notes,tags" form_group_class="form-group m-1" %}
             {% if form.fields.tags.widget.choices.queryset|length > 0 %}
             <div class="form-group">
@@ -35,7 +36,7 @@
             {% endif %}
         </div>
         {% if form.notes %}
-        <div class="ml-3 m-1 w-50">
+        <div class="col-md-6">
             {% bootstrap_field form.notes %}
         </div>
         {% endif %}
@@ -43,6 +44,7 @@
     {% buttons %}
         {% if UPLOAD_DISABLED and not user.is_staff %}
             <button type="submit" class="btn btn-primary m-1" disabled>Submit</button>
+            <small class="form-text text-muted m-1">Uploads are temporarily disabled.</small>
         {% else %}
             <button type="submit" class="btn btn-primary m-1">Submit</button>
         {% endif %}

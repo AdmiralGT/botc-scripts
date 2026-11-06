@@ -1,13 +1,17 @@
-{% extends "socialaccount/base_entrance.html" %}
+{% extends "base.html" %}
 
 {% load i18n %}
-{% load bootstrap4 %}
-{% load allauth %}
+
+{% block title %}Sign-in failed - BotC Scripts{% endblock %}
 
 {% block content %}
+<h1>{% trans "Sign-in failed" %}</h1>
 
-Auth Error: {{ auth_error }}
-Auth Error Code: {{ auth_error.code }}
-Auth Error Exception: {{ auth_error.exception }}
+<p>{% trans "We couldn't sign you in with that provider. Please try again, or use a different provider." %}</p>
 
+{% if auth_error.code %}
+<p class="text-muted small">{% trans "Error code" %}: {{ auth_error.code }}</p>
+{% endif %}
+
+<a class="btn btn-primary" href="{% url 'account_login' %}">{% trans "Back to log in" %}</a>
 {% endblock %}
