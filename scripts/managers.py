@@ -3,18 +3,18 @@ from django.db import models
 
 class ScriptViewManager(models.Manager):
     def get_queryset(self):
-        qs = (
+        # Counts are stored on Script and maintained by the interaction signals.
+        return (
             super()
             .get_queryset()
             .annotate(
-                score=models.Count("script__votes", distinct=True),
-                num_favs=models.Count("script__favourites", distinct=True),
+                score=models.F("script__num_votes"),
+                num_favs=models.F("script__num_favourites"),
+                num_comments=models.F("script__num_comments"),
             )
         )
-        return qs
 
 
 class CollectionManager(models.Manager):
     def get_queryset(self):
-        qs = super().get_queryset().annotate(scripts_in_collection=models.Count("scripts"))
-        return qs
+        return super().get_queryset().annotate(scripts_in_collection=models.Count("scripts"))

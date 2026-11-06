@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import F
 from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
@@ -69,7 +69,7 @@ class VersionViewSet(viewsets.ModelViewSet):
     pagination_class = ScriptPagination
 
     def get_queryset(self):
-        return models.ScriptVersion.plain_objects.annotate(score=Count("script__votes", distinct=True))
+        return models.ScriptVersion.plain_objects.annotate(score=F("script__num_votes"))
 
     def filter_queryset(self, queryset):
         # Retrieving a single script by pk should never be filtered, e.g. by "latest".
@@ -276,7 +276,7 @@ class TranslateScriptViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ["-pk"]
 
     def get_queryset(self):
-        queryset = models.ScriptVersion.plain_objects.annotate(score=Count("script__votes", distinct=True))
+        queryset = models.ScriptVersion.plain_objects.annotate(score=F("script__num_votes"))
         latest = self.request.query_params.get("latest")
         if latest:
             queryset = queryset.filter(latest=True)
