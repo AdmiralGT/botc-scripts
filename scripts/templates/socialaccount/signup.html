@@ -6,8 +6,10 @@
 {% block content %}
 <h1>{% trans "Oops!" %}</h1>
 
-You already have an account registered with this e-mail address {{ email }} using another provider.
+<p>You already have an account registered with this e-mail address {{ email }} using another provider.</p>
 
-Please login using that provider and connect this provider to that account.
+<p>Please log in using that provider and connect this provider to that account.</p>
+
+<a class="btn btn-primary" href="{% url 'account_login' %}">Back to log in</a>
 
 {% endblock %}
