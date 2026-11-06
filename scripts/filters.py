@@ -1,7 +1,6 @@
 import django_filters
 from django import forms
 from django.contrib.postgres.search import TrigramSimilarity
-from django.db.models import Count
 from django_filters import rest_framework as filters
 
 from scripts import models, script_json, widgets
@@ -89,7 +88,6 @@ def advanced_search_queryset(data):
     if data.get("minimum_number_of_favourites"):
         queryset = queryset.filter(num_favs__gte=data.get("minimum_number_of_favourites"))
     if data.get("minimum_number_of_comments"):
-        queryset = queryset.annotate(num_comments=Count("script__comments", distinct=True))
         queryset = queryset.filter(num_comments__gte=data.get("minimum_number_of_comments"))
 
     return queryset.order_by("-pk")

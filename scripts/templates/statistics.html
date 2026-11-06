@@ -138,4 +138,74 @@
 </div>
 {% endif %}
 
+<div class="container">
+    <h4 class="mt-3">Scripts in Database Over Time</h4>
+    <canvas id="ScriptCountChart" width="400" height="120"></canvas>
+</div>
+
+<script>
+    var scriptCountContext = document.getElementById('ScriptCountChart').getContext('2d');
+    var scriptCountLabels = [{% for day in script_count_history_dates %}'{{ day }}',{% endfor %}];
+    var scriptCountTextColor = document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#666666';
+    var scriptCountGridColor = document.documentElement.getAttribute('data-theme') === 'dark'
+        ? 'rgba(255, 255, 255, 0.15)'
+        : 'rgba(0, 0, 0, 0.1)';
+    var scriptCountGridColors = scriptCountLabels.map(function(label) {
+        return label.endsWith('-01') ? scriptCountGridColor : 'rgba(0, 0, 0, 0)';
+    });
+    new Chart(scriptCountContext, {
+        type: 'line',
+        data: {
+            labels: scriptCountLabels,
+            datasets: [{
+                label: 'Scripts in database',
+                data: [{% for count in script_count_history_values %}{{ count }},{% endfor %}],
+                borderColor: 'rgba(52, 152, 219, 1)',
+                backgroundColor: 'rgba(52, 152, 219, 0.15)',
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                pointHitRadius: 5,
+                fill: true
+            }]
+        },
+        options: {
+            legend: { display: false },
+            tooltips: {
+                callbacks: {
+                    title: function(tooltipItems, data) {
+                        return data.labels[tooltipItems[0].index];
+                    }
+                }
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 90,
+                        minRotation: 90,
+                        fontColor: scriptCountTextColor,
+                        callback: function(value) {
+                            return value.endsWith('-01') ? value.substring(0, 7) : '';
+                        }
+                    },
+                    gridLines: { color: scriptCountGridColors }
+                }],
+                yAxes: [{
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Number of scripts',
+                        fontColor: scriptCountTextColor
+                    },
+                    ticks: {
+                        beginAtZero: true,
+                        fontColor: scriptCountTextColor
+                    },
+                    gridLines: { color: scriptCountGridColor }
+                }]
+            }
+        }
+    });
+</script>
+
 {% endblock %}

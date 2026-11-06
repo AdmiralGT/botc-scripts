@@ -1,10 +1,50 @@
-from django.db.models import Max
-from django.db.models.signals import post_save, pre_save
+from django.db.models import F, Max, QuerySet
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from scripts import models
 from scripts.character_mask import MASK_BITS, build_mask
 from scripts.models import CORE_CHARACTER_TYPES
+
+
+def _is_script_deletion(origin):
+    return isinstance(origin, models.Script) or (isinstance(origin, QuerySet) and origin.model is models.Script)
+
+
+@receiver(post_save, sender=models.Comment)
+def update_comment_count_on_create(sender, instance, created, **kwargs):
+    if created and instance.script_id is not None:
+        models.Script.objects.filter(pk=instance.script_id).update(num_comments=F("num_comments") + 1)
+
+
+@receiver(post_delete, sender=models.Comment)
+def update_comment_count_on_delete(sender, instance, origin=None, **kwargs):
+    if not _is_script_deletion(origin) and instance.script_id is not None:
+        models.Script.objects.filter(pk=instance.script_id).update(num_comments=F("num_comments") - 1)
+
+
+@receiver(post_save, sender=models.Vote)
+def update_vote_count_on_create(sender, instance, created, **kwargs):
+    if created and instance.parent_id is not None:
+        models.Script.objects.filter(pk=instance.parent_id).update(num_votes=F("num_votes") + 1)
+
+
+@receiver(post_delete, sender=models.Vote)
+def update_vote_count_on_delete(sender, instance, origin=None, **kwargs):
+    if not _is_script_deletion(origin) and instance.parent_id is not None:
+        models.Script.objects.filter(pk=instance.parent_id).update(num_votes=F("num_votes") - 1)
+
+
+@receiver(post_save, sender=models.Favourite)
+def update_favourite_count_on_create(sender, instance, created, **kwargs):
+    if created and instance.parent_id is not None:
+        models.Script.objects.filter(pk=instance.parent_id).update(num_favourites=F("num_favourites") + 1)
+
+
+@receiver(post_delete, sender=models.Favourite)
+def update_favourite_count_on_delete(sender, instance, origin=None, **kwargs):
+    if not _is_script_deletion(origin) and instance.parent_id is not None:
+        models.Script.objects.filter(pk=instance.parent_id).update(num_favourites=F("num_favourites") - 1)
 
 
 @receiver(pre_save, sender=models.ClocktowerCharacter)
