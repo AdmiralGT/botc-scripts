@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     """
 
     dependencies = [
-        ("scripts", "0048_character_masks"),
+        ("scripts", "0049_script_counts"),
     ]
 
     operations = [

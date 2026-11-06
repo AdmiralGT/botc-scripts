@@ -35,6 +35,65 @@
     .bg-loric {
        background-color: rgba(141, 199, 0, 0.6);
     }
+
+    #pdf-container {
+        position: relative;
+    }
+
+    .pdf-toggle {
+        position: absolute;
+        top: 12px;
+        right: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        color: #ffffff;
+        background-color: rgba(33, 37, 41, 0.7);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .pdf-toggle:hover,
+    .pdf-toggle:focus {
+        background-color: rgba(33, 37, 41, 0.95);
+        transform: scale(1.08);
+    }
+
+    #pdf-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 8000;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    #pdf-overlay.show {
+        display: block;
+    }
+
+    #pdf-overlay-panel {
+        position: absolute;
+        top: 5vh;
+        left: 5vw;
+        right: 5vw;
+        bottom: 5vh;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    #pdf-overlay-panel embed {
+        width: 100%;
+        height: 100%;
+    }
 </style>
 
 <script>
@@ -56,6 +115,31 @@
         navigator.clipboard.writeText("https://www.botcscripts.com/api/scripts/{{script_version.pk}}/json/")
         showAndDismissAlert("Link Copied to Clipboard")
     }
+
+    function openPdfOverlay() {
+        // Fit to width, otherwise a portrait page stays limited by the window height. The viewer only reads
+        // these parameters on load, so the overlay gets its own embed and the page's PDF is left untouched.
+        var pdf = document.querySelector("#pdf-container embed").cloneNode();
+        pdf.src = pdf.getAttribute("src").split("#")[0] + "#toolbar=0&view=FitH";
+        document.getElementById("pdf-overlay-panel").prepend(pdf);
+        document.getElementById("pdf-overlay").classList.add("show");
+        document.body.style.overflow = "hidden";
+        document.getElementById("pdf-overlay-close").focus();
+    }
+
+    function closePdfOverlay() {
+        document.querySelector("#pdf-overlay-panel embed").remove();
+        document.getElementById("pdf-overlay").classList.remove("show");
+        document.body.style.overflow = "";
+        document.getElementById("pdf-enlarge").focus();
+    }
+
+    document.addEventListener("keydown", function (event) {
+        var overlay = document.getElementById("pdf-overlay");
+        if (event.key === "Escape" && overlay && overlay.classList.contains("show")) {
+            closePdfOverlay();
+        }
+    });
 </script>
 <script async>
 
@@ -277,7 +361,19 @@
 <div class="tab-content row p-1" height="720">
     {% if script_version.pdf %}
     <div class="col-sm-6">
-        <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
+        <div id="pdf-container">
+            <embed src="{{ script_version.pdf.url }}#toolbar=0" type="application/pdf" width="100%" height="720">
+            <button type="button" id="pdf-enlarge" class="pdf-toggle" onclick="openPdfOverlay()" title="Enlarge PDF" aria-label="Enlarge PDF">
+                {% bs_icon "arrows-fullscreen" size="16px" %}
+            </button>
+        </div>
+        <div id="pdf-overlay" onclick="if (event.target === this) closePdfOverlay()">
+            <div id="pdf-overlay-panel">
+                <button type="button" id="pdf-overlay-close" class="pdf-toggle" onclick="closePdfOverlay()" title="Close enlarged PDF" aria-label="Close enlarged PDF">
+                    {% bs_icon "fullscreen-exit" size="16px" %}
+                </button>
+            </div>
+        </div>
     </div>
     {% endif %}
     {% if script_version.notes or bootlegger_rules %}

@@ -102,6 +102,10 @@ class Script(models.Model):
     name = models.CharField(max_length=constants.MAX_SCRIPT_NAME_LENGTH)
     owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name="+")
     num_downloads = models.IntegerField(default=0)
+    # Denormalised counts, kept in sync by signals on Vote/Favourite/Comment.
+    num_votes = models.PositiveIntegerField(default=0, editable=False)
+    num_favourites = models.PositiveIntegerField(default=0, editable=False)
+    num_comments = models.PositiveIntegerField(default=0, editable=False)
 
     def __str__(self):
         return f"{self.pk}. {self.name}"
@@ -148,6 +152,9 @@ class Script(models.Model):
             models.Index(fields=["name"], name="script_name_idx"),
             models.Index(fields=["owner"], name="script_owner_idx"),
             GinIndex(fields=["name"], name="script_name_trgm_idx", opclasses=["gin_trgm_ops"]),
+            models.Index(fields=["num_votes"], name="script_num_votes_idx"),
+            models.Index(fields=["num_favourites"], name="script_num_favourites_idx"),
+            models.Index(fields=["num_comments"], name="script_num_comments_idx"),
         ]
 
 
