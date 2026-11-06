@@ -2,6 +2,7 @@ import json as js
 import os
 from collections import Counter
 from dataclasses import dataclass
+from datetime import date, timedelta
 from tempfile import TemporaryFile
 from typing import Any
 from urllib.parse import urlencode
@@ -14,7 +15,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, F, Prefetch
+from django.db.models import Count, F, Min, Prefetch, Subquery
 from django.http import (
     FileResponse,
     Http404,
@@ -25,6 +26,7 @@ from django.http import (
 )
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.text import get_valid_filename
 from django.views import generic
 from django_filters.views import FilterView
@@ -41,6 +43,23 @@ from scripts import (
     tables,
 )
 from scripts.redirects import get_safe_redirect_url
+
+
+def build_script_count_history(
+    start_date: date, end_date: date, initial_count: int, additions_by_date: dict[date, int]
+) -> tuple[list[str], list[int]]:
+    dates = []
+    counts = []
+    count = initial_count
+    current_date = start_date
+
+    while current_date <= end_date:
+        count += additions_by_date.get(current_date, 0)
+        dates.append(current_date.isoformat())
+        counts.append(count)
+        current_date += timedelta(days=1)
+
+    return dates, counts
 
 
 class ScriptOrderToggleMixin:
@@ -645,9 +664,44 @@ class StatisticsView(generic.ListView, FilterView):
     template_name = "statistics.html"
     filterset_class = filters.StatisticsFilter
 
+    # ScriptVersion.created was auto_now until migration 0024, so earlier values
+    # indicate the last save rather than when a version was first uploaded.
+    SCRIPT_COUNT_HISTORY_START = date(2023, 4, 21)
+
+    def get_script_count_history(self) -> tuple[list[str], list[int]]:
+        today = timezone.localdate()
+        eligible_script_ids = models.ScriptVersion.plain_objects.filter(
+            latest=True,
+            homebrewiness=models.Homebrewiness.CLOCKTOWER,
+        ).values("script_id")
+        script_creation_dates = (
+            models.Script.objects.filter(pk__in=Subquery(eligible_script_ids))
+            .annotate(first_version=Min("versions__created"))
+            .values_list("first_version", flat=True)
+        )
+        initial_count = 0
+        additions_by_date = Counter()
+        for first_version in script_creation_dates:
+            if first_version is None:
+                initial_count += 1
+                continue
+            creation_date = timezone.localtime(first_version).date()
+            if creation_date < self.SCRIPT_COUNT_HISTORY_START:
+                initial_count += 1
+            elif creation_date <= today:
+                additions_by_date[creation_date] += 1
+
+        return build_script_count_history(
+            self.SCRIPT_COUNT_HISTORY_START,
+            today,
+            initial_count,
+            additions_by_date,
+        )
+
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         self.object_list = super().get_queryset()
         context = super().get_context_data(**kwargs)
+        context["script_count_history_dates"], context["script_count_history_values"] = self.get_script_count_history()
         stats_character = None
         characters_to_display = 25
 
