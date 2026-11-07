@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Count, F, Min, Prefetch, Subquery
 from django.http import (
     FileResponse,
@@ -487,6 +488,7 @@ class ScriptUploadView(BaseScriptUploadView):
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)
 
+    @transaction.atomic
     def form_valid(self, form):
         user = self.request.user
         json = script_json.get_json_content(form.cleaned_data)
@@ -505,6 +507,9 @@ class ScriptUploadView(BaseScriptUploadView):
 
         # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=script_name)
+
+        # Serialize uploads for this script before checking or changing its versions.
+        script = models.Script.objects.select_for_update().get(pk=script.pk)
 
         # We only want to set the owner on newly created scripts, so if we've
         # just created the script and the user is authenticated, set the owner to this user
@@ -532,8 +537,14 @@ class ScriptUploadView(BaseScriptUploadView):
             try:
                 script_version = models.ScriptVersion.objects.get(script=script, version=form.cleaned_data["version"])
                 # We're updating an existing version of a script.
-                # Our validation should have caught not being able to upload different
-                # JSON content for this script.
+                if script_version.content != json:
+                    form.add_error(
+                        "version",
+                        f"Version {form.cleaned_data['version']} already exists. "
+                        "You cannot upload a different script with the same version number.",
+                    )
+                    return self.form_invalid(form)
+
                 update_script(script_version, form.cleaned_data, author, user)
                 self.script_version = script_version
                 return HttpResponseRedirect(self.get_success_url())

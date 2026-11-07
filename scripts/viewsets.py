@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import transaction
 from django.db.models import F
 from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -91,6 +92,7 @@ class VersionViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     @authentication_classes([BasicAuthentication])
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         if settings.UPLOAD_DISABLED and not (request.user.is_authenticated and request.user.is_staff):
             return Response({"error": "Uploads are currently disabled."}, status=status.HTTP_403_FORBIDDEN)
@@ -98,10 +100,6 @@ class VersionViewSet(viewsets.ModelViewSet):
         serializer = serializers.ScriptUploadSerializer(*args, data=request.data, **kwargs)
         if not serializer.is_valid(raise_exception=True):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        if not serializer.is_createable(raise_exception=True):
-            return Response(
-                {"error": "A script with this name and version already exists."}, status=status.HTTP_400_BAD_REQUEST
-            )
         is_latest = True
         current_tags = None
 
@@ -114,6 +112,8 @@ class VersionViewSet(viewsets.ModelViewSet):
 
         # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=serializer.validated_data.get("name"))
+        script = models.Script.objects.select_for_update().get(pk=script.pk)
+
         user = request.user if request.user.is_authenticated else None
         if created:
             script.owner = user
@@ -123,20 +123,20 @@ class VersionViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"error": "You do not have permission to update this script."}, status=status.HTTP_403_FORBIDDEN
                 )
-            if script.latest_version():
-                # We need to protect this code against instances where a script doesn't
-                # have a latest version.
-                if Version(serializer.validated_data.get("version")) > script.latest_version().version:
-                    # This is newer than the latest version, so set that
-                    # version to not be latest.
-                    current_tags = script.latest_version().tags
-                    latest_version = script.latest_version()
-                    latest_version.latest = False
-                    latest_version.save()
-                else:
-                    # We're uploading an older version than the latest, so don't mark this version
-                    # as the latest, that's still the current latest.
-                    is_latest = False
+
+        serializer.is_createable(raise_exception=True)
+
+        if not created and script.latest_version():
+            # This script has a latest version, and this is a newer version being added.
+            if Version(serializer.validated_data.get("version")) > script.latest_version().version:
+                # Copy the tags from the latest version to this new version, and update the
+                current_tags = script.latest_version().tags
+                latest_version = script.latest_version()
+                latest_version.latest = False
+                latest_version.save()
+            else:
+                # This version is older than the latest version, so don't mark it as the latest.
+                is_latest = False
 
         homebrewiness = create_characters_and_determine_homebrew_status(json, script)
 
@@ -192,12 +192,16 @@ class VersionViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_201_CREATED, data={"pk": self.script_version.pk})
 
     @authentication_classes([BasicAuthentication])
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         pk = kwargs.pop("pk")
         try:
-            instance = models.ScriptVersion.objects.get(pk=pk)
-        except models.ScriptVersion.DoesNotExist:
+            script_id = models.ScriptVersion.plain_objects.values_list("script_id", flat=True).get(pk=pk)
+            models.Script.objects.select_for_update().get(pk=script_id)
+            instance = models.ScriptVersion.plain_objects.get(pk=pk)
+        except (models.Script.DoesNotExist, models.ScriptVersion.DoesNotExist):
             return Response({"error": "Script version not found."}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = serializers.ScriptUploadSerializer(*args, data=request.data, **kwargs)
         if not serializer.is_valid(create=False, raise_exception=True):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
