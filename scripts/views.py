@@ -554,12 +554,11 @@ class ScriptUploadView(BaseScriptUploadView):
                     # We need to protect this code against instances where a script doesn't
                     # have a latest version.
                     if script.latest_version().content == json:
-                        # The content hasn't change from the latest version, so just update
-                        # the script and exit, the user probably made an error in changing
-                        # the version string.
-                        update_script(script.latest_version(), form.cleaned_data, author, user)
-                        self.script_version = script.latest_version()
-                        return HttpResponseRedirect(self.get_success_url())
+                        form.add_error(
+                            "content",
+                            "This script is identical to the latest version. Please use the same version number if you're trying to update the script.",
+                        )
+                        return self.form_invalid(form)
 
                     if Version(form.cleaned_data["version"]) > script.latest_version().version:
                         # This is newer than the latest version, so set that
