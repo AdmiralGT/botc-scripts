@@ -1,50 +1,10 @@
 {% extends 'base.html' %}
 
+{% block title %}World Cup Statistics - BotC Scripts{% endblock %}
+
 {% block content %}
 
-<style>
-    .table-striped-good>tbody>tr:nth-child(odd)>td {
-        background-color: #85c1e9;
-    }
-
-    .table-striped-good>tbody>tr:nth-child(even)>td {
-        background-color: #d6eaf8;
-    }
-
-    .table-striped-evil>tbody>tr:nth-child(odd)>td {
-        background-color: #f5b7b1;
-    }
-
-    .table-striped-evil>tbody>tr:nth-child(even)>td {
-        background-color: #fadbd8;
-    }
-
-    .table-striped-traveller>tbody>tr:nth-child(odd)>td {
-        background-color: #d6eaf8;
-    }
-
-    .table-striped-traveller>tbody>tr:nth-child(even)>td {
-        background-color: #fadbd8;
-    }
-
-    .table-striped-fabled>tbody>tr:nth-child(odd)>td {
-        background-color: #fff099;
-    }
-
-    .table-striped-fabled>tbody>tr:nth-child(even)>td {
-        background-color: #fff0cc;
-    }
-
-    /* These tables keep fixed pastel backgrounds, so text should stay black regardless of theme. */
-    html[data-theme="dark"] .table-striped-good td,
-    html[data-theme="dark"] .table-striped-evil td,
-    html[data-theme="dark"] .table-striped-fabled td,
-    html[data-theme="dark"] .table-striped-good .text-dark,
-    html[data-theme="dark"] .table-striped-evil .text-dark,
-    html[data-theme="dark"] .table-striped-fabled .text-dark {
-        color: #212529 !important;
-    }
-</style>
+<h1>World Cup Statistics</h1>
 
 <div class="container">
     {% include "worldcup/statstable.html" with left_title="Most Townsfolk Additions" right_title="Most Townsfolk Removals" addition=Townsfolkaddition deletion=Townsfolkdeletion table_style="table-striped-good" %}
