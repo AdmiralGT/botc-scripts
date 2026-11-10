@@ -150,6 +150,7 @@ class Script(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["owner"], name="script_owner_idx"),
+            GinIndex(fields=["name"], name="script_name_trgm_idx", opclasses=["gin_trgm_ops"]),
             models.Index(fields=["num_votes"], name="script_num_votes_idx"),
             models.Index(fields=["num_favourites"], name="script_num_favourites_idx"),
             models.Index(fields=["num_comments"], name="script_num_comments_idx"),
@@ -257,8 +258,17 @@ class ScriptVersion(models.Model):
             models.Index(fields=["homebrewiness"], name="sv_homebrewiness_idx"),
             models.Index(fields=["edition"], name="sv_edition_idx"),
             models.Index(fields=["num_demons"], name="sv_num_demons_idx"),
+            # Advanced Search filters these with __in - only num_demons had an index.
+            models.Index(fields=["num_townsfolk"], name="sv_num_townsfolk_idx"),
+            models.Index(fields=["num_outsiders"], name="sv_num_outsiders_idx"),
+            models.Index(fields=["num_minions"], name="sv_num_minions_idx"),
+            models.Index(fields=["num_fabled"], name="sv_num_fabled_idx"),
+            models.Index(fields=["num_loric"], name="sv_num_loric_idx"),
+            models.Index(fields=["num_travellers"], name="sv_num_travellers_idx"),
             models.Index(fields=["latest", "homebrewiness"], name="sv_latest_and_homebrew_idx"),
             GinIndex(fields=["content"], name="sv_content_gin_idx"),
+            # Backs the TrigramSimilarity search on author in scripts/filters.py.
+            GinIndex(fields=["author"], name="sv_author_trgm_idx", opclasses=["gin_trgm_ops"]),
         ]
         constraints = [
             models.UniqueConstraint(fields=["script", "version"], name="sv_script_version_uniq"),
