@@ -1,4 +1,4 @@
 {% load svg_icons %}
 <div class="d-inline-block mb-0">
-    <a class="btn btn-primary btn-sm align-middle" href="{% url 'download_json' record.script.pk record.version %}" aria-label="Download script JSON">{% svg_icon 'braces' %}</a>
+    <a class="btn btn-primary btn-sm align-middle" href="{% url 'download_json' record.script.pk record.version %}" title="Download JSON" aria-label="Download JSON">{% svg_icon 'braces' %}<span class="action-label d-md-none">JSON</span></a>
 </div>

@@ -1,4 +1,4 @@
 {% load svg_icons botc_script_tags %}
 <div class="d-inline-block mb-0">
-    <a class="btn btn-primary btn-sm align-middle" href="{% script_tool_url record %}" target="_blank" aria-label="Open in Script Tool">{% svg_icon 'pencil-square' %}</a>
+    <a class="btn btn-primary btn-sm align-middle" href="{% script_tool_url record %}" target="_blank" rel="noopener noreferrer" title="Open in Script Tool (new tab)" aria-label="Open in Script Tool (opens in a new tab)">{% svg_icon 'pencil-square' %}<span class="action-label d-md-none">Script Tool</span></a>
 </div>
