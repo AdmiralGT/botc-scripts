@@ -159,9 +159,19 @@ This project uses [Ruff](https://docs.astral.sh/ruff/#ruff) for linting. The Git
 
 ## Testing
 
-Tests use [pytest](https://docs.pytest.org/) with the settings in `tests/settings.py`. Because the models depend on PostgreSQL features (`GinIndex`, `pg_trgm`), the tests need a running PostgreSQL database. The defaults match the CI service (`postgres`/`postgres` on `localhost:5432`) and can be overridden with the `TEST_DB_NAME`, `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_USER` and `TEST_DB_PASSWORD` environment variables.
+Tests run with [pytest](https://docs.pytest.org/) against a real PostgreSQL database, using `tests/settings.py`. Because the models depend on PostgreSQL features (`GinIndex`, `pg_trgm`), a running PostgreSQL server is required. pytest-django creates a separate `test_<NAME>` database, enables `pg_trgm` and loads `dev/characters.json` into it, so your development data is untouched.
 
-`uv run pytest tests/`
+```bash
+uv run pytest tests/
+```
+
+The defaults match the CI service (`postgres`/`postgres` on `localhost:5432`) and can be overridden with the `TEST_DB_NAME`, `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_USER` and `TEST_DB_PASSWORD` environment variables, e.g. for the [docker compose](./dev/docker-compose.yml) database:
+
+```bash
+TEST_DB_USER=postgres@db uv run pytest tests/
+```
+
+Shared fixtures (users, `make_script`, `upload`) live in `tests/conftest.py`. Outbound HTTP via `requests.get` is stubbed for every test.
 
 CI runs both ruff and pytest on every push and pull request.
 
