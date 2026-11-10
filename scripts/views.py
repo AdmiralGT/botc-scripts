@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Count, F, Min, Prefetch, Subquery
 from django.http import (
     FileResponse,
@@ -491,6 +492,7 @@ class ScriptUploadView(BaseScriptUploadView):
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)
 
+    @transaction.atomic
     def form_valid(self, form):
         user = self.request.user
         json = script_json.get_json_content(form.cleaned_data)
@@ -509,6 +511,9 @@ class ScriptUploadView(BaseScriptUploadView):
 
         # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=script_name)
+
+        # Serialize uploads for this script before checking or changing its versions.
+        script = models.Script.objects.select_for_update().get(pk=script.pk)
 
         # We only want to set the owner on newly created scripts, so if we've
         # just created the script and the user is authenticated, set the owner to this user
@@ -536,8 +541,14 @@ class ScriptUploadView(BaseScriptUploadView):
             try:
                 script_version = models.ScriptVersion.objects.get(script=script, version=form.cleaned_data["version"])
                 # We're updating an existing version of a script.
-                # Our validation should have caught not being able to upload different
-                # JSON content for this script.
+                if script_version.content != json:
+                    form.add_error(
+                        "version",
+                        f"Version {form.cleaned_data['version']} already exists. "
+                        "You cannot upload a different script with the same version number.",
+                    )
+                    return self.form_invalid(form)
+
                 update_script(script_version, form.cleaned_data, author, user)
                 self.script_version = script_version
                 return HttpResponseRedirect(self.get_success_url())
@@ -547,12 +558,11 @@ class ScriptUploadView(BaseScriptUploadView):
                     # We need to protect this code against instances where a script doesn't
                     # have a latest version.
                     if script.latest_version().content == json:
-                        # The content hasn't change from the latest version, so just update
-                        # the script and exit, the user probably made an error in changing
-                        # the version string.
-                        update_script(script.latest_version(), form.cleaned_data, author, user)
-                        self.script_version = script.latest_version()
-                        return HttpResponseRedirect(self.get_success_url())
+                        form.add_error(
+                            "content",
+                            "This script is identical to the latest version. Please use the same version number if you're trying to update the script.",
+                        )
+                        return self.form_invalid(form)
 
                     if Version(form.cleaned_data["version"]) > script.latest_version().version:
                         # This is newer than the latest version, so set that
@@ -1045,11 +1055,18 @@ class CollectionEditView(LoginRequiredMixin, generic.edit.UpdateView):
     form_class = forms.CollectionForm
     model = models.Collection
 
-    def get_queryset(self):
+    def get_object(self, queryset=None):
         """
-        A user should only be able to edit the collections they own.
+        A user should only be able to edit the collections they own. get_object() is used by
+        both GET and POST.
         """
-        return super().get_queryset().filter(owner=self.request.user)
+        try:
+            collection = super().get_object(queryset)
+        except Http404:
+            raise Http404("This collection doesn't exist.")
+        if collection.owner != self.request.user:
+            raise PermissionDenied("You can only edit collections you own.")
+        return collection
 
     def get_success_url(self) -> str:
         return "/collection/" + str(self.object.id)
@@ -1083,15 +1100,15 @@ class AddScriptToCollectionView(LoginRequiredMixin, generic.View):
         try:
             collection = models.Collection.objects.get(pk=request.POST.get("collection"))
         except (models.Collection.DoesNotExist, ValueError):
-            raise Http404("Unknown collection.")
+            raise Http404("This collection doesn't exist.")
 
-        if collection.owner != self.request.user:
-            raise Http404("Cannot edit a collection you don't own.")
+        if collection.owner != request.user:
+            raise PermissionDenied("You can only add scripts to collections you own.")
 
         try:
             script = models.ScriptVersion.objects.get(pk=request.POST.get("script_version"))
         except (models.ScriptVersion.DoesNotExist, ValueError):
-            raise Http404("Unknown script.")
+            raise Http404("This script doesn't exist.")
 
         collection.scripts.add(script)
         return HttpResponseRedirect("/script/" + str(script.script.pk) + "/" + str(script.version))

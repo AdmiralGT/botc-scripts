@@ -90,14 +90,12 @@ class ScriptUploadSerializer(serializers.ModelSerializer):
             errors.append("A script with this name and version already exists.")
         if not self.validated_data.get("name"):
             errors.append("Script name is required.")
-        try:
-            script = models.Script.objects.get(name=self.validated_data.get("name"))
+        script = models.Script.objects.filter(name=self.validated_data.get("name")).first()
+        if script:
             json = script_json.get_json_content(self.validated_data)
-            if script.latest_version().content == json:
+            latest_version = script.latest_version()
+            if latest_version and latest_version.content == json:
                 errors.append("The content is identical to the latest version.")
-        except models.Script.DoesNotExist:
-            # It's OK if the script doesn't exist, it just means we're creating it.
-            pass
 
         if raise_exception and errors:
             raise serializers.ValidationError(errors)
