@@ -1,37 +1,23 @@
-<div class="container w-100 p-0">
-    <style>
-        .table-success {
-            background-color: #1e5631;
-            color: #ffffff !important;
-        }
-    </style>
-    <div class="row p-0">
-        <div class="table-striped w-100 p-0">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th class="text-center col-sm-5">
-                            Script 1
-                        </th>
-                        <th class="col-sm-1">
-                        </th>
-                        <th class="text-center col-sm-5">
-                            Script 2
-                        </th>
-                        <th class="text-center col-sm-2">
-                            VoD
-                        </th>
-                        <th class="text-center col-sm-1">
-                            Voting Link
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for entry in round %}
-                        {% include "worldcup/fixturerow.html" %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div> 
-    </div>
-</div>  
+<div class="table-striped table-responsive-wrapper w-100">
+    <table class="table worldcup-table">
+        <caption class="sr-only">{{ title }} fixtures</caption>
+        <thead>
+            <tr>
+                <th scope="col" class="text-center">Script 1</th>
+                <th scope="col"><span class="sr-only">Versus</span></th>
+                <th scope="col" class="text-center">Script 2</th>
+                <th scope="col" class="text-center">VoD</th>
+                <th scope="col" class="text-center">Vote</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in round %}
+                {% include "worldcup/fixturerow.html" %}
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No fixtures yet.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

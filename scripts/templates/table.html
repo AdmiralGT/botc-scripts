@@ -2,9 +2,27 @@
 
 <div class="container w-100 p-0">
     <div class="row p-0">
-        <div class="table-striped w-100 p-0">
+        <div class="table-striped table-responsive-wrapper w-100 p-0">
             <input type="hidden" name="table" value={{ table }}>
             {% render_table table %}
         </div>
     </div>
 </div>
+
+<script>
+    // Phones: tapping a script row (or its arrow) shows its tags and actions.
+    document.addEventListener('click', function (event) {
+        if (window.matchMedia('(min-width: 768px)').matches) { return; }
+        var toggle = event.target.closest('.script-row-toggle');
+        if (!toggle && event.target.closest('a, button, input, select, label, form, .modal')) { return; }
+        var row = event.target.closest('.script-table tbody tr');
+        if (!row || !row.querySelector('.script-row-toggle')) { return; }
+        var open = !row.classList.contains('is-open');
+        document.querySelectorAll('.script-table tbody tr.is-open').forEach(function (other) {
+            other.classList.remove('is-open');
+            other.querySelector('.script-row-toggle').setAttribute('aria-expanded', 'false');
+        });
+        row.classList.toggle('is-open', open);
+        row.querySelector('.script-row-toggle').setAttribute('aria-expanded', String(open));
+    });
+</script>
