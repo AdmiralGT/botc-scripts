@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load i18n %}
+
 {% block content %}
 <h1>{% trans "Sign Out" %}</h1>
 
@@ -11,5 +13,6 @@
   <input type="hidden" name="{{redirect_field_name}}" value="{{redirect_field_value}}"/>
   {% endif %}
   <button class="btn btn-primary" type="submit">{% trans 'Sign Out' %}</button>
+  <a class="btn btn-outline-secondary" href="/">{% trans 'Cancel' %}</a>
 </form>
 {% endblock %}
