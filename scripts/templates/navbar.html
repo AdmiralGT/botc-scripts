@@ -19,21 +19,9 @@
             <li class="nav-item">
                 <a class="nav-link{% if request.path == "/statistics" %} active{% endif %}" href="/statistics"{% if request.path == "/statistics" %} aria-current="page"{% endif %}>Statistics</a>
             </li>
-            {% if user.is_authenticated %}
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="collectionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Collections
-                </a>
-                <div class="dropdown-menu" aria-labelledby="collectionDropdown">
-                    <a class="dropdown-item" href="/collections">View</a>
-                    <a class="dropdown-item" href="/collection/new">New</a>
-                </div>
-            </li>
-            {% else %}
             <li class="nav-item">
                 <a class="nav-link{% if request.path == "/collections" %} active{% endif %}" href="/collections"{% if request.path == "/collections" %} aria-current="page"{% endif %}>Collections</a>
             </li>
-            {% endif %}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="worldcupDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     🏆 World Cup
