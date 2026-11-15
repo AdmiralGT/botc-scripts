@@ -6,6 +6,14 @@ from urllib.parse import quote
 
 from django.core.files.base import File
 
+META_ID = "_meta"
+
+_UNKNOWN_ABILITY = "UNKNOWN_ABILITY"
+
+
+class JSONError(Exception):
+    pass
+
 
 def get_author_from_json(json):
     return get_metadata_field_from_json(json, "author")
@@ -24,25 +32,16 @@ def get_metadata_field_from_json(json, field):
     Returns a chosen field from the _meta JSON data.
     """
     for item in json:
-        if item.get("id", "") == "_meta":
+        if item.get("id", "") == META_ID:
             return item.get(field, None)
     return None
 
 
 def revert_to_old_format(json):
-    old_format_json = []
-
-    for item in json:
-        if isinstance(item, str):
-            old_format_json.append({"id": item})
-        else:
-            old_format_json.append(item)
-
-    return old_format_json
-
-
-class JSONError(Exception):
-    pass
+    """
+    Convert the "list of ID strings" script format into a list of {"id": ...} objects.
+    """
+    return [{"id": item} if isinstance(item, str) else item for item in json]
 
 
 def strip_special_characters(character_id):
@@ -73,79 +72,72 @@ def strip_special_characters_from_json(json):
             raise JSONError(f"Unexpected script element: {item}")
 
         character = item.get("id", "")
-        if character == "_meta":
-            new_json.append(item)
-            continue
-        item["id"] = strip_special_characters(character)
+        if character != META_ID:
+            item["id"] = strip_special_characters(character)
         new_json.append(item)
 
     return new_json
+
+
+def _parse_json(raw):
+    try:
+        return js.loads(raw)
+    except js.JSONDecodeError as e:
+        raise JSONError(f"Invalid JSON content: {e}") from e
 
 
 def get_json_content(data):
     json_content = data.get("content", None)
     if not json_content:
         raise JSONError("Could not read file type")
+
     if isinstance(json_content, File):
-        try:
-            json = js.loads(json_content.read().decode("utf-8"))
-        except js.JSONDecodeError as e:
-            raise JSONError(f"Invalid JSON content: {e}")
+        json = _parse_json(json_content.read().decode("utf-8"))
         json_content.seek(0)
     elif isinstance(json_content, (str, bytes, bytearray)):
-        try:
-            json = js.loads(json_content)
-        except js.JSONDecodeError as e:
-            raise JSONError(f"Invalid JSON content: {e}")
+        json = _parse_json(json_content)
     else:
         json = json_content
-    json = revert_to_old_format(json)
-    json = strip_special_characters_from_json(json)
-    return json
+
+    return strip_special_characters_from_json(revert_to_old_format(json))
 
 
-# Determine the characters that are in the new JSON but not in the old JSON
-# This
+def _character_ids(json):
+    """
+    The IDs of every character in a script, in order, ignoring the _meta entry.
+    """
+    ids = (item.get("id", "") for item in json)
+    return [character_id for character_id in ids if character_id != META_ID]
+
+
 def get_json_additions(old_json, new_json):
-    for old_id in old_json:
-        if old_id["id"] == "_meta":
-            continue
-        for new_id in new_json:
-            if new_id["id"] == "_meta":
-                continue
+    """
+    Determine the characters that are in the new JSON but not in the old JSON.
 
-            # Check if the IDs are unchanged.
-            # This is imperfect because this will detect a change from an Official
-            # to a Homebrew character of the same name, but we only have the JSON to do this check
-            # and official characters have limited information in the JSON.
-            if old_id["id"] == new_id["id"]:
-                new_json.remove(new_id)
-                continue
+    This is imperfect because a change from an official to a homebrew character of the same name
+    is not detected, but we only have the JSON to work from and official characters have limited
+    information in the JSON.
 
-    for new_id in new_json:
-        if new_id["id"] == "_meta":
-            new_json.remove(new_id)
-            break
-
-    return new_json
+    Neither input is modified.
+    """
+    old_ids = set(_character_ids(old_json))
+    return [item for item in new_json if item.get("id", "") not in old_ids and item.get("id", "") != META_ID]
 
 
-# Determine changes to character abilities where the character ID is unchanged
 def get_json_changes(old_json, new_json):
-    changed_json = []
-    for old_id in old_json:
-        if old_id["id"] == "_meta":
-            continue
-        for new_id in new_json:
-            if new_id["id"] == "_meta":
-                continue
-
-            ability_changed = old_id.get("ability", "UNKNOWN_ABILITY") != new_id.get("ability", "UNKNOWN_ABILITY")
-            if old_id["id"] == new_id["id"] and ability_changed:
-                changed_json.append({"id": new_id["id"]})
-                continue
-
-    return changed_json
+    """
+    Determine changes to character abilities where the character ID is unchanged.
+    """
+    new_abilities = {
+        item.get("id"): item.get("ability", _UNKNOWN_ABILITY) for item in new_json if item.get("id") != META_ID
+    }
+    return [
+        {"id": item.get("id")}
+        for item in old_json
+        if item.get("id") != META_ID
+        and item.get("id") in new_abilities
+        and item.get("ability", _UNKNOWN_ABILITY) != new_abilities[item.get("id")]
+    ]
 
 
 def compress_json(json_data):
