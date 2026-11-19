@@ -1295,7 +1295,12 @@ class AdvancedSearchView(generic.FormView):
         return get_advanced_search_form(**self.get_form_kwargs())
 
     def form_valid(self, form):
-        params = {name: form.data.getlist(name) for name in form.fields if name in form.data}
+        params = {}
+        for name in form.fields:
+            if name in form.data:
+                values = [value for value in form.data.getlist(name) if value.strip()]
+                if values:
+                    params[name] = values
         return redirect(f"{reverse('advanced_search_results')}?{urlencode(params, doseq=True)}")
 
 
