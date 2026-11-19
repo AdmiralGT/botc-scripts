@@ -283,7 +283,10 @@
             </div>
         {% endif %}
         <div class="col-md-auto p-1">
-            {% include "favourite.html" with record=script_version %}
+            <div class="d-inline-flex align-items-center" style="gap: 0.25rem;">
+                {% include "vote.html" with record=script_version %}
+                {% include "favourite.html" with record=script_version %}
+            </div>
         </div>
     {% endif %}
     <div class="p-1 alert-messages text-center"></div>
