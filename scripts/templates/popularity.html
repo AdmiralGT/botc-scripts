@@ -6,7 +6,7 @@
 {% if filter %}
 <form action="" method="get" class="form mb-0">
     <div class="form-group row p-1 mb-0">
-        {% bootstrap_form filter.form exclude='tags' layout='inline' form_group_class="mb-0 m-1" bound_css_class="" %}
+        {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" bound_css_class="" %}
         <div class="form-group mb-0 m-1 ml-auto d-inline-flex align-items-center">
             <label for="popularity-days" class="mb-0 mr-2">Time range</label>
             <input type="range" class="custom-range" id="popularity-days" name="period_index" min="0" max="6" step="1" value="{{ period_index }}" style="width: 10rem;" aria-describedby="popularity-days-value">
@@ -19,7 +19,7 @@
                 {% bootstrap_button 'Filter' button_class='btn-primary' extra_classes="mr-1 btn-shaded-text" %}
                 {% bootstrap_button 'Clear' button_class='btn-primary' href="/popularity" %}
                 <div class="col">
-                    <p class="font-weight-bold text-right">Results: {{ table.rows|length }}</p>
+                    <p class="font-weight-bold text-right">Results: {{ table.page.paginator.count }}</p>
                 </div>
             </div>
         </div>

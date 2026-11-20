@@ -16,8 +16,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Case, Count, F, IntegerField, Min, Prefetch, Q, Subquery, Value, When
-from django.db.models.functions import TruncDate
+from django.db.models import Count, F, IntegerField, Min, OuterRef, Prefetch, Q, Subquery, Value
+from django.db.models.functions import Coalesce, TruncDate
 from django.http import (
     FileResponse,
     Http404,
@@ -168,8 +168,12 @@ class PopularityView(ActiveFilterStyleMixin, SingleTableMixin, FilterView):
         period_index = popularity.normalize_period_index(self.request.GET.get("period_index"))
         period_days = popularity.POPULARITY_PERIODS[period_index]
         cutoff = timezone.now() - timedelta(days=period_days)
-        event_counts = (
-            models.ScriptEngagementEvent.objects.filter(created_at__gte=cutoff)
+        events_by_script = (
+            models.ScriptEngagementEvent.objects.filter(
+                script_id=OuterRef("script_id"),
+                created_at__gte=cutoff,
+            )
+            .order_by()
             .values("script_id")
             .annotate(
                 votes_added=Count(
@@ -189,31 +193,31 @@ class PopularityView(ActiveFilterStyleMixin, SingleTableMixin, FilterView):
                     filter=Q(event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_REMOVED),
                 ),
             )
+            .annotate(
+                vote_change=F("votes_added") - F("votes_removed"),
+                favourite_change=F("favourites_added") - F("favourites_removed"),
+            )
         )
-        changes_by_script = popularity.positive_net_changes(event_counts)
-
-        if not changes_by_script:
-            return models.ScriptVersion.plain_objects.none()
-
-        vote_changes = [
-            When(script_id=script_id, then=Value(changes[0])) for script_id, changes in changes_by_script.items()
-        ]
-        favourite_changes = [
-            When(script_id=script_id, then=Value(changes[1])) for script_id, changes in changes_by_script.items()
-        ]
         return (
             models.ScriptVersion.plain_objects.filter(
                 latest=True,
                 homebrewiness=models.Homebrewiness.CLOCKTOWER,
-                script_id__in=changes_by_script,
             )
             .select_related("script")
             .prefetch_related(Prefetch("tags", queryset=models.ScriptTag.objects.order_by("order")))
-            .defer("content")
             .annotate(
-                score=Case(*vote_changes, default=Value(0), output_field=IntegerField()),
-                num_favs=Case(*favourite_changes, default=Value(0), output_field=IntegerField()),
+                score=Coalesce(
+                    Subquery(events_by_script.values("vote_change")[:1]),
+                    Value(0),
+                    output_field=IntegerField(),
+                ),
+                num_favs=Coalesce(
+                    Subquery(events_by_script.values("favourite_change")[:1]),
+                    Value(0),
+                    output_field=IntegerField(),
+                ),
             )
+            .filter(Q(score__gt=0) | Q(num_favs__gt=0))
         )
 
     def get_table_class(self):
@@ -988,10 +992,13 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
     return JsonResponse(similar)
 
 
+@transaction.atomic
 @require_GET
 def script_popularity(request, pk: int) -> JsonResponse:
     script = get_object_or_404(
-        models.Script.objects.only("pk", "num_votes", "num_favourites", "popularity_tracking_started_at"),
+        models.Script.objects.select_for_update(no_key=True).only(
+            "pk", "num_votes", "num_favourites", "popularity_tracking_started_at"
+        ),
         pk=pk,
     )
     today = timezone.localdate()

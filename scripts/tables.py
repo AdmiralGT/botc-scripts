@@ -154,7 +154,7 @@ class PopularityClocktowerTable(ClocktowerTable):
     )
 
     class Meta(ClocktowerTable.Meta):
-        order_by = "-score"
+        order_by = "score"
 
 
 class UserPopularityClocktowerTable(PopularityClocktowerTable):
