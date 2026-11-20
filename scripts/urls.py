@@ -76,6 +76,7 @@ urlpatterns = [
     path("comment/<int:pk>/edit", views.CommentEditView.as_view(), name="edit_comment"),
     path("comment/new", views.CommentCreateView.as_view(), name="create_comment"),
     path("health-check", views.HealthCheckView.as_view()),
+    path("popularity", views.PopularityView.as_view(), name="popularity"),
     path(
         "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
@@ -98,6 +99,7 @@ urlpatterns = [
         views.get_similar_scripts,
         name="similar",
     ),
+    path("script/<int:pk>/popularity", views.script_popularity, name="script_popularity"),
     path("script/<int:pk>/<str:version>", views.ScriptView.as_view(), name="script"),
     path(
         "script/<int:pk>/<str:version>/delete",

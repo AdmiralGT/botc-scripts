@@ -2,7 +2,7 @@ import json as js
 import os
 from collections import Counter
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from tempfile import TemporaryFile
 from typing import Any
 from urllib.parse import urlencode
@@ -16,7 +16,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Count, F, Min, Prefetch, Subquery
+from django.db.models import Case, Count, F, IntegerField, Min, Prefetch, Q, Subquery, Value, When
+from django.db.models.functions import TruncDate
 from django.http import (
     FileResponse,
     Http404,
@@ -25,11 +26,12 @@ from django.http import (
     HttpResponseRedirect,
     JsonResponse,
 )
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import get_valid_filename
 from django.views import generic
+from django.views.decorators.http import require_GET
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
 from versionfield import Version
@@ -40,6 +42,7 @@ from scripts import (
     filters,
     forms,
     models,
+    popularity,
     script_json,
     tables,
 )
@@ -106,7 +109,24 @@ class ScriptOrderToggleMixin:
         return kwargs
 
 
-class ScriptsListView(ScriptOrderToggleMixin, SingleTableMixin, FilterView):
+class ActiveFilterStyleMixin:
+    def get_filterset(self, filterset_class):
+        filterset = super().get_filterset(filterset_class)
+        filter_form = filterset.form
+        filter_form.is_valid()
+        cleaned_data = getattr(filter_form, "cleaned_data", {})
+        errors = filter_form.errors
+        for field_name in filter_form.changed_data:
+            if field_name not in errors and cleaned_data.get(field_name):
+                widget = filter_form.fields[field_name].widget
+                classes = widget.attrs.get("class", "").split()
+                if "is-valid" not in classes:
+                    classes.append("is-valid")
+                widget.attrs["class"] = " ".join(classes)
+        return filterset
+
+
+class ScriptsListView(ActiveFilterStyleMixin, ScriptOrderToggleMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
     template_name = "scriptlist.html"
     table_pagination = {"per_page": 20}
@@ -138,7 +158,81 @@ class ScriptsListView(ScriptOrderToggleMixin, SingleTableMixin, FilterView):
         return tables.ClocktowerTable
 
 
-class UserScriptsListView(LoginRequiredMixin, ScriptOrderToggleMixin, SingleTableMixin, FilterView):
+class PopularityView(ActiveFilterStyleMixin, SingleTableMixin, FilterView):
+    model = models.ScriptVersion
+    filterset_class = filters.PopularityScriptVersionFilter
+    template_name = "popularity.html"
+    table_pagination = {"per_page": 20}
+
+    def get_queryset(self):
+        period_index = popularity.normalize_period_index(self.request.GET.get("period_index"))
+        period_days = popularity.POPULARITY_PERIODS[period_index]
+        cutoff = timezone.now() - timedelta(days=period_days)
+        event_counts = (
+            models.ScriptEngagementEvent.objects.filter(created_at__gte=cutoff)
+            .values("script_id")
+            .annotate(
+                votes_added=Count(
+                    "pk",
+                    filter=Q(event_type=models.ScriptEngagementEvent.EventType.VOTE_ADDED),
+                ),
+                votes_removed=Count(
+                    "pk",
+                    filter=Q(event_type=models.ScriptEngagementEvent.EventType.VOTE_REMOVED),
+                ),
+                favourites_added=Count(
+                    "pk",
+                    filter=Q(event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_ADDED),
+                ),
+                favourites_removed=Count(
+                    "pk",
+                    filter=Q(event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_REMOVED),
+                ),
+            )
+        )
+        changes_by_script = popularity.positive_net_changes(event_counts)
+
+        if not changes_by_script:
+            return models.ScriptVersion.plain_objects.none()
+
+        vote_changes = [
+            When(script_id=script_id, then=Value(changes[0])) for script_id, changes in changes_by_script.items()
+        ]
+        favourite_changes = [
+            When(script_id=script_id, then=Value(changes[1])) for script_id, changes in changes_by_script.items()
+        ]
+        return (
+            models.ScriptVersion.plain_objects.filter(
+                latest=True,
+                homebrewiness=models.Homebrewiness.CLOCKTOWER,
+                script_id__in=changes_by_script,
+            )
+            .select_related("script")
+            .prefetch_related(Prefetch("tags", queryset=models.ScriptTag.objects.order_by("order")))
+            .defer("content")
+            .annotate(
+                score=Case(*vote_changes, default=Value(0), output_field=IntegerField()),
+                num_favs=Case(*favourite_changes, default=Value(0), output_field=IntegerField()),
+            )
+        )
+
+    def get_table_class(self):
+        if self.request.user.is_authenticated:
+            return tables.UserPopularityClocktowerTable
+        return tables.PopularityClocktowerTable
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        period_index = popularity.normalize_period_index(self.request.GET.get("period_index"))
+        context["period_index"] = period_index
+        context["period_days"] = popularity.POPULARITY_PERIODS[period_index]
+        context["popularity_periods"] = popularity.POPULARITY_PERIODS
+        return context
+
+
+class UserScriptsListView(
+    ActiveFilterStyleMixin, LoginRequiredMixin, ScriptOrderToggleMixin, SingleTableMixin, FilterView
+):
     model = models.ScriptVersion
     table_class = tables.UserClocktowerTable
     template_name = "scriptlist.html"
@@ -669,7 +763,7 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
         return f"/script/{script.pk}"
 
 
-class StatisticsView(generic.ListView, FilterView):
+class StatisticsView(ActiveFilterStyleMixin, generic.ListView, FilterView):
     model = models.ScriptVersion
     template_name = "statistics.html"
     filterset_class = filters.StatisticsFilter
@@ -856,6 +950,7 @@ def get_script(request, pk: int) -> models.Script:
     return script
 
 
+@transaction.atomic
 def update_user_related_script(model, user: User, script: models.Script) -> None:
     if user.is_authenticated:
         if model.objects.filter(user=user, parent=script).exists():
@@ -891,6 +986,58 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
         similar[category].append({"value": int(value), "name": name, "scriptPK": script_pk})
 
     return JsonResponse(similar)
+
+
+@require_GET
+def script_popularity(request, pk: int) -> JsonResponse:
+    script = get_object_or_404(
+        models.Script.objects.only("pk", "num_votes", "num_favourites", "popularity_tracking_started_at"),
+        pk=pk,
+    )
+    today = timezone.localdate()
+    tracking_start = timezone.localtime(script.popularity_tracking_started_at).date()
+    start_date = max(today - timedelta(days=89), tracking_start)
+    current_timezone = timezone.get_current_timezone()
+    start_datetime = datetime.combine(start_date, time.min, tzinfo=current_timezone)
+    end_datetime = datetime.combine(today + timedelta(days=1), time.min, tzinfo=current_timezone)
+
+    event_counts = (
+        models.ScriptEngagementEvent.objects.filter(
+            script_id=script.pk,
+            created_at__gte=start_datetime,
+            created_at__lt=end_datetime,
+        )
+        .annotate(day=TruncDate("created_at", tzinfo=current_timezone))
+        .values("day")
+        .annotate(
+            votes_added=Count("pk", filter=Q(event_type=models.ScriptEngagementEvent.EventType.VOTE_ADDED)),
+            votes_removed=Count("pk", filter=Q(event_type=models.ScriptEngagementEvent.EventType.VOTE_REMOVED)),
+            favourites_added=Count("pk", filter=Q(event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_ADDED)),
+            favourites_removed=Count(
+                "pk", filter=Q(event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_REMOVED)
+            ),
+        )
+        .order_by("day")
+    )
+    changes_by_date = {
+        event_count["day"]: (
+            event_count["votes_added"],
+            event_count["votes_removed"],
+            event_count["favourites_added"],
+            event_count["favourites_removed"],
+        )
+        for event_count in event_counts
+    }
+
+    return JsonResponse(
+        popularity.build_popularity_history(
+            start_date,
+            today,
+            script.num_votes,
+            script.num_favourites,
+            changes_by_date,
+        )
+    )
 
 
 def favourite_script(request, pk: int) -> None:
@@ -1024,7 +1171,7 @@ class CollectionScriptListView(SingleTableView):
         return collection.scripts.select_related("script").prefetch_related("tags").order_by("pk")
 
 
-class CollectionListView(SingleTableMixin, FilterView):
+class CollectionListView(ActiveFilterStyleMixin, SingleTableMixin, FilterView):
     model = models.Collection
     template_name = "collection_list.html"
     table_pagination = {"per_page": 20}

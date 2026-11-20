@@ -16,6 +16,9 @@
             <li class="nav-item">
                 <a class="nav-link" href="/statistics">Statistics</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'popularity' %}">Popular</a>
+            </li>
             {% if user.is_authenticated %}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="collectionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

@@ -14,7 +14,7 @@
     <form class='d-inline-block m-0' action="{% url 'vote' record.script.pk %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="btn {% user_voted record %} btn-sm" aria-label="Toggle script vote">{% svg_icon user_voted_icon %}</button>
+        <button type="submit" class="btn {% user_voted record %} btn-sm" aria-label="Toggle script like">{% svg_icon user_voted_icon %}</button>
     </form>
 
     <form class='d-inline-block m-0' action="{% url 'favourite' record.script.pk %}" method="post">

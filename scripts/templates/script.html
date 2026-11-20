@@ -358,6 +358,9 @@
     </li>
     {% endif %}
     <li class="nav-item">
+        <a class="nav-link" id="popularity-tab" data-toggle="tab" href="#popularity" role="tab" aria-controls="popularity" aria-selected="false">Popularity</a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link {% active_aria_status 'comments-tab' activetab %}" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments ({{ comments|length }})</a>
     </li>
 </ul>
@@ -452,6 +455,15 @@
     <div class="tab-pane fade col-sm-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
         <div id="similar-scripts">loading...</div>
     </div>
+    <div class="tab-pane fade col-sm-8" id="popularity" role="tabpanel" aria-labelledby="popularity-tab">
+        <p id="popularity-status" role="status">Historical data starts when popularity tracking was enabled.</p>
+        <div id="popularity-charts" class="d-none">
+            <h3>Likes</h3>
+            <canvas id="vote-popularity-chart" height="100"></canvas>
+            <h3 class="mt-4">Favourites</h3>
+            <canvas id="favourite-popularity-chart" height="100"></canvas>
+        </div>
+    </div>
     <div class="tab-pane fade col-sm-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
         <ul class="p-0">
             {% for collection in script_version.collections.all %}
@@ -473,6 +485,7 @@
                 {% endif %}
                     {{ comment_info.comment.comment|markdownify }}
                 </div>
+
                 <div class="align-self-end">
                     {% if comment_info.comment.user == user %}
                     <a class="btn btn-info btn-sm" data-toggle="collapse" href="#edit_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="editPanel_{{comment.pk}}">Edit</a>
@@ -531,5 +544,112 @@
     {% endif %}
 </div>
 
+<script>
+    (function () {
+        var popularityLoaded = false;
+        var popularityLoading = false;
+        var status = document.getElementById("popularity-status");
+        var charts = document.getElementById("popularity-charts");
+
+        function loadChartJs() {
+            if (window.Chart) return Promise.resolve();
+            return new Promise(function (resolve, reject) {
+                var chartScript = document.createElement("script");
+                chartScript.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js";
+                chartScript.integrity = "sha256-Uv9BNBucvCPipKQ2NS9wYpJmi8DTOEfTA/nH2aoJALw=";
+                chartScript.crossOrigin = "anonymous";
+                chartScript.onload = resolve;
+                chartScript.onerror = reject;
+                document.head.appendChild(chartScript);
+            });
+        }
+
+        function createPopularityChart(canvasId, label, values, color, textColor, gridColor, labels) {
+            var context = document.getElementById(canvasId).getContext("2d");
+            new Chart(context, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: values,
+                        borderColor: color,
+                        backgroundColor: color,
+                        fill: false,
+                        lineTension: 0,
+                        pointRadius: 2,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    legend: { labels: { fontColor: textColor } },
+                    scales: {
+                        xAxes: [{
+                            ticks: { fontColor: textColor, maxTicksLimit: 12 },
+                            gridLines: { color: gridColor }
+                        }],
+                        yAxes: [{
+                            ticks: { fontColor: textColor, precision: 0 },
+                            gridLines: { color: gridColor }
+                        }]
+                    }
+                }
+            });
+        }
+
+        $("#popularity-tab").on("shown.bs.tab", function () {
+            if (popularityLoaded || popularityLoading) return;
+            popularityLoading = true;
+            Promise.all([
+                fetch("{% url 'script_popularity' script.pk %}").then(function (response) {
+                    if (!response.ok) throw new Error("Popularity request failed");
+                    return response.json();
+                }),
+                loadChartJs()
+            ])
+                .then(function (results) {
+                    var data = results[0];
+                    if (!data.labels.length) {
+                        status.textContent = "No popularity history is available yet.";
+                        popularityLoaded = true;
+                        popularityLoading = false;
+                        return;
+                    }
+
+                    var isDark = document.documentElement.getAttribute("data-theme") === "dark";
+                    var textColor = isDark ? "#e0e0e0" : "#666666";
+                    var gridColor = isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.1)";
+                    var voteColor = isDark ? "#ff6b6b" : "#ff0000";
+                    var favouriteColor = isDark ? "#e6b93f" : "#ffc000";
+                    status.classList.add("d-none");
+                    charts.classList.remove("d-none");
+                    createPopularityChart(
+                        "vote-popularity-chart",
+                        "Likes",
+                        data.votes,
+                        voteColor,
+                        textColor,
+                        gridColor,
+                        data.labels
+                    );
+                    createPopularityChart(
+                        "favourite-popularity-chart",
+                        "Favourites",
+                        data.favourites,
+                        favouriteColor,
+                        textColor,
+                        gridColor,
+                        data.labels
+                    );
+                    popularityLoaded = true;
+                    popularityLoading = false;
+                })
+                .catch(function () {
+                    status.textContent = "Popularity history could not be loaded. Please try again.";
+                    popularityLoading = false;
+                });
+        });
+    })();
+</script>
 
 {% endblock %}
