@@ -455,13 +455,34 @@
     <div class="tab-pane fade col-sm-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
         <div id="similar-scripts">loading...</div>
     </div>
+    {% if script_version.pdf %}
+    <div class="tab-pane fade col-sm-6" id="popularity" role="tabpanel" aria-labelledby="popularity-tab">
+    {% else %}
     <div class="tab-pane fade col-sm-8" id="popularity" role="tabpanel" aria-labelledby="popularity-tab">
+    {% endif %}
         <p id="popularity-status" role="status">Historical data starts when popularity tracking was enabled.</p>
         <div id="popularity-charts" class="d-none">
+            <p id="popularity-history-data-help" class="sr-only">Daily totals for both charts are available in the data table below.</p>
             <h3>Likes</h3>
-            <canvas id="vote-popularity-chart" height="100"></canvas>
+            <canvas id="vote-popularity-chart" height="100" role="img" aria-label="Likes history chart" aria-describedby="popularity-history-data-help">Daily likes history. See the chart data table below for values.</canvas>
             <h3 class="mt-4">Favourites</h3>
-            <canvas id="favourite-popularity-chart" height="100"></canvas>
+            <canvas id="favourite-popularity-chart" height="100" role="img" aria-label="Favourites history chart" aria-describedby="popularity-history-data-help">Daily favourites history. See the chart data table below for values.</canvas>
+            <details class="mt-3">
+                <summary>View chart data as a table</summary>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <caption>Daily likes and favourites totals</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Date</th>
+                                <th scope="col">Likes</th>
+                                <th scope="col">Favourites</th>
+                            </tr>
+                        </thead>
+                        <tbody id="popularity-history-data-rows"></tbody>
+                    </table>
+                </div>
+            </details>
         </div>
     </div>
     <div class="tab-pane fade col-sm-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
@@ -621,6 +642,16 @@
                     var gridColor = isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.1)";
                     var voteColor = isDark ? "#ff6b6b" : "#ff0000";
                     var favouriteColor = isDark ? "#e6b93f" : "#ffc000";
+                    var historyRows = document.getElementById("popularity-history-data-rows");
+                    data.labels.forEach(function (label, index) {
+                        var row = document.createElement("tr");
+                        [label, data.votes[index], data.favourites[index]].forEach(function (value) {
+                            var cell = document.createElement("td");
+                            cell.textContent = value;
+                            row.appendChild(cell);
+                        });
+                        historyRows.appendChild(row);
+                    });
                     status.classList.add("d-none");
                     charts.classList.remove("d-none");
                     createPopularityChart(
