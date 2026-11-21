@@ -8,6 +8,7 @@ from django.db.models import F, Value, Window
 from django.db.models.functions import Cast, Round, RowNumber
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 from versionfield import VersionField
 
 from scripts import constants
@@ -106,6 +107,7 @@ class Script(models.Model):
     num_votes = models.PositiveIntegerField(default=0, editable=False)
     num_favourites = models.PositiveIntegerField(default=0, editable=False)
     num_comments = models.PositiveIntegerField(default=0, editable=False)
+    popularity_tracking_started_at = models.DateTimeField(default=timezone.now, editable=False)
 
     def __str__(self):
         return f"{self.pk}. {self.name}"
@@ -384,6 +386,24 @@ class Favourite(models.Model):
         indexes = [
             models.Index(fields=["parent"], name="favourite_parent_idx"),
             models.Index(fields=["user"], name="favourite_user_idx"),
+        ]
+
+
+class ScriptEngagementEvent(models.Model):
+    class EventType(models.TextChoices):
+        VOTE_ADDED = "vote_added", "Vote added"
+        VOTE_REMOVED = "vote_removed", "Vote removed"
+        FAVOURITE_ADDED = "favourite_added", "Favourite added"
+        FAVOURITE_REMOVED = "favourite_removed", "Favourite removed"
+
+    script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name="engagement_events", db_index=False)
+    event_type = models.CharField(max_length=20, choices=EventType.choices)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at"], name="engagement_created_idx"),
+            models.Index(fields=["script", "created_at"], name="engagement_script_time_idx"),
         ]
 
 

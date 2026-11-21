@@ -136,6 +136,39 @@ class UserClocktowerTable(ClocktowerTable):
         orderable = True
 
 
+class PopularityClocktowerTable(ClocktowerTable):
+    score = tables.TemplateColumn(
+        template_name="script_table/popularity_votes.html",
+        accessor="score",
+        verbose_name="Likes change",
+        order_by=("-score", "-pk"),
+        attrs=table_class,
+    )
+
+    num_favs = tables.TemplateColumn(
+        template_name="script_table/popularity_favourites.html",
+        accessor="num_favs",
+        verbose_name="Favourites change",
+        order_by=("-num_favs", "-pk"),
+        attrs=table_class,
+    )
+
+    class Meta(ClocktowerTable.Meta):
+        order_by = "score"
+
+
+class UserPopularityClocktowerTable(PopularityClocktowerTable):
+    actions = tables.TemplateColumn(
+        template_name="script_table/actions/authenticated.html",
+        orderable=False,
+        verbose_name="",
+        attrs=script_table_actions_class,
+    )
+
+    class Meta(PopularityClocktowerTable.Meta):
+        pass
+
+
 class CollectionClocktowerTable(UserClocktowerTable):
     actions = tables.TemplateColumn(
         template_name="script_table/actions/collection.html",

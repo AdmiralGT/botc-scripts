@@ -195,6 +195,24 @@ class ScriptVersionFilter(BaseScriptVersionFilter):
         ]
 
 
+class PopularityScriptVersionFilter(ScriptVersionFilter):
+    all_scripts = None
+    include_hybrid = None
+    include_homebrew = None
+
+    class Meta(ScriptVersionFilter.Meta):
+        fields = [
+            "search",
+            "script_type",
+            "include",
+            "exclude",
+            "edition",
+            "author",
+            "tags",
+            "mono_demon",
+        ]
+
+
 class FavouriteScriptVersionFilter(ScriptVersionFilter):
     favourites = django_filters.filters.BooleanFilter(
         method="display_favourites", widget=forms.CheckboxInput, label="Favourites"

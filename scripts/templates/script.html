@@ -358,6 +358,9 @@
     </li>
     {% endif %}
     <li class="nav-item">
+        <a class="nav-link" id="popularity-tab" data-toggle="tab" href="#popularity" role="tab" aria-controls="popularity" aria-selected="false">Popularity</a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link {% active_aria_status 'comments-tab' activetab %}" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments ({{ comments|length }})</a>
     </li>
 </ul>
@@ -452,6 +455,33 @@
     <div class="tab-pane fade col-sm-6" id="similarity" role="tabpanel" aria-labelledby="similarity-tab">
         <div id="similar-scripts">loading...</div>
     </div>
+    {% if script_version.pdf %}
+    <div class="tab-pane fade col-sm-6" id="popularity" role="tabpanel" aria-labelledby="popularity-tab">
+    {% else %}
+    <div class="tab-pane fade col-sm-8" id="popularity" role="tabpanel" aria-labelledby="popularity-tab">
+    {% endif %}
+        <p id="popularity-status" role="status">Historical data starts when popularity tracking was enabled.</p>
+        <div id="popularity-charts" class="d-none">
+            <p id="popularity-history-data-help" class="sr-only">A screen-reader-accessible table contains daily totals for both charts.</p>
+            <h3>Likes</h3>
+            <canvas id="vote-popularity-chart" height="100" role="img" aria-label="Likes history chart" aria-describedby="popularity-history-data-help">Daily likes history. Refer to the accessible data table for values.</canvas>
+            <h3 class="mt-4">Favourites</h3>
+            <canvas id="favourite-popularity-chart" height="100" role="img" aria-label="Favourites history chart" aria-describedby="popularity-history-data-help">Daily favourites history. Refer to the accessible data table for values.</canvas>
+            <div class="sr-only">
+                <table>
+                    <caption>Daily likes and favourites totals</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Likes</th>
+                            <th scope="col">Favourites</th>
+                        </tr>
+                    </thead>
+                    <tbody id="popularity-history-data-rows"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     <div class="tab-pane fade col-sm-6" id="collection" role="tabpanel" aria-labelledby="collection-tab">
         <ul class="p-0">
             {% for collection in script_version.collections.all %}
@@ -473,6 +503,7 @@
                 {% endif %}
                     {{ comment_info.comment.comment|markdownify }}
                 </div>
+
                 <div class="align-self-end">
                     {% if comment_info.comment.user == user %}
                     <a class="btn btn-info btn-sm" data-toggle="collapse" href="#edit_{{comment_info.comment.pk}}" role="button" aria-expanded="false" aria-controls="editPanel_{{comment.pk}}">Edit</a>
@@ -531,5 +562,160 @@
     {% endif %}
 </div>
 
+<script>
+    (function () {
+        var popularityLoaded = false;
+        var popularityLoading = false;
+        var status = document.getElementById("popularity-status");
+        var charts = document.getElementById("popularity-charts");
+        var popularityCharts = [];
+        var popularityData = null;
+
+        function popularityTheme() {
+            var isDark = document.documentElement.getAttribute("data-theme") === "dark";
+            return {
+                text: isDark ? "#e0e0e0" : "#212529",
+                grid: isDark ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.2)",
+                likes: isDark ? "#7ee787" : "#008000",
+                favourites: isDark ? "#e6b93f" : "#ffc000"
+            };
+        }
+
+        function renderPopularityCharts() {
+            if (!popularityData) return;
+
+            var theme = popularityTheme();
+            popularityCharts.forEach(function (chart) {
+                chart.destroy();
+            });
+            popularityCharts = [
+                createPopularityChart(
+                    "vote-popularity-chart",
+                    "Likes",
+                    popularityData.votes,
+                    theme.likes,
+                    theme.text,
+                    theme.grid,
+                    popularityData.labels
+                ),
+                createPopularityChart(
+                    "favourite-popularity-chart",
+                    "Favourites",
+                    popularityData.favourites,
+                    theme.favourites,
+                    theme.text,
+                    theme.grid,
+                    popularityData.labels
+                )
+            ];
+        }
+
+        var popularityThemeObserver = new MutationObserver(function () {
+            renderPopularityCharts();
+        });
+        popularityThemeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme"]
+        });
+
+        function loadChartJs() {
+            if (window.Chart) return Promise.resolve();
+            return new Promise(function (resolve, reject) {
+                var chartScript = document.createElement("script");
+                chartScript.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js";
+                chartScript.integrity = "sha256-Uv9BNBucvCPipKQ2NS9wYpJmi8DTOEfTA/nH2aoJALw=";
+                chartScript.crossOrigin = "anonymous";
+                chartScript.onload = resolve;
+                chartScript.onerror = reject;
+                document.head.appendChild(chartScript);
+            });
+        }
+
+        function createPopularityChart(canvasId, label, values, color, textColor, gridColor, labels) {
+            var context = document.getElementById(canvasId).getContext("2d");
+            var weeklyGridLineColors = labels.map(function (_, index) {
+                return index % 7 === 0 ? gridColor : "rgba(0, 0, 0, 0)";
+            });
+            return new Chart(context, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: values,
+                        borderColor: color,
+                        backgroundColor: color,
+                        fill: false,
+                        lineTension: 0,
+                        pointRadius: 2,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    legend: { labels: { fontColor: textColor } },
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                fontColor: textColor,
+                                padding: 8,
+                                autoSkip: false,
+                                callback: function (value, index) {
+                                    return index % 7 === 0 ? value : "";
+                                }
+                            },
+                            gridLines: { color: weeklyGridLineColors, drawTicks: false }
+                        }],
+                        yAxes: [{
+                            ticks: { fontColor: textColor, precision: 0 },
+                            gridLines: { color: gridColor }
+                        }]
+                    }
+                }
+            });
+        }
+
+        $("#popularity-tab").on("shown.bs.tab", function () {
+            if (popularityLoaded || popularityLoading) return;
+            popularityLoading = true;
+            Promise.all([
+                fetch("{% url 'script_popularity' script.pk %}").then(function (response) {
+                    if (!response.ok) throw new Error("Popularity request failed");
+                    return response.json();
+                }),
+                loadChartJs()
+            ])
+                .then(function (results) {
+                    var data = results[0];
+                    if (!data.labels.length) {
+                        status.textContent = "No popularity history is available yet.";
+                        popularityLoaded = true;
+                        popularityLoading = false;
+                        return;
+                    }
+
+                    var historyRows = document.getElementById("popularity-history-data-rows");
+                    data.labels.forEach(function (label, index) {
+                        var row = document.createElement("tr");
+                        [label, data.votes[index], data.favourites[index]].forEach(function (value) {
+                            var cell = document.createElement("td");
+                            cell.textContent = value;
+                            row.appendChild(cell);
+                        });
+                        historyRows.appendChild(row);
+                    });
+                    status.classList.add("d-none");
+                    charts.classList.remove("d-none");
+                    popularityData = data;
+                    renderPopularityCharts();
+                    popularityLoaded = true;
+                    popularityLoading = false;
+                })
+                .catch(function () {
+                    status.textContent = "Popularity history could not be loaded. Please try again.";
+                    popularityLoading = false;
+                });
+        });
+    })();
+</script>
 
 {% endblock %}
