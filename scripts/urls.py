@@ -39,13 +39,13 @@ translate = viewsets.TranslateScriptViewSet.as_view({"get": "retrieve"})
 
 
 urlpatterns = [
-    path("", views.ScriptsListView.as_view()),
+    path("", views.ScriptsListView.as_view(), name="home"),
     path("api/", include(router.urls)),
     path("api/characters", api_views.CharactersAPI.as_view(), name="characters-api"),
     path("api/statistics", api_views.StatisticsAPI.as_view(), name="statistics-api"),
     path("api/translations/<str:language>/<str:character_id>/", translation_detail),
     path("api/translate/<int:script_version>/<str:language>", translate),
-    path("collections", views.CollectionListView.as_view()),
+    path("collections", views.CollectionListView.as_view(), name="collections"),
     path(
         "collection/<int:pk>",
         views.CollectionScriptListView.as_view(),
@@ -67,7 +67,7 @@ urlpatterns = [
         views.RemoveScriptFromCollectionView.as_view(),
         name="remove_from_collection",
     ),
-    path("collection/new", views.CollectionCreateView.as_view()),
+    path("collection/new", views.CollectionCreateView.as_view(), name="create_collection"),
     path(
         "comment/<int:pk>/delete",
         views.CommentDeleteView.as_view(),
@@ -81,7 +81,7 @@ urlpatterns = [
         "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
     ),
-    path("script/all_roles", views.AllRolesScriptView.as_view()),
+    path("script/all_roles", views.AllRolesScriptView.as_view(), name="all_roles"),
     path(
         "script/all_roles/download",
         views.download_all_roles_json,
@@ -125,7 +125,7 @@ urlpatterns = [
     path("script/search", views.AdvancedSearchView.as_view(), name="advanced_search"),
     path("script/search/results", views.AdvancedSearchResultsView.as_view(), name="advanced_search_results"),
     path("script/upload", views.ScriptUploadView.as_view(), name="upload"),
-    path("statistics", views.StatisticsView.as_view()),
+    path("statistics", views.StatisticsView.as_view(), name="statistics"),
     path("statistics/<str:character>", views.StatisticsView.as_view()),
     path("statistics/tags/<int:tags>", views.StatisticsView.as_view()),
     path("update", views.UpdateDatabaseView.as_view()),
@@ -134,10 +134,11 @@ urlpatterns = [
     path(
         "account/favourites/",
         views.UserScriptsListView.as_view(script_view="favourite"),
+        name="user_favourites",
     ),
-    path("account/scripts/", views.UserScriptsListView.as_view(script_view="owned")),
-    path("worldcup", worldcup.WorldCupView.as_view()),
-    path("worldcup/statistics", worldcup.WorldCupStatisticsView.as_view()),
+    path("account/scripts/", views.UserScriptsListView.as_view(script_view="owned"), name="user_scripts"),
+    path("worldcup", worldcup.WorldCupView.as_view(), name="worldcup"),
+    path("worldcup/statistics", worldcup.WorldCupStatisticsView.as_view(), name="worldcup_statistics"),
     re_path(r"^login/$", login, name="account_login"),
     re_path(r"^logout/$", logout, name="account_logout"),
     re_path(r"^signup/$", login, name="account_signup"),

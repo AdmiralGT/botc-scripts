@@ -5,16 +5,16 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="{% url 'home' %}">Home</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/script/search">Search</a>
+                <a class="nav-link" href="{% url 'advanced_search' %}">Search</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/script/upload">Upload</a>
+                <a class="nav-link" href="{% url 'upload' %}">Upload</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/statistics">Statistics</a>
+                <a class="nav-link" href="{% url 'statistics' %}">Statistics</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'popularity' %}">Popular</a>
@@ -25,13 +25,13 @@
                     Collections
                 </a>
                 <div class="dropdown-menu" aria-labelledby="collectionDropdown">
-                    <a class="dropdown-item" href="/collections">View</a>
-                    <a class="dropdown-item" href="/collection/new">New</a>
+                    <a class="dropdown-item" href="{% url 'collections' %}">View</a>
+                    <a class="dropdown-item" href="{% url 'create_collection' %}">New</a>
                 </div>
             </li>
             {% else %}
             <li class="nav-item">
-                <a class="nav-link" href="/collections">Collections</a>
+                <a class="nav-link" href="{% url 'collections' %}">Collections</a>
             </li>
             {% endif %}
             <li class="nav-item dropdown">
@@ -39,8 +39,8 @@
                     🏆 World Cup
                 </a>
                 <div class="dropdown-menu" aria-labelledby="worldcupDropdown">
-                    <a class="dropdown-item" href="/worldcup">Results</a>
-                    <a class="dropdown-item" href="/worldcup/statistics">Statistics</a>
+                    <a class="dropdown-item" href="{% url 'worldcup' %}">Results</a>
+                    <a class="dropdown-item" href="{% url 'worldcup_statistics' %}">Statistics</a>
                 </div>
             </li>
             <li class="nav-item dropdown">
@@ -48,7 +48,7 @@
                     Special Scripts
                 </a>
                 <div class="dropdown-menu" aria-labelledby="scriptDropdown">
-                    <a class="dropdown-item" href="/script/all_roles">Fishbucket</a>
+                    <a class="dropdown-item" href="{% url 'all_roles' %}">Fishbucket</a>
                 </div>
             </li>
         </ul>
@@ -69,10 +69,10 @@
                     Account
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="/account/favourites">Favourites</a>
-                    <a class="dropdown-item" href="/account/scripts">My Scripts</a>
-                    <a class="dropdown-item" href="/account/social">Link Account</a>
-                    <a class="dropdown-item" href="/account/delete">Delete Account</a>
+                    <a class="dropdown-item" href="{% url 'user_favourites' %}">Favourites</a>
+                    <a class="dropdown-item" href="{% url 'user_scripts' %}">My Scripts</a>
+                    <a class="dropdown-item" href="{% url 'socialaccount_connections' %}">Link Account</a>
+                    <a class="dropdown-item" href="{% url 'delete_user' %}">Delete Account</a>
                 </div>
             </li>
             <li class="nav-item">
