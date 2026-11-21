@@ -31,7 +31,4 @@ max_requests_jitter = 100
 # Log to stdout/stderr so output is captured by App Service log streaming.
 accesslog = "-"
 errorlog = "-"
-access_log_format = (
-    '%(h)s - %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" '
-    'xff="%({x-forwarded-for}i)s"'
-)
+access_log_format = '%(h)s - %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" xff="%({x-forwarded-for}i)s"'
