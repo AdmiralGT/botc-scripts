@@ -42,7 +42,7 @@
                     </button>
                     <div class="dropdown-menu" aria-labelledby="downloadJsonButton">
                         {% for language in languages %}
-                            <button type="submit" class="dropdown-item" name="language_select" value={{ language }}>{% get_language_name language %}</a>
+                            <a class="dropdown-item" href="{% url 'download_all_roles_json_language' language %}">{% get_language_name language %}</a>
                         {% endfor %}
                     </div>
                 </div>

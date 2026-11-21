@@ -87,6 +87,11 @@ urlpatterns = [
         views.download_all_roles_json,
         name="download_all_roles_json",
     ),
+    path(
+        "script/all_roles/download/<str:language>",
+        views.download_all_roles_json,
+        name="download_all_roles_json_language",
+    ),
     path("script/<int:pk>/vote", views.vote_for_script, name="vote"),
     path(
         "script/<int:pk>/favourite",
@@ -116,7 +121,11 @@ urlpatterns = [
         views.download_unsupported_json,
         name="download_unsupported",
     ),
-    path("script/<int:pk>/<str:version>/download/<str:language>", views.download_json),
+    path(
+        "script/<int:pk>/<str:version>/download/<str:language>",
+        views.download_json,
+        name="download_json_language",
+    ),
     path(
         "script/<int:pk>/<str:version>/download_pdf",
         views.download_pdf,
