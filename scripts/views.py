@@ -2,7 +2,7 @@ import json as js
 import os
 from collections import Counter
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from tempfile import TemporaryFile
 from typing import Any
 from urllib.parse import urlencode
@@ -15,7 +15,9 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, F, Min, Prefetch, Subquery
+from django.db import transaction
+from django.db.models import Count, F, IntegerField, Min, OuterRef, Prefetch, Q, Subquery, Value
+from django.db.models.functions import Coalesce, TruncDate
 from django.http import (
     FileResponse,
     Http404,
@@ -24,11 +26,12 @@ from django.http import (
     HttpResponseRedirect,
     JsonResponse,
 )
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import get_valid_filename
 from django.views import generic
+from django.views.decorators.http import require_GET
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
 from versionfield import Version
@@ -39,6 +42,7 @@ from scripts import (
     filters,
     forms,
     models,
+    popularity,
     script_json,
     tables,
 )
@@ -105,7 +109,24 @@ class ScriptOrderToggleMixin:
         return kwargs
 
 
-class ScriptsListView(ScriptOrderToggleMixin, SingleTableMixin, FilterView):
+class ActiveFilterStyleMixin:
+    def get_filterset(self, filterset_class):
+        filterset = super().get_filterset(filterset_class)
+        filter_form = filterset.form
+        filter_form.is_valid()
+        cleaned_data = getattr(filter_form, "cleaned_data", {})
+        errors = filter_form.errors
+        for field_name in filter_form.changed_data:
+            if field_name not in errors and cleaned_data.get(field_name):
+                widget = filter_form.fields[field_name].widget
+                classes = widget.attrs.get("class", "").split()
+                if "is-valid" not in classes:
+                    classes.append("is-valid")
+                widget.attrs["class"] = " ".join(classes)
+        return filterset
+
+
+class ScriptsListView(ActiveFilterStyleMixin, ScriptOrderToggleMixin, SingleTableMixin, FilterView):
     model = models.ScriptVersion
     template_name = "scriptlist.html"
     table_pagination = {"per_page": 20}
@@ -137,7 +158,85 @@ class ScriptsListView(ScriptOrderToggleMixin, SingleTableMixin, FilterView):
         return tables.ClocktowerTable
 
 
-class UserScriptsListView(LoginRequiredMixin, ScriptOrderToggleMixin, SingleTableMixin, FilterView):
+class PopularityView(ActiveFilterStyleMixin, SingleTableMixin, FilterView):
+    model = models.ScriptVersion
+    filterset_class = filters.PopularityScriptVersionFilter
+    template_name = "popularity.html"
+    table_pagination = {"per_page": 20}
+
+    def get_queryset(self):
+        period_index = popularity.normalize_period_index(self.request.GET.get("period_index"))
+        period_days = popularity.POPULARITY_PERIODS[period_index]
+        cutoff = timezone.now() - timedelta(days=period_days)
+        events_by_script = (
+            models.ScriptEngagementEvent.objects.filter(
+                script_id=OuterRef("script_id"),
+                created_at__gte=cutoff,
+            )
+            .order_by()
+            .values("script_id")
+            .annotate(
+                votes_added=Count(
+                    "pk",
+                    filter=Q(event_type=models.ScriptEngagementEvent.EventType.VOTE_ADDED),
+                ),
+                votes_removed=Count(
+                    "pk",
+                    filter=Q(event_type=models.ScriptEngagementEvent.EventType.VOTE_REMOVED),
+                ),
+                favourites_added=Count(
+                    "pk",
+                    filter=Q(event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_ADDED),
+                ),
+                favourites_removed=Count(
+                    "pk",
+                    filter=Q(event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_REMOVED),
+                ),
+            )
+            .annotate(
+                vote_change=F("votes_added") - F("votes_removed"),
+                favourite_change=F("favourites_added") - F("favourites_removed"),
+            )
+        )
+        return (
+            models.ScriptVersion.plain_objects.filter(
+                latest=True,
+                homebrewiness=models.Homebrewiness.CLOCKTOWER,
+            )
+            .select_related("script")
+            .prefetch_related(Prefetch("tags", queryset=models.ScriptTag.objects.order_by("order")))
+            .annotate(
+                score=Coalesce(
+                    Subquery(events_by_script.values("vote_change")[:1]),
+                    Value(0),
+                    output_field=IntegerField(),
+                ),
+                num_favs=Coalesce(
+                    Subquery(events_by_script.values("favourite_change")[:1]),
+                    Value(0),
+                    output_field=IntegerField(),
+                ),
+            )
+            .filter(Q(score__gt=0) | Q(num_favs__gt=0))
+        )
+
+    def get_table_class(self):
+        if self.request.user.is_authenticated:
+            return tables.UserPopularityClocktowerTable
+        return tables.PopularityClocktowerTable
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        period_index = popularity.normalize_period_index(self.request.GET.get("period_index"))
+        context["period_index"] = period_index
+        context["period_days"] = popularity.POPULARITY_PERIODS[period_index]
+        context["popularity_periods"] = popularity.POPULARITY_PERIODS
+        return context
+
+
+class UserScriptsListView(
+    ActiveFilterStyleMixin, LoginRequiredMixin, ScriptOrderToggleMixin, SingleTableMixin, FilterView
+):
     model = models.ScriptVersion
     table_class = tables.UserClocktowerTable
     template_name = "scriptlist.html"
@@ -487,6 +586,7 @@ class ScriptUploadView(BaseScriptUploadView):
     def get_success_url(self):
         return "/script/" + str(self.script_version.script.pk)
 
+    @transaction.atomic
     def form_valid(self, form):
         user = self.request.user
         json = script_json.get_json_content(form.cleaned_data)
@@ -505,6 +605,9 @@ class ScriptUploadView(BaseScriptUploadView):
 
         # Either get the current script, or create a new one based on the name.
         script, created = models.Script.objects.get_or_create(name=script_name)
+
+        # Serialize uploads for this script before checking or changing its versions.
+        script = models.Script.objects.select_for_update().get(pk=script.pk)
 
         # We only want to set the owner on newly created scripts, so if we've
         # just created the script and the user is authenticated, set the owner to this user
@@ -532,8 +635,14 @@ class ScriptUploadView(BaseScriptUploadView):
             try:
                 script_version = models.ScriptVersion.objects.get(script=script, version=form.cleaned_data["version"])
                 # We're updating an existing version of a script.
-                # Our validation should have caught not being able to upload different
-                # JSON content for this script.
+                if script_version.content != json:
+                    form.add_error(
+                        "version",
+                        f"Version {form.cleaned_data['version']} already exists. "
+                        "You cannot upload a different script with the same version number.",
+                    )
+                    return self.form_invalid(form)
+
                 update_script(script_version, form.cleaned_data, author, user)
                 self.script_version = script_version
                 return HttpResponseRedirect(self.get_success_url())
@@ -543,12 +652,11 @@ class ScriptUploadView(BaseScriptUploadView):
                     # We need to protect this code against instances where a script doesn't
                     # have a latest version.
                     if script.latest_version().content == json:
-                        # The content hasn't change from the latest version, so just update
-                        # the script and exit, the user probably made an error in changing
-                        # the version string.
-                        update_script(script.latest_version(), form.cleaned_data, author, user)
-                        self.script_version = script.latest_version()
-                        return HttpResponseRedirect(self.get_success_url())
+                        form.add_error(
+                            "content",
+                            "This script is identical to the latest version. Please use the same version number if you're trying to update the script.",
+                        )
+                        return self.form_invalid(form)
 
                     if Version(form.cleaned_data["version"]) > script.latest_version().version:
                         # This is newer than the latest version, so set that
@@ -659,7 +767,7 @@ class ScriptDeleteView(LoginRequiredMixin, generic.edit.BaseDeleteView):
         return f"/script/{script.pk}"
 
 
-class StatisticsView(generic.ListView, FilterView):
+class StatisticsView(ActiveFilterStyleMixin, generic.ListView, FilterView):
     model = models.ScriptVersion
     template_name = "statistics.html"
     filterset_class = filters.StatisticsFilter
@@ -846,6 +954,7 @@ def get_script(request, pk: int) -> models.Script:
     return script
 
 
+@transaction.atomic
 def update_user_related_script(model, user: User, script: models.Script) -> None:
     if user.is_authenticated:
         if model.objects.filter(user=user, parent=script).exists():
@@ -881,6 +990,61 @@ def get_similar_scripts(request, pk: int, version: str) -> JsonResponse:
         similar[category].append({"value": int(value), "name": name, "scriptPK": script_pk})
 
     return JsonResponse(similar)
+
+
+@transaction.atomic
+@require_GET
+def script_popularity(request, pk: int) -> JsonResponse:
+    script = get_object_or_404(
+        models.Script.objects.select_for_update(no_key=True).only(
+            "pk", "num_votes", "num_favourites", "popularity_tracking_started_at"
+        ),
+        pk=pk,
+    )
+    today = timezone.localdate()
+    tracking_start = timezone.localtime(script.popularity_tracking_started_at).date()
+    start_date = max(today - timedelta(days=89), tracking_start)
+    current_timezone = timezone.get_current_timezone()
+    start_datetime = datetime.combine(start_date, time.min, tzinfo=current_timezone)
+    end_datetime = datetime.combine(today + timedelta(days=1), time.min, tzinfo=current_timezone)
+
+    event_counts = (
+        models.ScriptEngagementEvent.objects.filter(
+            script_id=script.pk,
+            created_at__gte=start_datetime,
+            created_at__lt=end_datetime,
+        )
+        .annotate(day=TruncDate("created_at", tzinfo=current_timezone))
+        .values("day")
+        .annotate(
+            votes_added=Count("pk", filter=Q(event_type=models.ScriptEngagementEvent.EventType.VOTE_ADDED)),
+            votes_removed=Count("pk", filter=Q(event_type=models.ScriptEngagementEvent.EventType.VOTE_REMOVED)),
+            favourites_added=Count("pk", filter=Q(event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_ADDED)),
+            favourites_removed=Count(
+                "pk", filter=Q(event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_REMOVED)
+            ),
+        )
+        .order_by("day")
+    )
+    changes_by_date = {
+        event_count["day"]: (
+            event_count["votes_added"],
+            event_count["votes_removed"],
+            event_count["favourites_added"],
+            event_count["favourites_removed"],
+        )
+        for event_count in event_counts
+    }
+
+    return JsonResponse(
+        popularity.build_popularity_history(
+            start_date,
+            today,
+            script.num_votes,
+            script.num_favourites,
+            changes_by_date,
+        )
+    )
 
 
 def favourite_script(request, pk: int) -> None:
@@ -1014,7 +1178,7 @@ class CollectionScriptListView(SingleTableView):
         return collection.scripts.select_related("script").prefetch_related("tags").order_by("pk")
 
 
-class CollectionListView(SingleTableMixin, FilterView):
+class CollectionListView(ActiveFilterStyleMixin, SingleTableMixin, FilterView):
     model = models.Collection
     template_name = "collection_list.html"
     table_pagination = {"per_page": 20}
@@ -1041,11 +1205,18 @@ class CollectionEditView(LoginRequiredMixin, generic.edit.UpdateView):
     form_class = forms.CollectionForm
     model = models.Collection
 
-    def get_queryset(self):
+    def get_object(self, queryset=None):
         """
-        A user should only be able to edit the collections they own.
+        A user should only be able to edit the collections they own. get_object() is used by
+        both GET and POST.
         """
-        return super().get_queryset().filter(owner=self.request.user)
+        try:
+            collection = super().get_object(queryset)
+        except Http404:
+            raise Http404("This collection doesn't exist.")
+        if collection.owner != self.request.user:
+            raise PermissionDenied("You can only edit collections you own.")
+        return collection
 
     def get_success_url(self) -> str:
         return "/collection/" + str(self.object.id)
@@ -1079,15 +1250,15 @@ class AddScriptToCollectionView(LoginRequiredMixin, generic.View):
         try:
             collection = models.Collection.objects.get(pk=request.POST.get("collection"))
         except (models.Collection.DoesNotExist, ValueError):
-            raise Http404("Unknown collection.")
+            raise Http404("This collection doesn't exist.")
 
-        if collection.owner != self.request.user:
-            raise Http404("Cannot edit a collection you don't own.")
+        if collection.owner != request.user:
+            raise PermissionDenied("You can only add scripts to collections you own.")
 
         try:
             script = models.ScriptVersion.objects.get(pk=request.POST.get("script_version"))
         except (models.ScriptVersion.DoesNotExist, ValueError):
-            raise Http404("Unknown script.")
+            raise Http404("This script doesn't exist.")
 
         collection.scripts.add(script)
         return HttpResponseRedirect("/script/" + str(script.script.pk) + "/" + str(script.version))
@@ -1278,7 +1449,12 @@ class AdvancedSearchView(generic.FormView):
         return get_advanced_search_form(**self.get_form_kwargs())
 
     def form_valid(self, form):
-        params = {name: form.data.getlist(name) for name in form.fields if name in form.data}
+        params = {}
+        for name in form.fields:
+            if name in form.data:
+                values = [value for value in form.data.getlist(name) if value.strip()]
+                if values:
+                    params[name] = values
         return redirect(f"{reverse('advanced_search_results')}?{urlencode(params, doseq=True)}")
 
 

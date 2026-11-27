@@ -27,24 +27,40 @@ def update_comment_count_on_delete(sender, instance, origin=None, **kwargs):
 def update_vote_count_on_create(sender, instance, created, **kwargs):
     if created and instance.parent_id is not None:
         models.Script.objects.filter(pk=instance.parent_id).update(num_votes=F("num_votes") + 1)
+        models.ScriptEngagementEvent.objects.create(
+            script_id=instance.parent_id,
+            event_type=models.ScriptEngagementEvent.EventType.VOTE_ADDED,
+        )
 
 
 @receiver(post_delete, sender=models.Vote)
 def update_vote_count_on_delete(sender, instance, origin=None, **kwargs):
     if not _is_script_deletion(origin) and instance.parent_id is not None:
         models.Script.objects.filter(pk=instance.parent_id).update(num_votes=F("num_votes") - 1)
+        models.ScriptEngagementEvent.objects.create(
+            script_id=instance.parent_id,
+            event_type=models.ScriptEngagementEvent.EventType.VOTE_REMOVED,
+        )
 
 
 @receiver(post_save, sender=models.Favourite)
 def update_favourite_count_on_create(sender, instance, created, **kwargs):
     if created and instance.parent_id is not None:
         models.Script.objects.filter(pk=instance.parent_id).update(num_favourites=F("num_favourites") + 1)
+        models.ScriptEngagementEvent.objects.create(
+            script_id=instance.parent_id,
+            event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_ADDED,
+        )
 
 
 @receiver(post_delete, sender=models.Favourite)
 def update_favourite_count_on_delete(sender, instance, origin=None, **kwargs):
     if not _is_script_deletion(origin) and instance.parent_id is not None:
         models.Script.objects.filter(pk=instance.parent_id).update(num_favourites=F("num_favourites") - 1)
+        models.ScriptEngagementEvent.objects.create(
+            script_id=instance.parent_id,
+            event_type=models.ScriptEngagementEvent.EventType.FAVOURITE_REMOVED,
+        )
 
 
 @receiver(pre_save, sender=models.ClocktowerCharacter)

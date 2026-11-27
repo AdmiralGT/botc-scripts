@@ -32,11 +32,11 @@ body {
     color: var(--text-color);
 }
 main {
-    padding-top: 1rem;
-    padding-bottom: 1.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 .footer {
-    padding: 1rem 0;
+    padding: 0.25rem 0;
     font-size: 0.875rem;
     border-top: 1px solid var(--border-color);
 }
@@ -166,6 +166,7 @@ html[data-theme="dark"] .char-unknown { color: inherit; }
 .stat-favs { color: #ffc000; }
 .stat-comments { color: green; }
 .stat-downloads { color: blue; }
+.table-stat-icon { position: relative; top: -2px; margin-left: 0.1em; }
 html[data-theme="dark"] .stat-votes { color: #ff6b6b; }
 html[data-theme="dark"] .stat-comments { color: #5fd07a; }
 html[data-theme="dark"] .stat-favs { color: #e6b93f; }
@@ -317,6 +318,10 @@ html[data-theme="dark"] .badge-nocturne {
 }
 
 /* ---- Statistics tables ------------------------------------------------ */
+.stats-table td {
+    padding: 0.15rem 0.3rem;
+}
+
 .table-striped-good>tbody>tr:nth-child(odd)>td {
     background-color: #85c1e9;
 }
@@ -402,10 +407,19 @@ html[data-theme="dark"] .table-striped-fabled .text-dark {
 .advanced-search select[multiple] {
     min-height: 8rem;
 }
+/* Split the tag list into two columns, like the other fields. */
+@media (min-width: 768px) {
+    .advanced-search #id_tags {
+        column-count: 2;
+        column-gap: 1.5rem;
+    }
+}
+.advanced-search #id_tags .form-check {
+    break-inside: avoid;
+}
 
 /* ---- Visual polish ----------------------------------------------------- */
 body {
-    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -414,8 +428,7 @@ h1, h2, h3, h4, h5, h6,
     font-weight: 600;
     letter-spacing: -0.01em;
 }
-h1, .h1 { margin-bottom: 0.75rem; }
-main { padding-top: 1.5rem; }
+h1, .h1 { margin-bottom: 0.5rem; }
 a { text-underline-offset: 2px; }
 
 /* Navbar */
@@ -511,6 +524,10 @@ a { text-underline-offset: 2px; }
 .table tbody tr {
     transition: background-color 0.1s ease;
 }
+/* Icon-only action buttons: keep rows as compact as before. */
+.table td .btn-sm {
+    line-height: 1;
+}
 .table tbody tr:hover {
     background-color: rgba(0, 86, 179, 0.06);
 }
@@ -522,12 +539,21 @@ html[data-theme="dark"] .table tbody tr:hover {
 }
 
 /* Pagination */
+.pagination {
+    margin-top: 0.75rem;
+}
 .pagination .page-link {
     border-radius: 0.375rem;
     margin: 0 0.15rem;
 }
 
 /* Tabs on the script page */
+/* Leave room between the PDF and the tab next to it. */
+@media (min-width: 576px) {
+    .pdf-column ~ .tab-pane {
+        padding-left: 2rem;
+    }
+}
 .nav-tabs {
     border-bottom-color: var(--border-color);
 }

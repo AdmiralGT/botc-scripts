@@ -1,10 +1,10 @@
 {% load botc_script_tags %}
-<div class="col-md-6 mb-3">
-    <h2 class="h4 mt-2">
+<div class="col-md-6 mb-2">
+    <h2 class="h4 mt-1 mb-1">
         {% if stats_character %}{{ direction }} common {{ singular }} pairing{% else %}{{ direction }} popular {{ plural }}{% endif %}
     </h2>
     <div class="table-responsive-wrapper">
-        <table class="w-100 table-sm {{ table_class }}">
+        <table class="w-100 stats-table {{ table_class }}">
             <caption class="sr-only">{% if stats_character %}{{ direction }} common {{ singular }} pairing{% else %}{{ direction }} popular {{ plural }}{% endif %}</caption>
             <thead class="sr-only">
                 <tr>

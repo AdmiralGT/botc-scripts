@@ -18,13 +18,13 @@
     {% endif %}
     <div class="form-group row p-1 mb-0 filter-row">
         <div class="filter-search m-1">
-            {% bootstrap_field filter.form.search layout='inline' form_group_class="mb-0 flex-grow-1" %}
+            {% bootstrap_field filter.form.search layout='inline' form_group_class="mb-0 flex-grow-1" bound_css_class="" %}
             <button type="button" class="btn btn-outline-secondary d-md-none filter-toggle" data-toggle="collapse" data-target="#filter-fields" aria-expanded="false" aria-controls="filter-fields">
                 Filters{% if filter_count %} <span class="badge badge-primary">{{ filter_count }}</span><span class="sr-only"> active</span>{% endif %}
             </button>
         </div>
         <div id="filter-fields" class="collapse filter-fields">
-            {% bootstrap_form filter.form exclude='tags,search' layout='inline' form_group_class="mb-0 m-1" %}
+            {% bootstrap_form filter.form exclude='tags,search' layout='inline' form_group_class="mb-0 m-1" bound_css_class="" %}
             <div class="filter-panel-actions d-md-none">
                 <button type="submit" class="btn btn-primary btn-shaded-text">Show results</button>
                 <a class="btn btn-outline-secondary" href="{{ request.path }}">Clear all</a>
