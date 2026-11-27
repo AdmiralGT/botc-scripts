@@ -24,7 +24,7 @@
         {% if user.is_authenticated and filter %}
         <form action="" method="get" class="form mb-2" role="search" aria-label="Filter statistics">
             <div class="form-group row p-1 mb-0">
-                {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" %}
+                {% bootstrap_form filter.form layout='inline' form_group_class="mb-0 m-1" bound_css_class="" %}
                 {% bootstrap_button 'Filter' extra_classes="btn-sm mr-1" %}
                 {% bootstrap_button 'Clear' button_class='btn-outline-secondary' extra_classes="btn-sm" href="/statistics" %}
             </div>
